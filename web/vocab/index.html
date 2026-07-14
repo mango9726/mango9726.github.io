@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vocab Trainer · ที่จำคำศัพท์</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kanit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-decor" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-logo">🧠</span>
+      <div>
+        <h1>Vocab Trainer</h1>
+        <p class="brand-sub">จำคำศัพท์อังกฤษระดับ B1 อย่างมีระบบ</p>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-view="home"><span class="nav-ico">🏠</span><span>หน้าแรก</span></button>
+      <button class="nav-btn" data-view="cards"><span class="nav-ico">🃏</span><span>ไพ่ทบทวน</span></button>
+      <button class="nav-btn" data-view="quiz"><span class="nav-ico">✍️</span><span>แบบทดสอบ</span></button>
+      <button class="nav-btn" data-view="tasks"><span class="nav-ico">📅</span><span>Daily Tasks</span></button>
+      <button class="nav-btn" data-view="browse"><span class="nav-ico">📚</span><span>รายการคำ</span></button>
+      <button class="nav-btn" data-view="pron"><span class="nav-ico">🎤</span><span>ทดสอบเสียง</span></button>
+      <button class="nav-btn" data-view="fill"><span class="nav-ico">✏️</span><span>เติมคำ</span></button>
+      <button class="nav-btn" data-view="match"><span class="nav-ico">🎴</span><span>จับคู่</span></button>
+      <button class="nav-btn" data-view="tf"><span class="nav-ico">⏱️</span><span>จริง/เท็จ</span></button>
+      <button class="nav-btn" data-view="hang"><span class="nav-ico">🎯</span><span>แขวนคอ</span></button>
+      <button class="nav-btn" data-view="build"><span class="nav-ico">🧩</span><span>เรียงประโยค</span></button>
+      <button class="nav-btn" data-view="cloze"><span class="nav-ico">✍️</span><span>เติมช่อง</span></button>
+      <button class="nav-btn" data-view="listen"><span class="nav-ico">🔊</span><span>ฟังพิมพ์</span></button>
+      <button class="nav-btn" data-view="settings"><span class="nav-ico">⚙️</span><span>ตั้งค่า</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="streak" id="streakBox" title="วันติดต่อกันที่ทบทวน">🔥 <span id="streak">0</span> วัน</div>
+      <button class="icon-btn" id="themeToggle" title="สลับโหมดกลางคืน">🌙</button>
+    </div>
+  </aside>
+
+  <main class="container">
+
+    <!-- ===== HOME ===== -->
+    <section class="view active" id="view-home">
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-num" id="statTotal">0</span><span class="stat-label">คำทั้งหมด</span></div>
+        <div class="stat-card"><span class="stat-num" id="statMastered">0</span><span class="stat-label">จำได้แล้ว (ชำนาญ)</span></div>
+        <div class="stat-card"><span class="stat-num" id="statDue">0</span><span class="stat-label">ถึงกำหนดทบทวน</span></div>
+        <div class="stat-card"><span class="stat-num" id="statDays">0</span><span class="stat-label">วันที่เรียนไป</span></div>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn btn-primary" id="homeCards">🃏 เริ่มทบทวนไพ่</button>
+        <button class="btn btn-accent" id="homeQuiz">✍️ ทำแบบทดสอบ</button>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn" id="homeFill">✏️ เติมคำ</button>
+        <button class="btn" id="homeMatch">🎴 จับคู่ไพ่</button>
+        <button class="btn" id="homeTf">⏱️ จริง/เท็จ</button>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn" id="homeHang">🎯 แขวนคอ</button>
+        <button class="btn" id="homeBuild">🧩 เรียงประโยค</button>
+        <button class="btn" id="homeCloze">✍️ เติมช่อง</button>
+        <button class="btn" id="homeListen">🔊 ฟังพิมพ์</button>
+      </div>
+
+      <div class="panel">
+        <h2>📅 ความคืบหน้าตามวัน</h2>
+        <div id="dayProgress" class="day-progress"></div>
+      </div>
+    </section>
+
+    <!-- ===== FLASHCARDS ===== -->
+    <section class="view" id="view-cards">
+      <div class="panel" id="cardControls">
+        <h2>ตั้งค่าการทบทวน</h2>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="cardFilterType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">วัน</span>
+            <div class="chip-group scroll" id="cardFilterDay"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">โหมด</span>
+            <div class="chip-group" id="cardMode"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startCards">เริ่มเรียน</button>
+      </div>
+
+      <div class="session hidden" id="cardSession">
+        <div class="session-top">
+          <span id="cardCounter">0 / 0</span>
+          <div class="progress-bar"><div class="progress-fill" id="cardProgress"></div></div>
+        </div>
+        <div class="flip-card" id="flipCard">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <span class="badge" id="cardBadge">VOCAB</span>
+              <button class="info-btn" id="cardInfo" title="ดูรายละเอียด">ℹ️</button>
+              <p class="card-word" id="cardWord">word</p>
+              <p class="card-pos" id="cardPos"></p>
+              <button class="speak-btn" id="cardSpeak" title="ฟังเสียง">🔊</button>
+              <p class="hint">แตะเพื่อดูคำแปล · กด ℹ️ ดูรายละเอียด</p>
+            </div>
+            <div class="flip-back">
+              <p class="card-th" id="cardTh"></p>
+              <div class="card-ex">
+                <p class="ex-en" id="cardExEn"></p>
+                <p class="ex-th" id="cardExTh"></p>
+              </div>
+              <p class="card-note hidden" id="cardNote"></p>
+            </div>
+          </div>
+        </div>
+        <div class="session-actions">
+          <button class="btn btn-bad" id="btnDontKnow">😵 ไม่จำได้</button>
+          <button class="btn btn-good" id="btnKnow">😎 จำได้</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="cardResult"></div>
+    </section>
+
+    <!-- ===== QUIZ ===== -->
+    <section class="view" id="view-quiz">
+      <div class="panel" id="quizControls">
+        <h2>ตั้งค่าแบบทดสอบ</h2>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">รูปแบบคำถาม</span>
+            <div class="chip-group" id="quizMode"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">จำนวนข้อ</span>
+            <div class="chip-group" id="quizCount"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="quizType"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startQuiz">เริ่มทำข้อสอบ</button>
+      </div>
+
+      <div class="session hidden" id="quizSession">
+        <div class="session-top">
+          <span id="quizCounter">ข้อ 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="quizProgress"></div></div>
+        </div>
+        <div class="quiz-q">
+          <button class="speak-btn" id="quizSpeak" title="ฟังเสียง">🔊</button>
+          <p id="quizPrompt" class="quiz-prompt"></p>
+        </div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <p class="quiz-feedback hidden" id="quizFeedback"></p>
+        <button class="btn btn-primary hidden" id="quizNext">ข้อต่อไป →</button>
+      </div>
+
+      <div class="result hidden" id="quizResult"></div>
+    </section>
+
+    <!-- ===== DAILY TASKS ===== -->
+    <section class="view" id="view-tasks">
+      <div class="panel">
+        <h2>📅 Daily Tasks — ทบทวนตามตาราง</h2>
+        <p class="hint" id="tasksToday"></p>
+        <p class="hint">ระบบจะนำคำของวันก่อนมาให้ทบทวนด้วยช่วงห่างที่เพิ่มขึ้นเรื่อยๆ (เช่น Day 1 จะวนกลับมาวันที่ 2, 4, 7, 14 …) ยิ่งทบทวนได้บ่อย ความถี่จะยิ่งลดลง จนจำได้แม่นยำ</p>
+      </div>
+      <div id="tasksList" class="tasks-list"></div>
+    </section>
+
+    <!-- ===== BROWSE ===== -->
+    <section class="view" id="view-browse">
+      <div class="panel">
+        <h2>ค้นหาและเรียกดู</h2>
+        <p class="hint">💡 คลิกการ์ดเพื่อดูรายละเอียดคำ · กด 🔊 เพื่อฟังเสียง</p>
+        <div class="controls">
+          <div class="field grow">
+            <span class="field-label">ค้นหา</span>
+            <input type="text" id="browseSearch" placeholder="พิมพ์คำศัพท์หรือความหมาย..." />
+          </div>
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="browseType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">วัน</span>
+            <div class="chip-group scroll" id="browseDay"></div>
+          </div>
+        </div>
+      </div>
+      <div class="browse-list" id="browseList"></div>
+    </section>
+
+    <!-- ===== PRONUNCIATION TEST ===== -->
+    <section class="view" id="view-pron">
+      <div class="panel" id="pronControls">
+        <h2>🎤 ทดสอบการออกเสียง</h2>
+        <p class="hint">พูดคำใส่ไมโครโฟน ระบบจะตรวจความถูกต้องและไฮไลต์พยางค์ที่ยังผิดให้</p>
+        <p class="hint pron-file-warn" id="pronFileWarn" style="display:none;color:var(--bad)">⚠️ กำลังเปิดแบบไฟล์ตรง (file://) — เบราว์เซอร์จะขออนุญาตไมโครโฟนทุกครั้ง จงรัน <b>start-server.bat</b> แล้วเปิด <b>http://localhost:8000</b> เพื่อให้ "อนุญาตตลอด" ติด</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">จำนวนข้อ</span>
+            <div class="chip-group" id="pronCount"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="pronType"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startPron">เริ่มทดสอบเสียง</button>
+      </div>
+
+      <div class="session hidden" id="pronSession">
+        <div class="session-top">
+          <span id="pronCounter">ข้อ 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="pronProgress"></div></div>
+        </div>
+        <div class="pron-q">
+          <span class="badge" id="pronBadge">VOCAB</span>
+          <p class="pron-word" id="pronWord"></p>
+          <p class="pron-phon" id="pronPhon"></p>
+          <div class="pron-audio-btns">
+            <button class="speak-btn" id="pronSpeak" title="ฟังเสียงตัวอย่าง">🔊</button>
+            <button class="speak-btn" id="pronSlow" title="ฟังช้าๆ">🔈</button>
+          </div>
+        </div>
+        <button class="btn btn-accent btn-mic" id="pronRecord">
+          <span class="mic-icon">🎤</span> <span id="pronRecordLabel">แตะแล้วพูดคำนี้</span>
+        </button>
+        <div class="pron-feedback hidden" id="pronFeedback"></div>
+        <button class="btn btn-primary hidden" id="pronNext">ข้อต่อไป →</button>
+      </div>
+
+      <div class="result hidden" id="pronResult2"></div>
+    </section>
+
+    <!-- ===== FILL-IN-THE-BLANK ===== -->
+    <section class="view" id="view-fill">
+      <div class="panel" id="fillControls">
+        <h2>✏️ แบบเติมคำตอบ</h2>
+        <p class="hint">อ่านคำใบ้แล้วพิมพ์คำตอบลงในช่อง — ตรวจอัตโนมัติ</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">ทิศทาง</span>
+            <div class="chip-group" id="fillDir"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="fillType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">จำนวนข้อ</span>
+            <div class="chip-group" id="fillCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startFill">เริ่มเติมคำ</button>
+      </div>
+
+      <div class="session hidden" id="fillSession">
+        <div class="session-top">
+          <span id="fillCounter">ข้อ 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="fillProgress"></div></div>
+        </div>
+        <div class="fill-q">
+          <span class="badge" id="fillBadge">VOCAB</span>
+          <p class="fill-prompt" id="fillPrompt"></p>
+          <button class="speak-btn" id="fillSpeak" title="ฟังเสียง">🔊</button>
+        </div>
+        <input type="text" id="fillInput" class="fill-input" placeholder="พิมพ์คำตอบที่นี่..." autocomplete="off" />
+        <p class="fill-feedback hidden" id="fillFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="fillSkip">ข้าม</button>
+          <button class="btn btn-primary" id="fillCheck">ตรวจคำตอบ</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="fillResult"></div>
+    </section>
+
+    <!-- ===== CARD MATCH ===== -->
+    <section class="view" id="view-match">
+      <div class="panel" id="matchControls">
+        <h2>🎴 เกมจับคู่ไพ่</h2>
+        <p class="hint">พลิกไพ่แล้วหาคู่ คำ ↔ ความหมาย ให้ครบทุกคู่</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="matchType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">จำนวนคู่</span>
+            <div class="chip-group" id="matchSize"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startMatch">เริ่มจับคู่</button>
+      </div>
+
+      <div class="session hidden" id="matchSession">
+        <div class="session-top">
+          <span id="matchStatus">คู่ที่จับได้: 0 / 0</span>
+          <span id="matchTimer" class="match-timer">⏱️ 0:00</span>
+        </div>
+        <div class="match-grid" id="matchGrid"></div>
+      </div>
+
+      <div class="result hidden" id="matchResult"></div>
+    </section>
+
+    <!-- ===== TRUE / FALSE (TIMED) ===== -->
+    <section class="view" id="view-tf">
+      <div class="panel" id="tfControls">
+        <h2>⏱️ แบบทดสอบ จริง / เท็จ</h2>
+        <p class="hint">อ่านคำและประโยคไทย แล้วตัดสินใจว่าถูกต้องหรือไม่ — มีเวลาจำกัด!</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="tfType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">จำนวนข้อ</span>
+            <div class="chip-group" id="tfCount"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">เวลาทั้งหมด</span>
+            <div class="chip-group" id="tfTime"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startTf">เริ่มแบบทดสอบ</button>
+      </div>
+
+      <div class="session hidden" id="tfSession">
+        <div class="tf-timer-bar">
+          <div class="tf-time-fill" id="tfTimeFill"></div>
+          <span class="tf-time-text" id="tfTimeText">0:00</span>
+        </div>
+        <div class="session-top">
+          <span id="tfCounter">ข้อ 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="tfProgress"></div></div>
+        </div>
+        <div class="tf-q">
+          <span class="badge" id="tfBadge">VOCAB</span>
+          <p class="tf-word" id="tfWord"></p>
+          <button class="speak-btn" id="tfSpeak" title="ฟังเสียง">🔊</button>
+        </div>
+        <p class="tf-statement" id="tfStatement"></p>
+        <p class="quiz-feedback hidden" id="tfFeedback"></p>
+        <div class="tf-options">
+          <button class="btn btn-good tf-opt-btn" id="tfTrue">✅ จริง</button>
+          <button class="btn btn-bad tf-opt-btn" id="tfFalse">❌ เท็จ</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="tfResult"></div>
+    </section>
+
+    <!-- ===== HANGMAN ===== -->
+    <section class="view" id="view-hang">
+      <div class="panel" id="hangControls">
+        <h2>🎯 แขวนคอ (Hangman)</h2>
+        <p class="hint">เดาภาษาอังกฤษจากคำใบ้ไทย ทีละตัวอักษร — ผิดได้ 6 ครั้ง</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="hangType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">จำนวนข้อ</span>
+            <div class="chip-group" id="hangCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startHang">เริ่มแขวนคอ</button>
+      </div>
+
+      <div class="session hidden" id="hangSession">
+        <div class="session-top">
+          <span id="hangCounter">ข้อ 1</span>
+          <div class="hang-lives" id="hangLives"></div>
+        </div>
+        <div class="hang-clue">
+          <span class="badge" id="hangBadge">VOCAB</span>
+          <p class="hang-th" id="hangTh"></p>
+          <p class="hang-pos" id="hangPos"></p>
+        </div>
+        <div class="hang-figure" id="hangFigure">
+          <svg viewBox="0 0 200 230" aria-hidden="true">
+            <g class="hf-gallows">
+              <line x1="40" y1="215" x2="165" y2="215" />
+              <line x1="72" y1="215" x2="72" y2="28" />
+              <line x1="72" y1="28" x2="142" y2="28" />
+              <line x1="142" y1="28" x2="142" y2="55" />
+            </g>
+            <g class="hf-part" data-part="1"><circle cx="142" cy="74" r="19" /></g>
+            <g class="hf-part" data-part="2"><line x1="142" y1="93" x2="142" y2="155" /></g>
+            <g class="hf-part" data-part="3"><line x1="142" y1="108" x2="116" y2="138" /></g>
+            <g class="hf-part" data-part="4"><line x1="142" y1="108" x2="168" y2="138" /></g>
+            <g class="hf-part" data-part="5"><line x1="142" y1="155" x2="120" y2="200" /></g>
+            <g class="hf-part" data-part="6"><line x1="142" y1="155" x2="164" y2="200" /></g>
+          </svg>
+        </div>
+        <div class="hang-word" id="hangWord"></div>
+        <p class="hang-msg hidden" id="hangMsg"></p>
+        <div class="hang-keyboard" id="hangKeyboard"></div>
+        <div class="session-actions">
+          <button class="btn" id="hangSkip">ข้าม</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="hangResult"></div>
+    </section>
+
+    <!-- ===== SENTENCE BUILDER ===== -->
+    <section class="view" id="view-build">
+      <div class="panel" id="buildControls">
+        <h2>🧩 เรียงประโยค</h2>
+        <p class="hint">แตะการ์ดสองใบเพื่อสลับที่กัน ให้เรียงคำเป็นประโยคถูกต้อง</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="buildType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">จำนวนข้อ</span>
+            <div class="chip-group" id="buildCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startBuild">เริ่มเรียงประโยค</button>
+      </div>
+
+      <div class="session hidden" id="buildSession">
+        <div class="session-top">
+          <span id="buildCounter">ข้อ 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="buildProgress"></div></div>
+        </div>
+        <p class="build-hint">แตะสองใบเพื่อสลับ · เมื่อเรียงถูกแล้วกดตรวจ</p>
+        <div class="build-tiles" id="buildTiles"></div>
+        <p class="build-feedback hidden" id="buildFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="buildSkip">ข้าม</button>
+          <button class="btn btn-primary" id="buildCheck">ตรวจคำตอบ</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="buildResult"></div>
+    </section>
+
+    <!-- ===== CLOZE ===== -->
+    <section class="view" id="view-cloze">
+      <div class="panel" id="clozeControls">
+        <h2>✍️ เติมช่องในประโยค (Cloze)</h2>
+        <p class="hint">เติมคำในช่องว่างให้ประโยคสมบูรณ์</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="clozeType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">จำนวนข้อ</span>
+            <div class="chip-group" id="clozeCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startCloze">เริ่มเติมช่อง</button>
+      </div>
+
+      <div class="session hidden" id="clozeSession">
+        <div class="session-top">
+          <span id="clozeCounter">ข้อ 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="clozeProgress"></div></div>
+        </div>
+        <p class="cloze-sentence" id="clozeSentence"></p>
+        <div class="quiz-options" id="clozeOptions"></div>
+        <p class="quiz-feedback hidden" id="clozeFeedback"></p>
+        <button class="btn btn-primary hidden" id="clozeNext">ข้อต่อไป →</button>
+      </div>
+
+      <div class="result hidden" id="clozeResult"></div>
+    </section>
+
+    <!-- ===== LISTEN & TYPE ===== -->
+    <section class="view" id="view-listen">
+      <div class="panel" id="listenControls">
+        <h2>🔊 ฟังแล้วพิมพ์ (Listen &amp; Type)</h2>
+        <p class="hint">ฟังคำแล้วพิมพ์สิ่งที่ได้ยิน — ไม่ต้องใช้ไมโครโฟน</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">ประเภท</span>
+            <div class="chip-group" id="listenType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">จำนวนข้อ</span>
+            <div class="chip-group" id="listenCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startListen">เริ่มฟังพิมพ์</button>
+      </div>
+
+      <div class="session hidden" id="listenSession">
+        <div class="session-top">
+          <span id="listenCounter">ข้อ 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="listenProgress"></div></div>
+        </div>
+        <div class="listen-q">
+          <button class="speak-btn lg" id="listenSpeak" title="ฟังเสียง">🔊</button>
+          <p class="listen-pos" id="listenPos"></p>
+        </div>
+        <input type="text" id="listenInput" class="fill-input" placeholder="พิมพ์คำที่ได้ยิน..." autocomplete="off" />
+        <p class="fill-feedback hidden" id="listenFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="listenSkip">ข้าม</button>
+          <button class="btn btn-primary" id="listenCheck">ตรวจคำตอบ</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="listenResult"></div>
+    </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section class="view" id="view-settings">
+      <div class="panel">
+        <h2>⚙️ ตั้งค่า</h2>
+        <div class="settings-row">
+          <span>โหมดกลางคืน</span>
+          <button class="btn" id="settingsTheme">สลับธีม</button>
+        </div>
+        <div class="settings-row">
+          <span>วันเรียนปัจจุบัน (ตามแผน)</span>
+          <div class="stepper">
+            <button class="btn btn-sm" id="planDayMinus">−</button>
+            <span id="planDayLabel" class="plan-day-label">Day 1</span>
+            <button class="btn btn-sm" id="planDayPlus">+</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <span>ตั้งวันอัตโนมัติตามปฏิทิน</span>
+          <button class="btn btn-sm" id="planDayAuto">รีเซ็ต</button>
+        </div>
+        <div class="settings-row">
+          <span>ล้างความคืบหน้าทั้งหมด (รีเซ็ตการทบทวน)</span>
+          <button class="btn btn-bad" id="resetProgress">รีเซ็ต</button>
+        </div>
+        <div class="settings-info" id="settingsInfo"></div>
+
+        <div class="backup-box">
+          <h3>💾 สำรอง / กู้คืนข้อมูล (ย้ายเครื่องได้)</h3>
+          <p class="hint">ข้อมูลความคืบหน้าเก็บในเครื่องนี้เท่านั้น ถ้าจะย้ายไปเครื่อง/เบราว์เซอร์อื่น ให้ "ส่งออก" ที่เครื่องเก่า แล้ว "นำเข้า" ที่เครื่องใหม่</p>
+          <div class="backup-actions">
+            <button class="btn btn-primary" id="exportFile">⬇️ ดาวน์โหลดไฟล์สำรอง</button>
+            <button class="btn" id="exportCopy">📋 คัดลอกโค้ดสำรอง</button>
+          </div>
+          <textarea id="backupCode" class="backup-code" placeholder="วางโค้ดสำรองที่นี่เพื่อนำเข้า หรือกด 'คัดลอกโค้ดสำรอง' เพื่อรับโค้ดของเครื่องนี้"></textarea>
+          <div class="backup-actions">
+            <button class="btn btn-accent" id="importCode">📥 นำเข้าจากโค้ดด้านบน</button>
+            <label class="btn file-label">📂 เลือกไฟล์สำรอง<input type="file" id="importFile" accept=".json,application/json" hidden /></label>
+          </div>
+          <p class="backup-status hidden" id="backupStatus"></p>
+        </div>
+        <p class="hint">💡 เพิ่มคำใหม่ทุกวันได้โดยแจ้ง Claude: <em>"Day N, [หัวข้อ หรือ random]"</em> แล้วคำจะไปปรากฏในเว็บนี้ให้อัตโนมัติ</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== WORD DETAIL MODAL ===== -->
+  <div class="modal-overlay" id="detailModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="รายละเอียดคำศัพท์">
+      <button class="modal-close" id="detailClose" title="ปิด (Esc)">✕</button>
+      <div class="detail-head">
+        <div class="detail-head-text">
+          <span class="detail-type" id="detailType"></span>
+          <h2 class="detail-word" id="detailWord"></h2>
+          <p class="detail-phonetic" id="detailPhonetic"></p>
+          <p class="detail-pos" id="detailPos"></p>
+        </div>
+        <button class="speak-btn" id="detailSpeak" title="ฟังเสียงคำนี้">🔊</button>
+      </div>
+
+      <div class="detail-th" id="detailTh"></div>
+
+      <div class="detail-section">
+        <h3>💡 ตัวอย่างการใช้</h3>
+        <div class="detail-ex">
+          <p class="ex-en" id="detailExEn"></p>
+          <p class="ex-th" id="detailExTh"></p>
+        </div>
+      </div>
+
+      <div class="detail-note hidden" id="detailNote"></div>
+
+      <div class="detail-section">
+        <h3>📈 ความก้าวหน้าของคุณ</h3>
+        <div class="detail-progress" id="detailProgress"></div>
+      </div>
+
+      <div class="detail-meta" id="detailMeta"></div>
+
+      <div class="detail-related" id="detailRelated"></div>
+
+      <div class="detail-actions">
+        <button class="btn" id="detailSlow">🔈 ฟังช้าๆ</button>
+        <button class="btn btn-primary" id="detailClose2">ปิด</button>
+      </div>
+
+      <div class="detail-section pron-practice">
+        <h3>🎤 ฝึกออกเสียง</h3>
+        <button class="btn btn-accent" id="detailPron">🎤 แตะแล้วพูดคำนี้</button>
+
+        
+        <div class="pron-feedback hidden" id="pronResult"></div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer">สร้างเพื่อการเรียนรู้</footer>
+
+  <script src="vocab-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

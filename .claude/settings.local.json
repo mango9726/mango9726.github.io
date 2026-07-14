@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(command -v node)",
+      "Bash(node --check \"C:/Users/HP/Desktop/codex/web/vocab/app.js\")",
+      "Bash(python _check.py app.js)",
+      "Bash(python _check.py vocab-data.js)",
+      "Bash(python _check.py)",
+      "Bash(node --check app.js)",
+      "Bash(node --check vocab-data.js)",
+      "Bash(python *)",
+      "Bash(cmd.exe /c \"where python\")",
+      "Bash(cmd.exe /c \"where py\")",
+      "Bash(\"C:/Users/HP/AppData/Local/Programs/Python/Python314/python.exe\" -m http.server 8000)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:8000/)",
+      "Bash(curl -s -o /dev/null -w \"index.html: HTTP %{http_code}\\\\n\" http://localhost:8000/index.html)",
+      "Bash(kill %1)",
+      "Bash(node --check web/vocab/app.js)",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" --check app.js)",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" --check \"C:/Users/HP/Desktop/codex/web/vocab/app.js\")",
+      "Bash(node --check \"web/vocab/app.js\")",
+      "Bash(node --check \"web/vocab/vocab-data.js\")",
+      "Bash(node *)",
+      "Bash(npm -v)",
+      "Bash(cd /d \"C:\\\\Users\\\\HP\\\\Desktop\\\\codex\")",
+      "Bash(timeout 90 npm install jsdom --no-save --silent)",
+      "Bash(git --version)",
+      "Bash(git config *)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}

@@ -29,7 +29,7 @@
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
-  <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="sidebarNav"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="sidebarNav"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span></button>
   <div class="scrim" id="scrim"></div>
   <div class="bg-decor" aria-hidden="true">
     <span class="orb orb-1"></span>
@@ -46,7 +46,7 @@
       </div>
     </div>
     <nav class="nav" aria-label="Main navigation">
-      <button class="nav-btn active" data-view="home"><span class="nav-ico"><span class="ico ico-tile" data-icon="home"></span></span><span data-i18n="nav.home">Home</span></button>
+      <button class="nav-btn active" data-view="home"><span class="nav-ico"><span class="ico ico-tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span></span><span data-i18n="nav.home">Home</span></button>
       <button class="nav-btn" data-view="tasks"><span class="nav-ico"><span class="ico ico-tile" data-icon="calendar"></span></span><span data-i18n="nav.tasks">Daily Tasks</span></button>
       <button class="nav-btn" data-view="browse"><span class="nav-ico"><span class="ico ico-tile" data-icon="book"></span></span><span data-i18n="nav.browse">Word List</span></button>
       <button class="nav-btn" data-view="achievements"><span class="nav-ico"><span class="ico ico-tile" data-icon="trophy"></span></span><span data-i18n="nav.achievements">Achievements</span></button>
@@ -83,7 +83,7 @@
       </button>
       <div class="streak" id="streakBox" title="Day streak of daily review"><span class="ico ico-tile sm" data-icon="flame"></span> <span id="streak">0</span> <span data-i18n="streak.days">days</span></div>
       <button class="btn btn-sm btn-auth" id="sidebarAuthBtn">
-        <span class="ico" data-icon="lock"></span> <span>Login</span>
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span> <span>Login</span>
       </button>
       <button class="icon-btn" id="installBtn" hidden title="Install Vocab Trainer" aria-label="Install Vocab Trainer as an app"><span class="ico" data-icon="download"></span></button>
       <button class="icon-btn" id="helpBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts"><span class="ico" data-icon="keyboard"></span></button>

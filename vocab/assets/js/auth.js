@@ -285,10 +285,10 @@
       btn.title = "ดูโปรไฟล์ (" + user.username + ")";
       btn.setAttribute("aria-label", "ดูโปรไฟล์ (" + user.username + ")");
     } else {
-      // ยังไม่ล็อกอิน — แสดงปุ่ม login
+      // ยังไม่ล็อกอิน — แสดงปุ่ม login (ใส่ SVG ไอคอนตรงๆ เพื่อไม่ให้หายตอน re-render)
       btn.classList.remove("logged-in");
       btn.innerHTML =
-        '<span class="ico" data-icon="lock"></span> ' + esc(t("auth.loginTitle"));
+        '<span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span> ' + esc(t("auth.loginTitle"));
       btn.title = "เข้าสู่ระบบ / สมัครบัญชี";
       btn.setAttribute("aria-label", "เข้าสู่ระบบ / สมัครบัญชี");
     }

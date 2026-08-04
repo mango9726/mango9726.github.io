@@ -2745,3 +2745,918 @@ html[data-theme="dark"] .mmp {
 html[data-theme="dark"] .mmp-rename-input { background: #0b1220; }
 html[data-theme="dark"] .mmp-slider-thumb { background: #e2e8f0; }
 
+/* ============================================================
+   UNIVERSAL RESPONSIVE FIXES — works on every screen size
+   (phones · tablets · iPads · desktops · landscape · foldables)
+   ============================================================ */
+
+/* ---------- 1. Global fluid sizing ---------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+img, svg, video, canvas { max-width: 100%; height: auto; }
+button, input, select, textarea {
+  max-width: 100%;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+button { user-select: none; -webkit-user-select: none; }
+
+/* ---------- 2. Button fixes — never distorted, never overflow ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  min-height: 44px;
+  flex: 0 1 auto;
+  width: auto;
+}
+.btn-good, .btn-bad { flex: 1 1 auto; min-width: 0; }
+.btn-primary, .btn-accent { flex: 0 1 auto; }
+.btn-sm { min-height: 38px; }
+.btn .ico { flex-shrink: 0; }
+.btn-grade { min-height: 56px; }
+.btn-grade b { display: block; line-height: 1.2; }
+.btn-grade .g-hint { display: block; line-height: 1.2; margin-top: 2px; }
+.task-card .btn { white-space: normal; }
+.boss-actions .btn { min-width: 0; }
+.home-actions .btn { min-width: 0; }
+.hero-actions .btn { min-width: 0; }
+.session-actions { flex-wrap: wrap; }
+.session-actions .btn { flex: 1 1 auto; min-width: 120px; }
+.detail-actions .btn { min-width: 0; }
+.confirm-actions .btn { min-width: 0; }
+.backup-actions .btn { min-width: 0; }
+.hero-auth .btn { min-width: 0; }
+.wotd-btn { width: 100%; }
+.boss-rush-btn { width: 100%; }
+.mq-claim { width: 100%; }
+.auth-submit { width: 100%; }
+.lu-close { min-width: 0; }
+
+/* ---------- 3. Sidebar — consistent drawer on all small screens (≤1024px) ---------- */
+@media (max-width: 1024px) {
+  body { padding-left: 0; padding-top: 64px; }
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: min(280px, 82vw);
+    height: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 20px 16px;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+    transform: translateX(-100%);
+    transition: transform 0.3s var(--spring);
+    z-index: 100;
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-brand {
+    border-bottom: 1px solid var(--border);
+    border-right: none;
+    padding: 4px 8px 16px;
+    flex-shrink: 0;
+  }
+  .sidebar-brand .brand-sub { display: block; }
+  .sidebar .nav {
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px;
+    gap: 6px;
+  }
+  .sidebar .nav-btn {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14.5px;
+  }
+  .sidebar .nav-btn span:not(.nav-ico) { display: inline; }
+  .sidebar .nav-btn:hover { transform: translateX(3px); }
+  .sidebar-footer {
+    border-top: 1px solid var(--border);
+    border-left: none;
+    padding-top: 14px;
+    padding-left: 0;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .nav-sub {
+    position: static;
+    left: auto; right: auto; top: auto;
+    min-width: 0;
+    max-height: none;
+    overflow-y: visible;
+    padding: 4px 0 4px 12px;
+    border: none;
+    border-left: 2px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: none;
+  }
+  .nav-sub:not(.open) { display: none; }
+  .nav-sub.open { display: flex; }
+  .nav-sub-btn { padding: 10px 12px; }
+  .menu-toggle { display: grid; }
+  .scrim { display: block; }
+  .container { padding: 78px 16px 100px; }
+  .topbar { padding: 12px 16px; }
+}
+
+/* ---------- 4. Floating elements — never overlap content ---------- */
+@media (max-width: 1024px) {
+  .mini-quest {
+    left: 12px; right: 12px; bottom: 12px;
+    width: auto; max-width: none;
+    z-index: 95;
+  }
+  .mmp {
+    right: 12px; bottom: 12px;
+    z-index: 90;
+  }
+  .combo-float {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 72px;
+  }
+  .combo-float.show { animation: comboPopMobile 0.35s var(--spring-bounce) both; }
+  @keyframes comboPopMobile {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+  .toast-wrap {
+    left: 12px; right: 12px;
+    max-width: none;
+    top: 12px;
+  }
+  .toast { max-width: none; }
+}
+
+/* ---------- 5. Grid & layout — fluid on every size (≤1024px) ---------- */
+@media (max-width: 1024px) {
+  .dash-row { grid-template-columns: 1fr; }
+  .hero { flex-direction: column; }
+  .hero-side { width: 100%; flex-direction: row; flex-wrap: wrap; }
+  .hero-side > * { flex: 1 1 200px; }
+  .stats-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .quiz-options { grid-template-columns: 1fr 1fr; }
+  .match-grid { grid-template-columns: repeat(4, 1fr); }
+  .browse-list { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .controls { gap: 14px; }
+  .field.grow { min-width: 200px; }
+  .grade-actions { grid-template-columns: repeat(4, 1fr); }
+  .home-actions { flex-wrap: wrap; }
+  .home-actions .btn { flex: 1 1 calc(50% - 10px); }
+  .settings-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .settings-row > .btn, .settings-row > .chip-group, .settings-row > .accent-swatches,
+  .settings-row > .reminder-controls, .settings-row > .stepper, .settings-row > .set-select,
+  .settings-row > .set-range, .settings-row > .set-time { width: 100%; }
+  .reminder-controls { width: 100%; }
+  .reminder-controls .btn { flex: 1; }
+  .stepper { width: 100%; justify-content: center; }
+  .stepper .btn { flex: 1; }
+  .plan-day-label { min-width: 80px; }
+  .backup-actions .btn { flex: 1 1 100%; }
+  .detail-actions { flex-wrap: wrap; }
+  .detail-actions .btn { flex: 1 1 calc(50% - 10px); }
+  .confirm-actions { flex-wrap: wrap; }
+  .confirm-actions .btn { flex: 1 1 auto; }
+  .hero-actions { flex-wrap: wrap; }
+  .hero-actions .btn { flex: 1 1 auto; }
+  .session-actions { flex-wrap: wrap; }
+  .session-actions .btn { flex: 1 1 auto; min-width: 120px; }
+  .fill-q { flex-wrap: wrap; }
+  .fill-q .fill-prompt { flex: 1 1 100%; }
+  .quiz-q { flex-wrap: wrap; }
+  .quiz-q .quiz-prompt { flex: 1 1 calc(100% - 70px); }
+  .tf-options { grid-template-columns: 1fr 1fr; }
+  .boss-actions { flex-wrap: wrap; }
+  .boss-actions .btn { flex: 1 1 auto; min-width: 140px; }
+  .panel-head { flex-wrap: wrap; }
+  .panel-head h2 { flex: 1 1 auto; }
+  .panel-head .chip-group { flex: 0 1 auto; }
+  .ach-head-stats { flex-wrap: wrap; }
+  .profile-actions { flex-wrap: wrap; }
+  .profile-actions .btn { flex: 1 1 100%; }
+  .hero-auth { flex-direction: column; align-items: stretch; }
+  .hero-auth .btn { width: 100%; }
+  .ms-wrap { flex-wrap: wrap; }
+  .ms-gauge { margin: 0 auto; }
+  .ms-dist { flex: 1 1 100%; min-width: 0; }
+  .mastery { flex-direction: column; align-items: center; }
+  .legend { width: 100%; min-width: 0; }
+  .chart-legend { flex-wrap: wrap; }
+  .hm-grid { overflow-x: auto; }
+  .day-row { flex-wrap: wrap; }
+  .day-row .day-name { width: 100%; }
+  .day-row .day-pct { width: auto; }
+  .weak-row { flex-wrap: wrap; }
+  .weak-review { width: 100%; }
+  .quest-row { flex-wrap: wrap; }
+  .quest-label { flex: 1 1 100%; }
+  .quest-prog { flex: 1 1 100%; }
+  .quest-count { flex: 0 0 auto; }
+  .reward-rail { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .accent-swatches { width: 100%; }
+  .accent-swatch { flex: 1 1 calc(33.333% - 12px); min-width: 0; }
+  .detail-head { flex-wrap: wrap; }
+  .detail-head-text { flex: 1 1 100%; }
+  .detail-head .speak-btn { flex-shrink: 0; }
+  .rel-wrap { justify-content: center; }
+  .pron-audio-btns { flex-wrap: wrap; }
+  .pron-syllables { justify-content: center; }
+  .build-tiles { justify-content: center; }
+  .build-answer { justify-content: center; }
+  .hang-keyboard { gap: 6px; }
+  .hang-key { width: 38px; height: 44px; font-size: 15px; }
+  .match-card { aspect-ratio: 4 / 3; }
+  .match-text { font-size: 14px; }
+  .match-type { font-size: 9px; padding: 2px 8px; }
+  .flip-front, .flip-back { min-height: 280px; padding: 24px 18px; }
+  .card-word { font-size: 30px; }
+  .card-th { font-size: 23px; }
+  .quiz-prompt { font-size: 20px; }
+  .fill-prompt { font-size: 18px; }
+  .tf-word { font-size: 28px; }
+  .tf-statement { font-size: 17px; }
+  .hang-word { font-size: 26px; letter-spacing: 5px; }
+  .cloze-sentence { font-size: 17px; }
+  .modal { max-width: 100%; margin: 16px; }
+  .confirm-box { max-width: 100%; margin: 16px; }
+  .kb-help-box { max-width: 100%; margin: 16px; }
+  .level-up-card { max-width: calc(100% - 32px); margin: 16px; }
+  .toast-wrap { left: 12px; right: 12px; max-width: none; }
+  .toast { max-width: none; }
+}
+
+/* ---------- 6. Small phones (≤ 640px) — stack everything ---------- */
+@media (max-width: 640px) {
+  .container { padding: 72px 14px 96px; }
+  .panel { padding: 16px; border-radius: 16px; }
+  .hero { padding: 18px; }
+  .hero-title { font-size: 22px; }
+  .hero-side { flex-direction: column; }
+  .hero-side > * { flex: 1 1 auto; width: 100%; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 16px; }
+  .stat-num { font-size: 24px; }
+  .quiz-options { grid-template-columns: 1fr; }
+  .match-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .grade-actions { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .btn-grade { min-height: 52px; padding: 12px 6px; }
+  .home-actions { flex-direction: column; }
+  .home-actions .btn { width: 100%; }
+  .controls { flex-direction: column; align-items: stretch; }
+  .field { width: 100%; }
+  .field.grow { min-width: 0; }
+  .set-select, .set-range, .set-time { width: 100%; max-width: none; }
+  .chip-group { justify-content: flex-start; }
+  .chip { padding: 9px 14px; font-size: 13px; }
+  .session-actions { flex-direction: column; }
+  .session-actions .btn { width: 100%; min-width: 0; }
+  .detail-actions { flex-direction: column; }
+  .detail-actions .btn { width: 100%; }
+  .confirm-actions { flex-direction: column; }
+  .confirm-actions .btn { width: 100%; }
+  .boss-actions { flex-direction: column; }
+  .boss-actions .btn { width: 100%; min-width: 0; }
+  .hero-actions { flex-direction: column; }
+  .hero-actions .btn { width: 100%; }
+  .hero-auth .btn { width: 100%; }
+  .backup-actions { flex-direction: column; }
+  .backup-actions .btn { width: 100%; }
+  .profile-actions { flex-direction: column; }
+  .profile-actions .btn { width: 100%; }
+  .tf-options { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tf-opt-btn { padding: 14px; font-size: 15px; }
+  .opt-ico { width: 22px; height: 22px; margin-right: 8px; }
+  .hang-key { width: 32px; height: 38px; font-size: 13px; }
+  .hang-keyboard { gap: 4px; }
+  .hang-word { font-size: 22px; letter-spacing: 4px; }
+  .hang-figure svg { width: 140px; height: 160px; }
+  .build-tile { padding: 11px 13px; font-size: 14px; }
+  .build-answer { min-height: 64px; padding: 12px; }
+  .cloze-sentence { font-size: 16px; line-height: 1.6; }
+  .fill-input { padding: 13px 15px; font-size: 16px; }
+  .card-word { font-size: 26px; }
+  .flip-front, .flip-back { min-height: 260px; padding: 20px 14px; }
+  .card-th { font-size: 21px; }
+  .quiz-prompt { font-size: 18px; }
+  .fill-prompt { font-size: 17px; }
+  .fill-q { gap: 10px; }
+  .fill-q .fill-prompt { flex: 1 1 calc(100% - 60px); }
+  .quiz-q { gap: 10px; }
+  .quiz-q .quiz-prompt { flex: 1 1 calc(100% - 60px); }
+  .tf-word { font-size: 26px; }
+  .tf-statement { font-size: 16px; }
+  .tf-q { padding: 14px 12px 4px; }
+  .browse-list { grid-template-columns: 1fr; }
+  .browse-card { padding: 13px; }
+  .bc-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .bc-head-right { width: 100%; justify-content: space-between; }
+  .task-card { flex-direction: column; align-items: stretch; gap: 12px; }
+  .task-card .btn { width: 100%; }
+  .modal { padding: 18px; margin: 12px; border-radius: 16px; }
+  .confirm-box { padding: 20px; margin: 12px; border-radius: 16px; }
+  .kb-help-box { padding: 18px; margin: 12px; border-radius: 16px; }
+  .level-up-card { padding: 24px 20px; margin: 12px; border-radius: 18px; }
+  .detail-word { font-size: 26px; }
+  .detail-th { font-size: 19px; }
+  .detail-actions { gap: 8px; }
+  .detail-actions .btn { padding: 12px; }
+  .panel-head { flex-direction: column; align-items: flex-start; }
+  .panel-head .chip-group { width: 100%; }
+  .panel-head .chip-group .chip { flex: 1 1 auto; text-align: center; }
+  .accent-swatch { flex: 1 1 calc(50% - 8px); }
+  .reward-rail { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .ach-grid-inner { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .ach-card { padding: 14px 10px; }
+  .ach-ico { width: 40px; height: 40px; }
+  .ach-ico .ico, .ach-ico svg { width: 22px; height: 22px; }
+  .ach-name { font-size: 13px; }
+  .ach-desc { font-size: 11px; }
+  .ms-gauge { width: 100px; height: 100px; }
+  .ms-gauge span { font-size: 22px; }
+  .ms-bar { height: 14px; }
+  .ms-legend { gap: 10px; font-size: 11px; }
+  .donut { width: 120px; height: 120px; }
+  .donut-center { font-size: 20px; }
+  .hm-cell { width: 10px; height: 10px; }
+  .hm-grid { grid-template-rows: repeat(7, 10px); grid-auto-columns: 10px; gap: 3px; }
+  .day-row .day-name { width: 100%; }
+  .day-row .day-pct { width: auto; }
+  .weak-row { flex-direction: column; align-items: flex-start; }
+  .weak-review { width: 100%; }
+  .quest-row { flex-direction: column; align-items: flex-start; }
+  .quest-label { flex: 1 1 auto; }
+  .quest-prog { flex: 1 1 100%; width: 100%; }
+  .quest-count { align-self: flex-end; }
+  .streak-card { flex-direction: row; }
+  .streak-num { flex-direction: column; }
+  .streak-unit { margin-top: 4px; }
+  .wotd { padding: 14px; }
+  .wotd-word { font-size: 20px; }
+  .profile-chip { padding: 8px 10px; }
+  .pc-ring { width: 30px; height: 30px; font-size: 12px; }
+  .pc-rank { font-size: 12px; }
+  .pc-xp-text { font-size: 10px; }
+  .sidebar-footer { gap: 8px; }
+  .icon-btn { min-width: 44px; min-height: 44px; }
+  .menu-toggle { width: 44px; height: 44px; top: 10px; left: 10px; }
+  .toast-wrap { top: 10px; left: 10px; right: 10px; }
+  .toast { font-size: 13px; padding: 10px 12px; }
+  .mini-quest { left: 8px; right: 8px; bottom: 8px; }
+  .mq-toggle { padding: 10px 12px; font-size: 12px; border-radius: 12px; }
+  .mq-body { padding: 12px; border-radius: 12px; }
+  .mq-claim { padding: 10px; font-size: 12px; }
+  .combo-float { top: 64px; padding: 6px 12px; }
+  .pron-word { font-size: 30px; }
+  .pron-phon { font-size: 15px; }
+  .pron-audio-btns { gap: 8px; }
+  .btn-mic { padding: 14px; font-size: 15px; }
+  .pron-score .score-num { font-size: 26px; }
+  .pron-syllables { font-size: 18px; }
+  .syl { padding: 2px 8px; }
+  .listen-q .speak-btn.lg { width: 52px; height: 52px; font-size: 21px; }
+  .listen-pos { font-size: 13px; }
+  .result { padding: 22px 16px; }
+  .result h2 { font-size: 20px; }
+  .result .big { font-size: 36px; }
+  .settings-info { font-size: 12.5px; }
+  .backup-code { font-size: 11px; padding: 10px 12px; }
+  .file-label { width: 100%; }
+  .hint { font-size: 11.5px; }
+  .field-label { font-size: 12px; }
+  .settings-hint { font-size: 11px; }
+  .footer { font-size: 11px; padding: 16px; }
+  .skip-link { font-size: 12px; padding: 10px 14px; }
+  .level-up-card { max-width: calc(100% - 24px); }
+  .lu-kicker { font-size: 12px; margin-bottom: 10px; }
+  .lu-ring { width: 60px; height: 60px; font-size: 24px; margin: 0 auto 10px; }
+  .lu-title { font-size: 18px; margin-bottom: 1px; }
+  .lu-rank { font-size: 12px; margin-bottom: 6px; }
+  .lu-sub { font-size: 12px; margin-bottom: 14px; }
+  .lu-close { min-width: 120px; padding: 10px 16px; font-size: 13px; }
+  .lu-reward { padding: 6px 10px; font-size: 12px; gap: 7px; }
+  .confirm-title { font-size: 15px; }
+  .confirm-msg { font-size: 13.5px; }
+  .confirm-actions .btn { min-width: 80px; padding: 10px 14px; }
+  .kb-help-box h2 { font-size: 17px; }
+  .kb-row { font-size: 13px; }
+  .kb-key { min-width: 24px; height: 24px; padding: 0 5px; font-size: 11px; border-radius: 6px; }
+  .detail-meta { font-size: 11.5px; }
+  .detail-ex { padding: 12px; border-radius: 11px; }
+  .detail-section h3 { font-size: 13px; }
+  .detail-note { font-size: 12px; }
+  .detail-phonetic { font-size: 14px; }
+  .detail-pos { font-size: 12px; }
+  .detail-type { font-size: 10px; padding: 4px 9px; }
+  .detail-related h3 { font-size: 13px; }
+  .rel-chip { padding: 6px 11px; font-size: 12px; }
+  .mnem-note { font-size: 12.5px; padding: 9px 12px; }
+  .mnem-tip { padding: 9px 12px; }
+  .mnem-tip b { font-size: 14px; }
+  .mnem-label { font-size: 10px; }
+  .dp-label { font-size: 12px; }
+  .dp-bar { height: 8px; }
+  .pron-practice { padding-top: 14px; }
+  .pron-practice .btn-accent { padding: 12px; font-size: 14px; }
+  .pron-feedback { padding: 14px; }
+  .pron-score { font-size: 14px; }
+  .pron-heard { font-size: 12.5px; }
+  .pron-tip { font-size: 11.5px; }
+  .pron-retry { margin-top: 10px; }
+  .pron-retry .btn { width: 100%; }
+  .toast.ach-toast { padding: 10px 12px; }
+  .ach-toast-ico { width: 34px; height: 34px; border-radius: 10px; }
+  .ach-toast-ico .ico, .ach-toast-ico svg { width: 18px; height: 18px; }
+  .ach-toast-kicker { font-size: 9.5px; }
+  .ach-toast-name { font-size: 14px; }
+  .ach-toast-desc { font-size: 11px; }
+  .toast.reward-toast { padding: 9px 12px; font-size: 12.5px; }
+  .reward-head { font-size: 15px; }
+  .ach-head { flex-direction: column; align-items: flex-start; }
+  .ach-head-stats { width: 100%; }
+  .ach-stat { flex: 1; min-width: 0; }
+  .ach-count { font-size: 12px; }
+  .ach-cat-title { font-size: 13px; }
+  .ach-progress { height: 5px; }
+  .ach-prog-text { font-size: 10px; }
+  .ach-date { font-size: 10px; }
+  .profile-hero .profile-avatar { width: 54px; height: 54px; font-size: 22px; border-radius: 15px; }
+  .profile-name { font-size: 19px; }
+  .profile-sub { font-size: 12px; }
+  .profile-row { padding: 9px 10px; }
+  .profile-label { font-size: 12px; }
+  .profile-value { font-size: 13px; }
+  .auth-title { font-size: 21px; }
+  .auth-sub { font-size: 12px; margin-bottom: 18px; }
+  .auth-form { gap: 14px; }
+  .auth-input { padding: 11px 13px; font-size: 14px; }
+  .auth-label { font-size: 12px; }
+  .auth-error { font-size: 12px; padding: 9px 12px; }
+  .auth-submit { padding: 12px; font-size: 14px; }
+  .auth-toggle-text { font-size: 12px; }
+  .auth-sidebar-btn { padding: 9px 12px; font-size: 13px; }
+  .auth-avatar { width: 30px; height: 30px; font-size: 13px; border-radius: 9px; }
+  .auth-chev { font-size: 16px; }
+  .auth-label { font-size: 13px; }
+  .sidebar-brand h1 { font-size: 17px; }
+  .sidebar-brand .brand-sub { font-size: 10.5px; }
+  .sidebar-brand .brand-logo { width: 36px; height: 36px; }
+  .sidebar-brand .brand-logo svg { width: 20px; height: 20px; }
+  .nav-btn { font-size: 13.5px; padding: 11px 12px; }
+  .nav-ico { width: 20px; height: 20px; }
+  .nav-ico svg { width: 17px; height: 17px; }
+  .nav-group { font-size: 13.5px; padding: 11px 12px; }
+  .nav-sub-btn { font-size: 13px; padding: 10px 12px; }
+  .nav-chevron { width: 14px; height: 14px; }
+  .nav-sub { padding-left: 10px; }
+  .topbar { padding: 10px 14px; }
+  .topbar-right { gap: 8px; }
+  .btn-auth { padding: 5px 10px; font-size: 11px; }
+  .streak { font-size: 12px; padding: 5px 10px; }
+  .icon-btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 16px; }
+  .menu-toggle { width: 42px; height: 42px; top: 10px; left: 10px; }
+  .menu-toggle .ico { width: 22px; height: 22px; }
+  .modal-overlay { padding: 12px; }
+  .confirm-overlay { padding: 12px; }
+  .kb-help-overlay { padding: 12px; }
+  .level-up-overlay { padding: 12px; }
+  .bg-decor { display: none; }
+  .orb { display: none; }
+  .footer { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .container { padding-bottom: max(96px, env(safe-area-inset-bottom) + 20px); }
+  .sidebar { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .mini-quest { bottom: max(8px, env(safe-area-inset-bottom)); }
+  .toast-wrap { top: max(10px, env(safe-area-inset-top)); }
+  .menu-toggle { top: max(10px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left)); }
+}
+
+/* ---------- 7. Very small phones (≤ 380px) ---------- */
+@media (max-width: 380px) {
+  .container { padding: 68px 10px 90px; }
+  .panel { padding: 14px; border-radius: 14px; }
+  .hero { padding: 16px; border-radius: 14px; }
+  .hero-title { font-size: 20px; }
+  .hero-greet { font-size: 13px; }
+  .hero-date { font-size: 13px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-card { padding: 14px; border-radius: 14px; }
+  .stat-num { font-size: 22px; }
+  .stat-label { font-size: 11.5px; }
+  .stat-ico { width: 36px; height: 36px; border-radius: 10px; }
+  .stat-ico .ico { width: 19px; height: 19px; }
+  .btn { padding: 10px 16px; font-size: 13.5px; border-radius: 12px; }
+  .btn-primary, .btn-accent { padding: 12px 18px; }
+  .btn-sm { padding: 7px 12px; font-size: 12px; }
+  .chip { padding: 7px 12px; font-size: 12px; border-radius: 999px; }
+  .chip-group { gap: 5px; }
+  .grade-actions { gap: 6px; }
+  .btn-grade { padding: 10px 3px; font-size: 12px; border-radius: 12px; }
+  .btn-grade b { font-size: 12px; }
+  .btn-grade .g-hint { font-size: 10px; }
+  .flip-front, .flip-back { padding: 20px 14px; min-height: 260px; border-radius: 14px; }
+  .card-word { font-size: 24px; }
+  .card-th { font-size: 20px; }
+  .card-pos { font-size: 13px; }
+  .card-ex { padding: 10px 12px; border-radius: 11px; }
+  .ex-en { font-size: 14px; }
+  .ex-th { font-size: 12.5px; }
+  .speak-btn { width: 40px; height: 40px; font-size: 18px; }
+  .info-btn { width: 34px; height: 34px; font-size: 15px; }
+  .quiz-prompt { font-size: 18px; }
+  .quiz-options { gap: 8px; }
+  .quiz-opt { padding: 12px; font-size: 13px; border-radius: 11px; }
+  .fill-input { padding: 12px 14px; font-size: 16px; border-radius: 11px; }
+  .fill-prompt { font-size: 16px; }
+  .tf-word { font-size: 24px; }
+  .tf-statement { font-size: 15px; }
+  .tf-options { gap: 8px; }
+  .tf-opt-btn { padding: 14px; font-size: 14px; border-radius: 12px; }
+  .opt-ico { width: 22px; height: 22px; margin-right: 8px; }
+  .hang-word { font-size: 20px; letter-spacing: 3px; }
+  .hang-th { font-size: 19px; }
+  .hang-key { width: 30px; height: 36px; font-size: 13px; border-radius: 9px; }
+  .hang-lives .ico { width: 18px; height: 18px; }
+  .build-tile { padding: 10px 12px; font-size: 13px; border-radius: 11px; }
+  .build-answer { min-height: 64px; padding: 10px; border-radius: 12px; }
+  .cloze-sentence { font-size: 15px; line-height: 1.55; }
+  .listen-q { gap: 8px; }
+  .listen-q .speak-btn.lg { width: 50px; height: 50px; font-size: 20px; }
+  .listen-input { padding: 12px 14px; font-size: 16px; border-radius: 11px; }
+  .browse-card { padding: 11px; border-radius: 12px; }
+  .bc-word { font-size: 15px; }
+  .bc-th { font-size: 14px; }
+  .bc-ex { font-size: 12px; }
+  .bc-type { font-size: 9px; padding: 3px 8px; }
+  .task-card { padding: 14px 16px; border-radius: 12px; }
+  .task-badge { font-size: 13px; }
+  .task-title { font-size: 14px; }
+  .task-meta { font-size: 11px; }
+  .task-card .btn { padding: 10px 16px; font-size: 13px; }
+  .modal { padding: 16px; margin: 12px; border-radius: 18px; }
+  .detail-word { font-size: 24px; }
+  .detail-phonetic { font-size: 14px; }
+  .detail-pos { font-size: 12px; }
+  .detail-th { font-size: 18px; }
+  .detail-ex { padding: 12px; border-radius: 11px; }
+  .detail-section h3 { font-size: 13px; }
+  .detail-actions { flex-direction: column; gap: 8px; }
+  .detail-actions .btn { width: 100%; padding: 12px; }
+  .kb-help-box { padding: 16px; margin: 12px; border-radius: 16px; }
+  .kb-row { padding: 7px 0; font-size: 13px; }
+  .kb-key { min-width: 24px; height: 24px; padding: 0 5px; font-size: 11px; border-radius: 6px; }
+  .level-up-card { padding: 22px 24px 20px; margin: 12px; border-radius: 20px; }
+  .lu-kicker { font-size: 12px; margin-bottom: 10px; }
+  .lu-ring { width: 60px; height: 60px; font-size: 24px; margin: 0 auto 10px; }
+  .lu-title { font-size: 18px; margin-bottom: 1px; }
+  .lu-rank { font-size: 12px; margin-bottom: 6px; }
+  .lu-sub { font-size: 12px; margin-bottom: 14px; }
+  .lu-close { min-width: 120px; padding: 10px 16px; font-size: 13px; }
+  .lu-reward { padding: 6px 10px; font-size: 12px; gap: 7px; }
+  .toast { padding: 10px 12px; font-size: 12.5px; border-radius: 10px; }
+  .confirm-box { padding: 20px; margin: 12px; border-radius: 16px; }
+  .confirm-title { font-size: 15px; }
+  .confirm-msg { font-size: 13.5px; }
+  .confirm-actions .btn { min-width: 80px; padding: 10px 14px; }
+  .mini-quest { left: 8px; right: 8px; bottom: 8px; }
+  .mq-toggle { padding: 10px 12px; font-size: 12px; border-radius: 12px; }
+  .mq-body { padding: 12px; border-radius: 12px; }
+  .mq-claim { padding: 10px; font-size: 12px; }
+  .reward-card { padding: 12px; border-radius: 12px; }
+  .reward-lvl { font-size: 10px; }
+  .reward-name { font-size: 13px; }
+  .reward-desc { font-size: 11px; }
+  .accent-swatch { padding: 6px 8px 5px; border-radius: 11px; }
+  .sw-dots i { width: 10px; height: 10px; }
+  .sw-name { font-size: 9px; }
+  .sw-lock .ico { width: 12px; height: 12px; }
+  .boss-card { padding: 20px 16px; border-radius: 14px; }
+  .boss-word { font-size: 26px; }
+  .boss-prompt { font-size: 13px; }
+  .boss-actions { gap: 8px; }
+  .boss-actions .btn { padding: 12px; font-size: 13px; }
+  .match-card { aspect-ratio: 4 / 3; border-radius: 11px; }
+  .match-front { border-radius: 11px; }
+  .match-front::before { font-size: 18px; width: 38px; height: 38px; }
+  .match-back { border-radius: 11px; }
+  .match-type { font-size: 9px; padding: 2px 8px; }
+  .match-text { font-size: 13px; }
+  .session-top { gap: 10px; margin-bottom: 14px; }
+  .progress-bar { height: 9px; }
+  .flip-card { margin-bottom: 16px; }
+  .match-grid { grid-template-columns: repeat(2, 1fr); }
+  .quiz-options { grid-template-columns: 1fr; }
+  .grade-actions { grid-template-columns: repeat(2, 1fr); }
+  .home-actions { flex-direction: column; }
+  .home-actions .btn { width: 100%; }
+  .hero-side { flex-direction: column; }
+  .hero-side > * { width: 100%; }
+  .streak-card { flex-direction: column; text-align: center; gap: 10px; }
+  .streak-num { flex-direction: row; gap: 8px; align-items: center; }
+  .streak-unit { margin-top: 0; font-size: 11px; }
+  .wotd-badge { font-size: 9px; padding: 3px 8px; }
+  .wotd-word { font-size: 20px; }
+  .browse-list { grid-template-columns: 1fr; }
+  .browse-card { padding: 12px; }
+  .bc-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .bc-head-right { width: 100%; justify-content: space-between; }
+  .bc-speak { width: 36px; height: 36px; font-size: 15px; }
+  .task-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .task-card .btn { width: 100%; }
+  .ach-grid-inner { grid-template-columns: 1fr; }
+  .ach-card { padding: 14px 12px; }
+  .ach-ico { width: 40px; height: 40px; }
+  .ach-ico .ico { width: 22px; height: 22px; }
+  .profile-chip { padding: 8px 10px; gap: 8px; }
+  .pc-ring { width: 30px; height: 30px; font-size: 12px; }
+  .pc-rank { font-size: 12px; }
+  .pc-xp-text { font-size: 10px; }
+  .sidebar-footer { gap: 8px; }
+  .icon-btn { min-width: 44px; min-height: 44px; }
+  .menu-toggle { width: 44px; height: 44px; top: 10px; left: 10px; }
+  .container { padding: 70px 12px 90px; }
+  .reward-rail { grid-template-columns: 1fr; }
+  .accent-swatch { min-width: 0; flex: 1; }
+  .sw-dots i { width: 12px; height: 12px; }
+  .sw-name { font-size: 10px; }
+  .panel-head { flex-direction: column; align-items: flex-start; }
+  .panel-head .chip-group { width: 100%; }
+  .panel-head .chip-group .chip { flex: 1 1 auto; text-align: center; }
+  .ms-gauge { width: 100px; height: 100px; }
+  .ms-gauge span { font-size: 22px; }
+  .ms-bar { height: 14px; }
+  .ms-legend { gap: 10px; font-size: 11px; }
+  .legend { min-width: 100%; }
+  .chart-panel { min-height: 200px; }
+  .panel-head h2 { font-size: 15px; }
+  .chip-group.sm .chip { padding: 6px 11px; font-size: 12px; }
+  .card-word { font-size: 26px; }
+  .flip-front, .flip-back { padding: 24px 18px; min-height: 280px; }
+  .card-th { font-size: 22px; }
+  .quiz-prompt { font-size: 20px; }
+  .fill-prompt { font-size: 17px; }
+  .tf-word { font-size: 28px; }
+  .tf-statement { font-size: 17px; }
+  .hang-word { font-size: 22px; letter-spacing: 4px; }
+  .hang-clue { padding: 14px 12px 4px; }
+  .hang-keyboard { gap: 5px; }
+  .hang-key { width: 34px; height: 40px; font-size: 14px; }
+  .build-tiles { gap: 8px; }
+  .build-answer { min-height: 70px; padding: 12px; }
+  .cloze-sentence { font-size: 16px; line-height: 1.6; }
+}
+
+/* ---------- 8. Landscape phones (short height) ---------- */
+@media (max-height: 500px) and (orientation: landscape) {
+  .sidebar { padding: 12px 10px; }
+  .sidebar-brand { padding: 2px 6px 8px; }
+  .sidebar-brand .brand-sub { display: none; }
+  .sidebar-brand h1 { font-size: 16px; }
+  .sidebar-brand .brand-logo { width: 36px; height: 36px; }
+  .nav { gap: 3px; }
+  .nav-btn { padding: 10px 12px; font-size: 13px; }
+  .nav-ico { width: 20px; height: 20px; }
+  .nav-ico svg { width: 17px; height: 17px; }
+  .sidebar-footer { padding-top: 8px; gap: 8px; }
+  .streak { font-size: 12px; padding: 5px 10px; }
+  .profile-chip { padding: 7px 9px; }
+  .pc-ring { width: 30px; height: 30px; font-size: 12px; }
+  .pc-meta { gap: 2px; }
+  .pc-rank { font-size: 11.5px; }
+  .pc-xp { height: 5px; }
+  .pc-xp-text { font-size: 9.5px; }
+  .icon-btn { width: 40px; height: 40px; }
+  .menu-toggle { width: 42px; height: 42px; }
+  .hero { padding: 16px 20px; margin-bottom: 16px; }
+  .hero-greet { font-size: 13px; }
+  .hero-title { font-size: 22px; margin-bottom: 4px; }
+  .hero-date { font-size: 13px; margin-bottom: 12px; }
+  .hero-actions { gap: 8px; }
+  .hero-actions .btn { padding: 10px 16px; font-size: 13px; }
+  .hero-side { gap: 10px; }
+  .streak-card { padding: 12px 14px; }
+  .streak-flame { width: 40px; height: 40px; border-radius: 12px; }
+  .streak-flame .ico { width: 22px; height: 22px; }
+  .streak-num > span:first-child { font-size: 24px; }
+  .streak-unit { font-size: 11px; }
+  .wotd { padding: 12px 14px; }
+  .wotd-word { font-size: 20px; }
+  .wotd-th { font-size: 12px; }
+  .stats-grid { gap: 10px; margin-bottom: 16px; }
+  .stat-card { padding: 16px; }
+  .stat-num { font-size: 24px; }
+  .stat-ico { width: 36px; height: 36px; border-radius: 10px; }
+  .panel { padding: 16px; margin-bottom: 16px; }
+  .dash-row { gap: 14px; margin-bottom: 16px; }
+  .chart-wrap { min-height: 150px; }
+  .mastery { gap: 14px; }
+  .donut { width: 110px; height: 110px; }
+  .donut-center { font-size: 20px; }
+  .donut-sub { font-size: 10px; }
+  .legend { min-width: 120px; gap: 8px; }
+  .leg-row { font-size: 13px; gap: 8px; }
+  .heatmap { margin-bottom: 16px; }
+  .hm-grid { grid-template-rows: repeat(7, 10px); grid-auto-columns: 10px; gap: 3px; }
+  .hm-cell { width: 10px; height: 10px; }
+  .home-actions { gap: 8px; margin-bottom: 16px; }
+  .home-actions .btn { padding: 10px 14px; font-size: 13px; }
+  .container { padding-top: 18px; padding-bottom: 20px; }
+  .flip-front, .flip-back { min-height: 240px; padding: 20px; }
+  .card-word { font-size: 30px; }
+  .card-th { font-size: 22px; }
+  .session-top { margin-bottom: 12px; }
+  .progress-bar { height: 9px; }
+  .flip-card { margin-bottom: 14px; }
+  .quiz-prompt { font-size: 20px; }
+  .quiz-options { gap: 10px; }
+  .quiz-opt { padding: 14px; font-size: 14px; }
+  .fill-prompt { font-size: 18px; }
+  .fill-input { padding: 14px 16px; font-size: 16px; }
+  .tf-word { font-size: 28px; }
+  .tf-statement { font-size: 17px; }
+  .tf-options { gap: 10px; }
+  .tf-opt-btn { padding: 16px; font-size: 15px; }
+  .match-grid { gap: 8px; }
+  .hang-word { font-size: 24px; letter-spacing: 4px; }
+  .hang-key { width: 36px; height: 42px; font-size: 14px; }
+  .hang-clue { padding: 12px 10px 4px; }
+  .build-tiles { gap: 8px; }
+  .build-tile { padding: 11px 13px; font-size: 14px; }
+  .cloze-sentence { font-size: 17px; }
+  .listen-q { gap: 8px; }
+  .listen-q .speak-btn.lg { width: 56px; height: 56px; font-size: 22px; }
+  .browse-card { padding: 14px; }
+  .bc-word { font-size: 17px; }
+  .task-card { padding: 14px 18px; }
+  .mini-quest { left: 12px; right: 12px; bottom: 12px; width: auto; max-width: none; }
+  .mmp { right: 12px; bottom: 12px; }
+  .combo-float { top: 60px; }
+  .toast-wrap { top: 10px; left: 10px; right: 10px; }
+  .modal { max-height: 90vh; }
+  .confirm-box { max-height: 90vh; overflow-y: auto; }
+  .kb-help-box { max-height: 90vh; }
+  .level-up-card { max-height: 90vh; overflow-y: auto; }
+  .session-actions { flex-direction: row; }
+  .session-actions .btn { flex: 1 1 auto; min-width: 100px; }
+  .detail-actions { flex-direction: row; }
+  .detail-actions .btn { flex: 1 1 auto; }
+  .confirm-actions { flex-direction: row; }
+  .confirm-actions .btn { flex: 1 1 auto; }
+  .boss-actions { flex-direction: row; }
+  .boss-actions .btn { flex: 1 1 auto; min-width: 120px; }
+  .hero-actions { flex-direction: row; }
+  .hero-actions .btn { flex: 1 1 auto; }
+  .home-actions { flex-direction: row; }
+  .home-actions .btn { flex: 1 1 auto; }
+  .grade-actions { grid-template-columns: repeat(4, 1fr); }
+  .quiz-options { grid-template-columns: 1fr 1fr; }
+  .match-grid { grid-template-columns: repeat(4, 1fr); }
+  .tf-options { grid-template-columns: 1fr 1fr; }
+  .controls { flex-direction: row; flex-wrap: wrap; }
+  .field { flex: 1 1 auto; min-width: 140px; }
+  .field.grow { min-width: 200px; }
+  .panel-head { flex-direction: row; align-items: center; }
+  .panel-head .chip-group { width: auto; }
+  .panel-head .chip-group .chip { flex: 0 1 auto; }
+  .settings-row { flex-direction: row; align-items: center; }
+  .settings-row > .btn, .settings-row > .chip-group, .settings-row > .accent-swatches,
+  .settings-row > .reminder-controls, .settings-row > .stepper, .settings-row > .set-select,
+  .settings-row > .set-range, .settings-row > .set-time { width: auto; }
+  .reminder-controls { width: auto; }
+  .stepper { width: auto; }
+  .backup-actions { flex-direction: row; }
+  .backup-actions .btn { flex: 1 1 auto; }
+  .profile-actions { flex-direction: row; }
+  .profile-actions .btn { flex: 1 1 auto; }
+  .hero-auth { flex-direction: row; }
+  .hero-auth .btn { width: auto; }
+  .task-card { flex-direction: row; align-items: center; }
+  .task-card .btn { width: auto; }
+  .browse-card { padding: 14px; }
+  .bc-head { flex-direction: row; align-items: center; }
+  .bc-head-right { width: auto; justify-content: flex-end; }
+  .quest-row { flex-direction: row; align-items: center; }
+  .quest-label { flex: 0 1 auto; }
+  .quest-prog { flex: 1 1 auto; width: auto; }
+  .quest-count { align-self: auto; }
+  .weak-row { flex-direction: row; align-items: center; }
+  .weak-review { width: auto; }
+  .streak-card { flex-direction: row; }
+  .streak-num { flex-direction: column; }
+  .streak-unit { margin-top: 4px; }
+  .accent-swatch { flex: 0 1 auto; min-width: 58px; }
+  .reward-rail { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .ach-grid-inner { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .ms-wrap { flex-wrap: nowrap; }
+  .ms-gauge { margin: 0; }
+  .ms-dist { flex: 1 1 auto; min-width: 160px; }
+  .mastery { flex-direction: row; align-items: center; }
+  .legend { width: auto; min-width: 140px; }
+  .chart-legend { flex-wrap: nowrap; }
+  .hm-grid { overflow-x: auto; }
+  .day-row { flex-wrap: nowrap; }
+  .day-row .day-name { width: 120px; }
+  .day-row .day-pct { width: 70px; }
+  .detail-head { flex-wrap: nowrap; }
+  .detail-head-text { flex: 1 1 auto; }
+  .detail-head .speak-btn { flex-shrink: 0; }
+  .rel-wrap { justify-content: flex-start; }
+  .pron-audio-btns { flex-wrap: nowrap; }
+  .pron-syllables { justify-content: flex-start; }
+  .build-tiles { justify-content: center; }
+  .build-answer { justify-content: center; }
+  .hang-keyboard { gap: 6px; }
+  .hang-key { width: 38px; height: 44px; font-size: 15px; }
+  .match-card { aspect-ratio: 3 / 2; }
+  .match-text { font-size: 14px; }
+  .match-type { font-size: 9px; padding: 2px 8px; }
+  .flip-front, .flip-back { min-height: 280px; padding: 24px 18px; }
+  .card-word { font-size: 30px; }
+  .card-th { font-size: 23px; }
+  .quiz-prompt { font-size: 20px; }
+  .fill-prompt { font-size: 18px; }
+  .tf-word { font-size: 28px; }
+  .tf-statement { font-size: 17px; }
+  .hang-word { font-size: 26px; letter-spacing: 5px; }
+  .cloze-sentence { font-size: 17px; }
+  .modal { max-width: 100%; margin: 16px; }
+  .confirm-box { max-width: 100%; margin: 16px; }
+  .kb-help-box { max-width: 100%; margin: 16px; }
+  .level-up-card { max-width: calc(100% - 32px); margin: 16px; }
+  .toast-wrap { left: 12px; right: 12px; max-width: none; }
+  .toast { max-width: none; }
+}
+
+/* ---------- 9. iPad / tablet (768px – 1024px) ---------- */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .sidebar { width: min(260px, 30vw); }
+  .container { padding: 22px 24px; }
+  .hero { padding: 24px; }
+  .hero-title { font-size: 28px; }
+  .hero-side { width: 220px; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .stat-card { padding: 20px; }
+  .stat-num { font-size: 28px; }
+  .dash-row { grid-template-columns: 1.3fr 1fr; gap: 18px; }
+  .chart-wrap { min-height: 200px; }
+  .mastery { gap: 18px; }
+  .donut { width: 130px; height: 130px; }
+  .heatmap .hm-grid { grid-template-rows: repeat(7, 12px); grid-auto-columns: 12px; gap: 3px; }
+  .hm-cell { width: 12px; height: 12px; }
+  .match-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .quiz-options { grid-template-columns: 1fr 1fr; }
+  .browse-list { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .task-card { padding: 16px 20px; }
+  .grade-actions { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .btn-grade { padding: 12px 5px; font-size: 14px; }
+  .btn-grade b { font-size: 14px; }
+  .btn-grade .g-hint { font-size: 11px; }
+  .ms-gauge { width: 100px; height: 100px; }
+  .ms-gauge span { font-size: 24px; }
+  .ms-gauge small { font-size: 10px; transform: translate(-50%, calc(-50% + 18px)); }
+  .ms-bar { height: 14px; }
+  .ms-legend { gap: 12px; font-size: 11.5px; }
+  .ms-legend .dot { width: 8px; height: 8px; }
+  .card-word { font-size: 34px; }
+  .flip-front, .flip-back { padding: 28px 24px; min-height: 300px; }
+  .card-th { font-size: 24px; }
+  .quiz-prompt { font-size: 22px; }
+  .fill-prompt { font-size: 20px; }
+  .tf-word { font-size: 32px; }
+  .tf-statement { font-size: 18px; }
+  .hang-word { font-size: 28px; letter-spacing: 5px; }
+  .hang-key { width: 40px; height: 46px; font-size: 16px; }
+  .build-tile { padding: 13px 16px; font-size: 15px; }
+  .cloze-sentence { font-size: 18px; }
+  .listen-q .speak-btn.lg { width: 60px; height: 60px; font-size: 24px; }
+  .browse-card { padding: 15px; }
+  .bc-word { font-size: 17px; }
+  .modal { max-width: 500px; padding: 24px; }
+  .detail-word { font-size: 30px; }
+  .detail-th { font-size: 21px; }
+  .mq-toggle { padding: 10px 12px; font-size: 13px; }
+  .profile-chip { padding: 8px 10px; }
+  .pc-ring { width: 32px; height: 32px; font-size: 13px; }
+  .pc-rank { font-size: 12.5px; }
+  .pc-xp-text { font-size: 10px; }
+}
+

@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' http://localhost:3001; object-src 'none'; base-uri 'self'; frame-ancestors 'none';" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Vocab Trainer · Learn English Vocabulary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <!-- mini-player.css merged into style.css -->
+  <meta name="theme-color" content="#6366f1" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Vocab Trainer" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/img/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
+  <script defer src="assets/js/vocab-data.js"></script>
+  <!-- flags.js inlined into app.js (sets window.MINI_PLAYER_ENABLED) -->
+  <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/mini-player.js"></script>
+  <script defer src="assets/js/boot.js"></script>
+  <script defer src="assets/js/auth.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="sidebarNav"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <div class="scrim" id="scrim"></div>
+  <div class="bg-decor" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebarNav">
+    <div class="sidebar-brand">
+      <span class="brand-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-4 9 4-9 4z"/><path d="M7 11v5c0 1 2.5 2.5 5 2.5S17 17 17 16v-5"/><path d="M21 9v5"/></svg></span>
+      <div class="brand-text">
+        <h1>Vocab Trainer</h1>
+        <p class="brand-sub" data-i18n="app.sub">Learn B1-level English vocabulary</p>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="nav-btn active" data-view="home"><span class="nav-ico"><span class="ico ico-tile" data-icon="home"></span></span><span data-i18n="nav.home">Home</span></button>
+      <button class="nav-btn" data-view="tasks"><span class="nav-ico"><span class="ico ico-tile" data-icon="calendar"></span></span><span data-i18n="nav.tasks">Daily Tasks</span></button>
+      <button class="nav-btn" data-view="browse"><span class="nav-ico"><span class="ico ico-tile" data-icon="book"></span></span><span data-i18n="nav.browse">Word List</span></button>
+      <button class="nav-btn" data-view="achievements"><span class="nav-ico"><span class="ico ico-tile" data-icon="trophy"></span></span><span data-i18n="nav.achievements">Achievements</span></button>
+      <button class="nav-btn" data-view="stats"><span class="nav-ico"><span class="ico ico-tile" data-icon="chart"></span></span><span data-i18n="nav.stats">Statistics</span></button>
+      <div class="nav-group-wrap">
+        <button class="nav-group" id="navGames" aria-expanded="false" aria-controls="navGamesSub">
+          <span class="nav-ico"><span class="ico ico-tile" data-icon="grid"></span></span><span data-i18n="nav.games">Games</span><span class="nav-chevron" data-icon="chevron"></span>
+        </button>
+        <div class="nav-sub" id="navGamesSub">
+          <button class="nav-sub-btn" data-view="cards"><span class="nav-ico"><span class="ico ico-tile" data-icon="cards"></span></span><span data-i18n="nav.cards">Flashcards</span></button>
+          <button class="nav-sub-btn" data-view="quiz"><span class="nav-ico"><span class="ico ico-tile" data-icon="pencil"></span></span><span data-i18n="nav.quiz">Quiz</span></button>
+          <button class="nav-sub-btn" data-view="pron"><span class="nav-ico"><span class="ico ico-tile" data-icon="mic"></span></span><span data-i18n="nav.pron">Pronunciation</span></button>
+          <button class="nav-sub-btn" data-view="fill"><span class="nav-ico"><span class="ico ico-tile" data-icon="pencil"></span></span><span data-i18n="nav.fill">Fill-in-the-Blank</span></button>
+          <button class="nav-sub-btn" data-view="match"><span class="nav-ico"><span class="ico ico-tile" data-icon="cards"></span></span><span data-i18n="nav.match">Card Match</span></button>
+          <button class="nav-sub-btn" data-view="tf"><span class="nav-ico"><span class="ico ico-tile" data-icon="clock"></span></span><span data-i18n="nav.tf">True / False</span></button>
+          <button class="nav-sub-btn" data-view="hang"><span class="nav-ico"><span class="ico ico-tile" data-icon="target"></span></span><span data-i18n="nav.hang">Hangman</span></button>
+          <button class="nav-sub-btn" data-view="build"><span class="nav-ico"><span class="ico ico-tile" data-icon="puzzle"></span></span><span data-i18n="nav.build">Sentence Builder</span></button>
+          <button class="nav-sub-btn" data-view="cloze"><span class="nav-ico"><span class="ico ico-tile" data-icon="pencil"></span></span><span data-i18n="nav.cloze">Cloze</span></button>
+          <button class="nav-sub-btn" data-view="listen"><span class="nav-ico"><span class="ico ico-tile" data-icon="speaker"></span></span><span data-i18n="nav.listen">Listen &amp; Type</span></button>
+        </div>
+      </div>
+      <button class="nav-btn" data-view="settings"><span class="nav-ico"><span class="ico ico-tile" data-icon="gear"></span></span><span data-i18n="nav.settings">Settings</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="profileChip" class="profile-chip" data-view="achievements" title="ดูความสำเร็จของคุณ" aria-label="ดูความสำเร็จของคุณ">
+        <span class="pc-ring"><span class="pc-level">1</span></span>
+        <span class="pc-meta">
+          <span class="pc-rank">Newcomer</span>
+          <span class="pc-title" hidden></span>
+          <span class="pc-boost" hidden></span>
+          <span class="pc-xp"><span class="pc-xp-fill"></span></span>
+          <span class="pc-xp-text">0 / 100 XP</span>
+        </span>
+      </button>
+      <div class="streak" id="streakBox" title="Day streak of daily review"><span class="ico ico-tile sm" data-icon="flame"></span> <span id="streak">0</span> <span data-i18n="streak.days">days</span></div>
+      <button class="btn btn-sm btn-auth" id="sidebarAuthBtn">
+        <span class="ico" data-icon="lock"></span> <span>Login</span>
+      </button>
+      <button class="icon-btn" id="installBtn" hidden title="Install Vocab Trainer" aria-label="Install Vocab Trainer as an app"><span class="ico" data-icon="download"></span></button>
+      <button class="icon-btn" id="helpBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts"><span class="ico" data-icon="keyboard"></span></button>
+      <button class="icon-btn" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode"><span class="ico" data-icon="moon"></span></button>
+    </div>
+  </aside>
+
+  <main class="container" id="main" tabindex="-1">
+
+    <!-- ===== HOME ===== -->
+    <section class="view active" id="view-home">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-main">
+          <p class="hero-greet" id="heroGreeting" data-i18n="hero.greet">Good day!</p>
+          <h2 class="hero-title" data-i18n="hero.title">Ready to grow your vocabulary?</h2>
+          <p class="hero-date" id="heroDate"></p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="homeCards" data-i18n="btn.startCards">Start Flashcard Review</button>
+            <button class="btn" id="homeQuiz" data-i18n="btn.homeQuiz">Take a Quiz</button>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="streak-card">
+            <span class="streak-flame"><span class="ico ico-tile lg" data-icon="flame"></span></span>
+            <div class="streak-num"><span id="streakPill">0</span><span class="streak-unit">day streak</span></div>
+          </div>
+          <div class="wotd" id="wotd"></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-ico"><span class="ico" data-icon="book"></span></span><span class="stat-num" id="statTotal">0</span><span class="stat-label" data-i18n="stat.total">Total words</span></div>
+        <div class="stat-card"><span class="stat-ico"><span class="ico" data-icon="check"></span></span><span class="stat-num" id="statMastered">0</span><span class="stat-label" data-i18n="stat.mastered">Mastered</span></div>
+        <div class="stat-card"><span class="stat-ico"><span class="ico" data-icon="clock"></span></span><span class="stat-num" id="statDue">0</span><span class="stat-label" data-i18n="stat.due">Due for review</span></div>
+        <div class="stat-card"><span class="stat-ico"><span class="ico" data-icon="calendar"></span></span><span class="stat-num" id="statDays">0</span><span class="stat-label" data-i18n="stat.days">Days studied</span></div>
+        <div class="stat-card accent"><span class="stat-ico"><span class="ico" data-icon="chart"></span></span><span class="stat-num" id="statAcc">0</span><span class="stat-label" data-i18n="stat.acc">Accuracy (7d)</span></div>
+      </div>
+
+      <!-- Daily Quests -->
+      <div class="panel quest-panel" id="questPanel">
+        <div class="panel-head">
+          <h2><span class="ico ico-tile" data-icon="target"></span><span data-i18n="quest.heading">Daily Quests</span></h2>
+          <span class="quest-reward" id="questReward">+50 XP</span>
+        </div>
+        <div class="quest-list" id="questList"></div>
+        <button class="btn btn-primary" id="questClaim" hidden data-i18n="quest.claim">Claim Reward</button>
+      </div>
+
+      <!-- Memory Strength -->
+      <div class="panel memory-panel2">
+        <h2><span class="ico ico-tile" data-icon="brain"></span><span data-i18n="memory.heading">Memory Strength</span></h2>
+        <p class="hint" data-i18n="memory.hint">How much you're retaining right now, across the words you've learned.</p>
+        <div class="ms-wrap">
+          <div class="ms-gauge" id="msGauge"><span id="msPct">0%</span><small data-i18n="memory.retained">retained</small></div>
+          <div class="ms-dist" id="msDist">
+            <div class="ms-bar" id="msBar"></div>
+            <div class="ms-legend" id="msLegend"></div>
+            <span class="ms-empty">Study some words to see your memory distribution</span>
+          </div>
+        </div>
+        <button class="btn btn-primary ms-btn" id="homeSmart"><span class="ico" data-icon="brain"></span> <span data-i18n="memory.smart">Smart Review</span> <span class="badge-sm" id="smartCount"></span></button>
+      </div>
+
+      <!-- Boss Rush (ปลดล็อกที่ L20) -->
+      <div class="panel boss-panel" id="bossPanel">
+        <div class="panel-head">
+          <h2><span class="ico ico-tile" data-icon="bolt"></span><span data-i18n="boss.heading">Boss Rush</span></h2>
+          <span class="boss-tag" id="bossTag">Lv 20</span>
+        </div>
+        <p class="hint" data-i18n="boss.hint">Review 12 of your weakest words — answer within 30s each; a Perfect run earns a +25 XP bonus</p>
+        <button class="btn btn-primary boss-rush-btn" id="bossRushBtn" hidden><span class="ico" data-icon="bolt"></span> <span data-i18n="boss.start">Start Boss Rush</span></button>
+      </div>
+
+      <!-- Chart + Mastery -->
+      <div class="dash-row">
+        <div class="panel chart-panel">
+          <div class="panel-head">
+            <h2><span class="ico ico-tile" data-icon="chart"></span><span data-i18n="chart.study">Study Activity</span></h2>
+            <div class="chip-group sm" id="chartRange"></div>
+          </div>
+          <div class="chart-wrap" id="chartWrap"></div>
+          <div class="chart-legend"><span class="lg-dot area"></span><span data-i18n="chart.legendArea">Words studied</span>&nbsp;&nbsp;<span class="lg-dot line"></span><span data-i18n="chart.legendAcc">Accuracy</span></div>
+        </div>
+
+        <div class="panel mastery-panel">
+          <h2><span class="ico ico-tile" data-icon="trophy"></span><span data-i18n="mastery.heading">Mastery by Type</span></h2>
+          <div class="mastery" id="mastery"></div>
+        </div>
+      </div>
+
+      <!-- Heatmap -->
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="grid"></span><span data-i18n="heatmap.heading">Activity Heatmap</span></h2>
+        <p class="hint" data-i18n="heatmap.hint">Your daily study over the last 12 weeks</p>
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+
+      <!-- Words learned (cumulative) -->
+      <div class="panel chart-panel">
+        <div class="panel-head">
+          <h2><span class="ico ico-tile" data-icon="trending"></span><span data-i18n="learned.heading">Words Learned</span></h2>
+          <div class="chip-group sm" id="learnedRange"></div>
+        </div>
+        <div class="chart-wrap" id="learnedWrap"></div>
+        <div class="chart-legend"><span class="lg-dot area"></span><span data-i18n="learned.legend">Cumulative words learned</span></div>
+      </div>
+
+      <!-- Daily Progress -->
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="calendar"></span><span data-i18n="dailyProgress.heading">Daily Progress</span></h2>
+        <div id="dayProgress" class="day-progress"></div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="home-actions">
+        <button class="btn" id="homeFill" data-i18n="nav.fill">Fill-in-the-Blank</button>
+        <button class="btn" id="homeMatch" data-i18n="nav.match">Card Match</button>
+        <button class="btn" id="homeTf" data-i18n="nav.tf">True / False</button>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn" id="homeHang" data-i18n="nav.hang">Hangman</button>
+        <button class="btn" id="homeBuild" data-i18n="nav.build">Sentence Builder</button>
+        <button class="btn" id="homeCloze" data-i18n="nav.cloze">Cloze</button>
+        <button class="btn" id="homeListen" data-i18n="nav.listen">Listen &amp; Type</button>
+      </div>
+    </section>
+
+    <!-- ===== ACHIEVEMENTS ===== -->
+    <section class="view" id="view-achievements" aria-labelledby="achTitle">
+      <div class="panel ach-head">
+        <div class="ach-head-main">
+          <h2 id="achTitle"><span class="ico ico-tile" data-icon="trophy"></span><span data-i18n="ach.heading">Achievements</span></h2>
+          <p class="ach-count" id="achCount">Unlocked 0 / 0</p>
+        </div>
+        <div class="ach-head-stats">
+          <div class="ach-stat"><span class="ach-stat-num" id="achLvl">Level 1</span><span class="ach-stat-label" data-i18n="ach.level">Level</span></div>
+          <div class="ach-stat"><span class="ach-stat-num" id="achXp">0 XP</span><span class="ach-stat-label" data-i18n="ach.total">Total</span></div>
+        </div>
+      </div>
+      <p class="hint" data-i18n="ach.hint">Achievements unlock automatically as you study more — locked ones show as ??? until earned</p>
+      <div class="panel reward-panel">
+        <h3 class="reward-head"><span class="ico ico-tile" data-icon="sparkle"></span><span data-i18n="reward.heading">Level Rewards</span></h3>
+        <p class="hint" data-i18n="reward.hint">Higher levels unlock color themes, XP boosts, titles, and special modes — locked ones open once you reach that level</p>
+        <div class="reward-rail" id="rewardRail"></div>
+      </div>
+      <div class="ach-grid" id="achGrid"></div>
+    </section>
+
+    <!-- ===== BOSS RUSH ===== -->
+    <section class="view" id="view-bossrush" aria-labelledby="bossTitle">
+      <div class="panel boss-view">
+        <div class="boss-top">
+          <h2 id="bossTitle"><span class="ico ico-tile" data-icon="bolt"></span><span data-i18n="boss.heading">Boss Rush</span></h2>
+          <button class="btn" id="bossClose" data-i18n="boss.close">Close</button>
+        </div>
+        <div class="boss-timer"><span class="boss-time-fill" id="bossTimeFill"></span></div>
+        <p class="boss-time-text" id="bossTimeText">30s</p>
+        <p class="boss-counter" id="bossCounter">Boss 1 / 12</p>
+        <div class="boss-card">
+          <div class="boss-word" id="bossWord">word</div>
+          <p class="boss-prompt" id="bossPrompt"></p>
+        </div>
+        <p class="boss-ask" data-i18n="boss.ask">Do you remember this meaning?</p>
+        <div class="boss-actions">
+          <button class="btn btn-good" id="bossKnow"><span class="ico" data-icon="check"></span> <span data-i18n="boss.know">I remember</span></button>
+          <button class="btn btn-bad" id="bossForgot"><span class="ico" data-icon="close"></span> <span data-i18n="boss.forgot">Not sure</span></button>
+        </div>
+        <div class="boss-progress"><span id="bossProgress"></span></div>
+        <div class="boss-result hidden" id="bossResultPanel">
+          <h3 data-i18n="boss.result">Boss Rush Results</h3>
+          <p class="boss-score" id="bossScore">0 / 12</p>
+          <p class="boss-run" id="bossRun"></p>
+          <p class="boss-feedback" id="bossFeedback"></p>
+          <button class="btn btn-primary" id="bossAgain" data-i18n="boss.again">Try Again</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FLASHCARDS ===== -->
+    <section class="view" id="view-cards">
+      <div class="panel" id="cardControls">
+        <h2 data-i18n="cfg.review">Review Settings</h2>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="cardFilterType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.day">Day</span>
+            <div class="chip-group scroll" id="cardFilterDay"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.mode">Mode</span>
+            <div class="chip-group" id="cardMode"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startCards" data-i18n="btn.startLearning">Start Learning</button>
+      </div>
+
+      <div class="session hidden" id="cardSession">
+        <div class="session-top">
+          <span id="cardCounter">0 / 0</span>
+          <div class="progress-bar"><div class="progress-fill" id="cardProgress"></div></div>
+        </div>
+        <div class="flip-card" id="flipCard">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <span class="badge" id="cardBadge">VOCAB</span>
+              <button class="info-btn" id="cardInfo" title="View details"><span class="ico" data-icon="info"></span></button>
+              <p class="card-word" id="cardWord">word</p>
+              <p class="card-pos" id="cardPos"></p>
+              <button class="speak-btn" id="cardSpeak" title="Listen"><span class="ico" data-icon="speaker"></span></button>
+              <p class="hint">Tap to reveal the translation · tap ℹ️ for details</p>C
+            </div>
+            <div class="flip-back">
+              <p class="card-th" id="cardTh"></p>
+              <div class="card-ex">
+                <p class="ex-en" id="cardExEn"></p>
+                <p class="ex-th" id="cardExTh"></p>
+              </div>
+              <p class="card-note hidden" id="cardNote"></p>
+            </div>
+          </div>
+        </div>
+        <div class="session-actions grade-actions" id="cardGradeRow">
+          <button class="btn btn-grade again" data-q="1"><b>Again</b><span class="g-hint" data-qhint="1">now</span></button>
+          <button class="btn btn-grade hard" data-q="3"><b>Hard</b><span class="g-hint" data-qhint="3"></span></button>
+          <button class="btn btn-grade good" data-q="4"><b>Good</b><span class="g-hint" data-qhint="4"></span></button>
+          <button class="btn btn-grade easy" data-q="5"><b>Easy</b><span class="g-hint" data-qhint="5"></span></button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="cardResult" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- ===== QUIZ ===== -->
+    <section class="view" id="view-quiz">
+      <div class="panel" id="quizControls">
+        <h2 data-i18n="cfg.quiz">Quiz Settings</h2>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.format">Question format</span>
+            <div class="chip-group" id="quizMode"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of questions</span>
+            <div class="chip-group" id="quizCount"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="quizType"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startQuiz" data-i18n="btn.startQuiz">Start Quiz</button>
+      </div>
+
+      <div class="session hidden" id="quizSession">
+        <div class="session-top">
+          <span id="quizCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="quizProgress"></div></div>
+        </div>
+        <div class="quiz-q">
+          <button class="speak-btn" id="quizSpeak" title="Listen"><span class="ico" data-icon="speaker"></span></button>
+          <p id="quizPrompt" class="quiz-prompt"></p>
+        </div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <p class="quiz-feedback hidden" id="quizFeedback" aria-live="polite"></p>
+        <button class="btn btn-primary hidden" id="quizNext">Next Question →</button>
+      </div>
+
+      <div class="result hidden" id="quizResult" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- ===== DAILY TASKS ===== -->
+    <section class="view" id="view-tasks">
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="calendar"></span><span data-i18n="tasks.heading">Daily Tasks — Spaced Review</span></h2>
+        <p class="hint" id="tasksToday"></p>
+        <p class="hint" data-i18n="tasks.hint">The system brings back previous days' words at increasing intervals (e.g., Day 1 recurs on days 2, 4, 7, 14 …). The more often you review, the less frequently a word returns, until it's locked in.</p>
+      </div>
+      <div id="tasksList" class="tasks-list"></div>
+    </section>
+
+    <!-- ===== BROWSE ===== -->
+    <section class="view" id="view-browse">
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="book"></span><span data-i18n="nav.browse">Search &amp; Browse</span></h2>
+        <p class="hint" data-i18n="browse.hint">💡 Click a card to see word details · tap the speaker to hear it</p>
+        <div class="controls">
+          <div class="field grow">
+            <span class="field-label" data-i18n="label.search">Search</span>
+            <input type="text" id="browseSearch" placeholder="Type a word or its meaning…" />
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="browseType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.day">Day</span>
+            <div class="chip-group scroll" id="browseDay"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.meanings">Meanings</span>
+            <button class="btn" id="browseToggleMeanings"><span class="ico" data-icon="eye"></span> <span id="browseToggleMeaningsLabel" data-i18n="browse.hideAll">Hide all meanings</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="browse-list" id="browseList"></div>
+    </section>
+
+    <!-- ===== PRONUNCIATION TEST ===== -->
+    <section class="view" id="view-pron">
+      <div class="panel" id="pronControls">
+        <h2><span class="ico ico-tile" data-icon="mic"></span><span data-i18n="cfg.pron">Pronunciation Test</span></h2>
+        <p class="hint">Speak the word into your microphone — the app checks accuracy and highlights the syllables you missed</p>
+        <p class="hint pron-file-warn" id="pronFileWarn">⚠️ You're opening this as a direct file (file://) — the browser will ask for microphone permission every time. Run <b>start-server.bat</b> and open <b>http://localhost:8000</b> so "Allow always" sticks</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of questions</span>
+            <div class="chip-group" id="pronCount"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="pronType"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startPron" data-i18n="btn.startPron">Start Pronunciation Test</button>
+      </div>
+
+      <div class="session hidden" id="pronSession">
+        <div class="session-top">
+          <span id="pronCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="pronProgress"></div></div>
+        </div>
+        <div class="pron-q">
+          <span class="badge" id="pronBadge">VOwCAB</span>
+          <p class="pron-word" id="pronWord"></p>
+          <p class="pron-phon" id="pronPhon"></p>
+          <div class="pron-audio-btns">
+            <button class="speak-btn" id="pronSpeak" title="Listen to sample"><span class="ico" data-icon="speaker"></span></button>
+            <button class="speak-btn" id="pronSlow" title="Listen slowly"><span class="ico" data-icon="volumeLow"></span></button>
+          </div>
+        </div>
+        <button class="btn btn-accent btn-mic" id="pronRecord">
+          <span class="mic-icon"><span class="ico" data-icon="mic"></span></span> <span id="pronRecordLabel" data-i18n="tap.say">Tap, then say this word</span>
+        </button>
+        <div class="pron-feedback hidden" id="pronFeedback"></div>
+        <button class="btn btn-primary hidden" id="pronNext">Next Question →</button>
+      </div>
+
+      <div class="result hidden" id="pronResult2"></div>
+    </section>
+
+    <!-- ===== FILL-IN-THE-BLANK ===== -->
+    <section class="view" id="view-fill">
+      <div class="panel" id="fillControls">
+        <h2><span class="ico ico-tile" data-icon="pencil"></span><span data-i18n="cfg.fill">Fill-in-the-Blank</span></h2>
+        <p class="hint">Read the clue, then type your answer in the box — it's checked automatically</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.direction">Direction</span>
+            <div class="chip-group" id="fillDir"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="fillType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of questions</span>
+            <div class="chip-group" id="fillCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startFill" data-i18n="btn.startFill">Start Fill-in-the-Blank</button>
+      </div>
+
+      <div class="session hidden" id="fillSession">
+        <div class="session-top">
+          <span id="fillCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="fillProgress"></div></div>
+        </div>
+        <div class="fill-q">
+          <span class="badge" id="fillBadge">VOCAB</span>
+          <p class="fill-prompt" id="fillPrompt"></p>
+          <button class="speak-btn" id="fillSpeak" title="Listen"><span class="ico" data-icon="speaker"></span></button>
+        </div>
+        <input type="text" id="fillInput" class="fill-input" placeholder="Type your answer here…" autocomplete="off" inputmode="text" />
+        <p class="fill-feedback hidden" id="fillFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="fillSkip" data-i18n="skip">Skip</button>
+          <button class="btn btn-primary" id="fillCheck" data-i18n="check.answer">Check Answer</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="fillResult"></div>
+    </section>
+
+    <!-- ===== CARD MATCH ===== -->
+    <section class="view" id="view-match">
+      <div class="panel" id="matchControls">
+        <h2><span class="ico ico-tile" data-icon="cards"></span><span data-i18n="cfg.match">Card Match</span></h2>
+        <p class="hint">All cards are face-up — just tap two cards to find each matching pair (word ↔ meaning)</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="matchType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.pairs">Number of pairs</span>
+            <div class="chip-group" id="matchSize"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startMatch" data-i18n="btn.startMatch">Start Card Match</button>
+      </div>
+
+      <div class="session hidden" id="matchSession">
+        <div class="session-top match-top">
+          <span class="match-stat" id="matchStatus"><span class="ico ico-tile sm" data-icon="check"></span><span id="matchCount">0 / 0</span></span>
+          <span class="match-stat match-moves" id="matchMoves"><span class="ico ico-tile sm" data-icon="cards"></span><span id="matchMovesNum">0</span></span>
+          <span class="match-timer"><span class="timer-ico ico" data-icon="clock"></span><span id="matchTime">0:00</span></span>
+        </div>
+        <div class="progress-bar match-progress"><div class="progress-fill" id="matchProgress"></div></div>
+        <div class="match-grid" id="matchGrid"></div>
+        <div class="match-peek hidden" id="matchPeek">
+          <div class="match-peek-inner">
+            <span class="ico ico-tile lg" data-icon="eye"></span>
+            <p class="match-peek-title" data-i18n="memorize">Memorize the cards</p>
+            <p class="match-peek-sub"><span data-i18n="flip.over">They'll flip over in</span> <b id="matchPeekNum">3</b>…</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="result hidden" id="matchResult"></div>
+    </section>
+
+    <!-- ===== TRUE / FALSE (TIMED) ===== -->
+    <section class="view" id="view-tf">
+      <div class="panel" id="tfControls">
+        <h2><span class="ico ico-tile" data-icon="clock"></span><span data-i18n="cfg.tf">True / False Quiz</span></h2>
+        <p class="hint">Read the word and its Thai sentence, then decide if it's true or false — against the clock!</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="tfType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of questions</span>
+            <div class="chip-group" id="tfCount"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.time">Total time</span>
+            <div class="chip-group" id="tfTime"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startTf" data-i18n="btn.startTf">Start Quiz</button>
+      </div>
+
+      <div class="session hidden" id="tfSession">
+        <div class="tf-timer-bar">
+          <div class="tf-time-fill" id="tfTimeFill"></div>
+          <span class="tf-time-text" id="tfTimeText">0:00</span>
+        </div>
+        <div class="session-top">
+          <span id="tfCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="tfProgress"></div></div>
+        </div>
+        <div class="tf-q">
+          <span class="badge" id="tfBadge">VOCAB</span>
+          <p class="tf-word" id="tfWord"></p>
+          <button class="speak-btn" id="tfSpeak" title="Listen"><span class="ico" data-icon="speaker"></span></button>
+        </div>
+        <p class="tf-statement" id="tfStatement"></p>
+        <p class="quiz-feedback hidden" id="tfFeedback"></p>
+        <div class="tf-options">
+          <button class="btn btn-good tf-opt-btn" id="tfTrue"><span class="opt-ico" data-icon="check"></span>True</button>
+          <button class="btn btn-bad tf-opt-btn" id="tfFalse"><span class="opt-ico" data-icon="cross"></span>False</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="tfResult"></div>
+    </section>
+
+    <!-- ===== HANGMAN ===== -->
+    <section class="view" id="view-hang">
+      <div class="panel" id="hangControls">
+        <h2><span class="ico ico-tile" data-icon="target"></span><span data-i18n="cfg.hang">Hangman</span></h2>
+        <p class="hint">Guess the English word from the Thai clue, one letter at a time — you get 6 wrong guesses</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="hangType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of questions</span>
+            <div class="chip-group" id="hangCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startHang" data-i18n="btn.startHang">Start Hangman</button>
+      </div>
+
+      <div class="session hidden" id="hangSession">
+        <div class="session-top">
+          <span id="hangCounter">Round 1</span>
+          <div class="hang-lives" id="hangLives"></div>
+        </div>
+        <div class="hang-clue">
+          <span class="badge" id="hangBadge">VOCAB</span>
+          <p class="hang-th" id="hangTh"></p>
+          <p class="hang-pos" id="hangPos"></p>
+        </div>
+        <div class="hang-figure" id="hangFigure">
+          <svg viewBox="0 0 200 230" aria-hidden="true">
+            <g class="hf-gallows">
+              <line x1="40" y1="215" x2="165" y2="215" />
+              <line x1="72" y1="215" x2="72" y2="28" />
+              <line x1="72" y1="28" x2="142" y2="28" />
+              <line x1="142" y1="28" x2="142" y2="55" />
+            </g>
+            <g class="hf-part" data-part="1"><circle cx="142" cy="74" r="19" /></g>
+            <g class="hf-part" data-part="2"><line x1="142" y1="93" x2="142" y2="155" /></g>
+            <g class="hf-part" data-part="3"><line x1="142" y1="108" x2="116" y2="138" /></g>
+            <g class="hf-part" data-part="4"><line x1="142" y1="108" x2="168" y2="138" /></g>
+            <g class="hf-part" data-part="5"><line x1="142" y1="155" x2="120" y2="200" /></g>
+            <g class="hf-part" data-part="6"><line x1="142" y1="155" x2="164" y2="200" /></g>
+          </svg>
+        </div>
+        <div class="hang-word" id="hangWord"></div>
+        <p class="hang-msg hidden" id="hangMsg"></p>
+        <div class="hang-keyboard" id="hangKeyboard"></div>
+        <div class="session-actions">
+          <button class="btn" id="hangSkip" data-i18n="skip">Skip</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="hangResult"></div>
+    </section>
+
+    <!-- ===== SENTENCE BUILDER ===== -->
+    <section class="view" id="view-build">
+      <div class="panel" id="buildControls">
+        <h2><span class="ico ico-tile" data-icon="puzzle"></span><span data-i18n="cfg.build">Sentence Builder</span></h2>
+        <p class="hint" data-i18n="build.hint">Tap a word below to place it in the sentence · tap a word in the sentence to take it back down</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="buildType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of questions</span>
+            <div class="chip-group" id="buildCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startBuild" data-i18n="btn.startBuild">Start Sentence Builder</button>
+      </div>
+
+      <div class="session hidden" id="buildSession">
+        <div class="session-top">
+          <span id="buildCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="buildProgress"></div></div>
+        </div>
+        <p class="build-hint" data-i18n="build.hint">Tap a word below to place it in the sentence · tap a word in the sentence to take it back down</p>
+        <div class="build-answer" id="buildSentence" aria-label="Your sentence"></div>
+        <p class="build-zone-label" data-i18n="zone.wordsLeft">Words left</p>
+        <div class="build-tiles" id="buildBank"></div>
+        <p class="build-feedback hidden" id="buildFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="buildSkip" data-i18n="skip">Skip</button>
+          <button class="btn btn-primary" id="buildCheck" data-i18n="check.answer">Check Answer</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="buildResult"></div>
+    </section>
+
+    <!-- ===== CLOZE ===== -->
+    <section class="view" id="view-cloze">
+      <div class="panel" id="clozeControls">
+        <h2><span class="ico ico-tile" data-icon="pencil"></span><span data-i18n="cfg.cloze">Cloze (Fill in the Blank)</span></h2>
+        <p class="hint">Fill the blank to complete the sentence</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="clozeType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of questions</span>
+            <div class="chip-group" id="clozeCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startCloze" data-i18n="btn.startCloze">Start Cloze</button>
+      </div>
+
+      <div class="session hidden" id="clozeSession">
+        <div class="session-top">
+          <span id="clozeCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="clozeProgress"></div></div>
+        </div>
+        <p class="cloze-sentence" id="clozeSentence"></p>
+        <div class="quiz-options" id="clozeOptions"></div>
+        <p class="quiz-feedback hidden" id="clozeFeedback"></p>
+        <button class="btn btn-primary hidden" id="clozeNext">Next Question →</button>
+      </div>
+
+      <div class="result hidden" id="clozeResult"></div>
+    </section>
+
+    <!-- ===== LISTEN & TYPE ===== -->
+    <section class="view" id="view-listen">
+      <div class="panel" id="listenControls">
+        <h2><span class="ico ico-tile" data-icon="speaker"></span><span data-i18n="cfg.listen">Listen &amp; Type</span></h2>
+        <p class="hint">Listen to the word and type what you hear — no microphone needed</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label" data-i18n="label.type">Type</span>
+            <div class="chip-group" id="listenType"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of questions</span>
+            <div class="chip-group" id="listenCount"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startListen" data-i18n="btn.startListen">Start Listen &amp; Type</button>
+      </div>
+
+      <div class="session hidden" id="listenSession">
+        <div class="session-top">
+          <span id="listenCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="listenProgress"></div></div>
+        </div>
+        <div class="listen-q">
+          <button class="speak-btn lg" id="listenSpeak" title="Listen"><span class="ico" data-icon="speaker"></span></button>
+          <p class="listen-pos" id="listenPos"></p>
+        </div>
+        <input type="text" id="listenInput" class="fill-input" placeholder="Type what you hear…" autocomplete="off" inputmode="text" />
+        <p class="fill-feedback hidden" id="listenFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="listenSkip" data-i18n="skip">Skip</button>
+          <button class="btn btn-primary" id="listenCheck" data-i18n="check.answer">Check Answer</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="listenResult"></div>
+    </section>
+
+    <!-- ===== STATISTICS ===== -->
+    <section class="view" id="view-stats">
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="chart"></span><span data-i18n="stats.heading">Statistics</span></h2>
+        <div class="stat-cards" id="statCards"></div>
+      </div>
+      <div class="panel chart-panel">
+        <h2><span class="ico ico-tile" data-icon="trending"></span><span data-i18n="stats.weekly">Weekly progress</span></h2>
+        <div class="chart-wrap" id="weeklyChart"></div>
+      </div>
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="target"></span><span data-i18n="stats.weak">Weak spots</span></h2>
+        <p class="hint" data-i18n="stats.weakHint">Sorted weakest-first — tap Review to drill them</p>
+        <div class="weak-list" id="weakList"></div>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section class="view" id="view-settings">
+      <div class="panel">
+        <h2 id="settingsTitle" data-i18n="settings.title">Settings</h2>
+        <div class="settings-row">
+          <span data-i18n="settings.language">Language</span>
+          <div class="chip-group sm" id="settingsLang"></div>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.dark">Dark mode</span>
+          <button class="btn" id="settingsTheme">Toggle Theme</button>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.themeColor">Theme color</span>
+          <div class="accent-swatches" id="accentSwatches"></div>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.sound">Sound &amp; effects</span>
+          <button class="btn" id="settingsSound">Toggle Sound</button>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.showPlayer">Show music player</span>
+          <button class="btn" id="settingsPlayer">On</button>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.music">Background music</span>
+          <button class="btn" id="settingsMusic">Toggle Music</button>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.pageMusic">Page music</span>
+          <select id="settingsPageSong" class="set-select"></select>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.gameMusic">Game music</span>
+          <select id="settingsGameSong" class="set-select"></select>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.volume">Music volume</span>
+          <input type="range" id="settingsMusicVol" min="0" max="100" value="50" class="set-range" />
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.effects">Effects intensity</span>
+          <div class="chip-group sm" id="settingsEffects"></div>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.reminder">Daily reminder</span>
+          <div class="reminder-controls">
+            <button class="btn" id="settingsReminder">Off</button>
+            <input type="time" id="reminderTime" class="set-time" value="20:00" />
+          </div>
+        </div>
+        <p class="settings-hint" data-i18n="settings.reminderHint">Fires while the app is open (no server needed). True background push would require a backend.</p>
+        <div class="settings-row">
+          <span data-i18n="settings.day">Current study day (per plan)</span>
+          <div class="stepper">
+            <button class="btn btn-sm" id="planDayMinus">−</button>
+            <span id="planDayLabel" class="plan-day-label">Day 1</span>
+            <button class="btn btn-sm" id="planDayPlus">+</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.autoDay">Auto-set day from calendar</span>
+          <button class="btn btn-sm" id="planDayAuto">Reset</button>
+        </div>
+        <div class="settings-row">
+          <span data-i18n="settings.reset">Clear all progress (reset reviews)</span>
+          <button class="btn btn-bad" id="resetProgress">Reset</button>
+        </div>
+        <div class="settings-info" id="settingsInfo"></div>
+
+        <div class="backup-box">
+          <h3><span class="ico ico-tile sm" data-icon="save"></span><span data-i18n="settings.backup">Backup / Restore (move to another device)</span></h3>
+          <p class="hint" data-i18n="settings.backupHint">Progress is stored only on this device. To move to another device or browser, 'Export' from the old one and 'Import' on the new one.</p>
+          <div class="backup-actions">
+            <button class="btn btn-primary" id="exportFile"><span class="ico" data-icon="download"></span><span data-i18n="settings.export">Download Backup File</span></button>
+            <button class="btn" id="exportCopy"><span class="ico" data-icon="copy"></span><span data-i18n="settings.copy">Copy Backup Code</span></button>
+          </div>
+          <textarea id="backupCode" class="backup-code" placeholder="Paste a backup code here to import, or click 'Copy Backup Code' to get this device's code"></textarea>
+          <div class="backup-actions">
+            <button class="btn btn-accent" id="importCode"><span class="ico" data-icon="upload"></span><span data-i18n="settings.import">Import from Code Above</span></button>
+            <label class="btn file-label"><span class="ico" data-icon="file"></span><span data-i18n="settings.chooseFile">Choose Backup File</span><input type="file" id="importFile" accept=".json,application/json" hidden /></label>
+          </div>
+          <p class="backup-status hidden" id="backupStatus"></p>
+        </div>
+        <p class="hint" data-i18n="settings.tip">💡 Add new words daily by telling Claude: <em>"Day N, [topic or random]"</em> — they'll appear here automatically</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== WORD DETAIL MODAL ===== -->
+  <div class="modal-overlay" id="detailModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detailWord">
+      <button class="modal-close" id="detailClose" title="Close (Esc)"><span class="ico" data-icon="close"></span></button>
+      <div class="detail-head">
+        <div class="detail-head-text">
+          <span class="detail-type" id="detailType"></span>
+          <h2 class="detail-word" id="detailWord"></h2>
+          <p class="detail-phonetic" id="detailPhonetic"></p>
+          <p class="detail-pos" id="detailPos"></p>
+        </div>
+        <button class="speak-btn" id="detailSpeak" title="Listen to this word"><span class="ico" data-icon="speaker"></span></button>
+      </div>
+
+      <div class="detail-th" id="detailTh"></div>
+
+      <div class="detail-section">
+        <h3><span class="ico ico-tile sm" data-icon="bulb"></span><span data-i18n="detail.examples">Example Usage</span></h3>
+        <div class="detail-ex">
+          <p class="ex-en" id="detailExEn"></p>
+          <p class="ex-th" id="detailExTh"></p>
+        </div>
+      </div>
+
+      <div class="detail-note hidden" id="detailNote"></div>
+
+      <div class="detail-section">
+        <h3><span class="ico ico-tile sm" data-icon="chart"></span><span data-i18n="detail.progress">Your Progress</span></h3>
+        <div class="detail-progress" id="detailProgress"></div>
+      </div>
+
+      <div class="detail-meta" id="detailMeta"></div>
+
+      <div class="detail-mnemonic hidden" id="detailMnemonic"></div>
+
+      <div class="detail-related" id="detailRelated"></div>
+
+      <div class="detail-actions">
+        <button class="btn" id="detailSlow"><span class="ico" data-icon="volumeLow"></span><span data-i18n="listen.slow">Hear Slowly</span></button>
+        <button class="btn btn-primary" id="detailClose2" data-i18n="boss.close">Close</button>
+      </div>
+
+      <div class="detail-section pron-practice">
+        <h3 data-i18n="detail.pron">🎤 Pronunciation Practice</h3>
+        <button class="btn btn-accent" id="detailPron" data-i18n="tap.say">Tap, then say this word</button>
+
+
+        <div class="pron-feedback hidden" id="pronResult"></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- ===== FLOATING MINI DAILY QUEST (แสดงตอนอยู่นอกหน้า Home) ===== -->
+  <div class="mini-quest" id="miniQuest" hidden>
+    <button class="mq-toggle" id="mqToggle" aria-expanded="false" aria-label="Daily quests">
+      <span class="mq-ico ico" data-icon="target"></span>
+      <span class="mq-title" data-i18n="mq.title">Daily Quests</span>
+      <span class="mq-prog" id="mqProg">0/0</span>
+      <span class="mq-chev"><span class="ico" data-icon="chevron"></span></span>
+    </button>
+    <div class="mq-body" id="mqBody">
+      <div class="mq-list" id="mqList"></div>
+      <button class="btn btn-primary btn-sm mq-claim" id="mqClaim" hidden data-i18n="mq.claim">Claim +50 XP</button>
+    </div>
+  </div>
+
+  <div class="confirm-overlay" id="confirmOverlay" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMsg"></div>
+
+  <!-- ===== LEVEL-UP CELEBRATION OVERLAY ===== -->
+  <div class="level-up-overlay" id="levelUpOverlay" role="dialog" aria-modal="true" aria-labelledby="luTitle" aria-hidden="true">
+    <div class="level-up-card">
+      <p class="lu-kicker" data-i18n="lu.kicker">LEVEL UP!</p>
+      <div class="lu-ring"><span class="lu-level">2</span></div>
+      <h2 id="luTitle" class="lu-title" data-i18n="lu.title">Level Up!</h2>
+      <p class="lu-rank">Apprentice</p>
+      <div class="lu-rewards" id="luRewards" hidden></div>
+      <p class="lu-sub" data-i18n="lu.sub">Getting stronger every day — your vocabulary is leveling up</p>
+      <button class="btn btn-primary lu-close" data-i18n="lu.continue">Continue</button>
+    </div>
+  </div>
+
+  <div class="kb-help-overlay" id="kbHelp" role="dialog" aria-modal="true" aria-labelledby="kbHelpTitle" aria-hidden="true"></div>
+
+  <footer class="footer" data-i18n="footer.built">Built for learning</footer>
+</body>
+</html>

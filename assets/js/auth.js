@@ -21,50 +21,17 @@
     return !!(window.FIREBASE_CONFIGURED && window.firebaseAuth && window.firebaseDb);
   }
 
-  // --- Google Sign-in (popup + fallback redirect) ---
+  // --- Google Sign-in (ใช้ redirect เป็นหลัก — เสถียรบน static host) ---
   async function signInWithGoogle() {
     if (!isFirebaseMode()) throw new Error("Firebase not configured");
     const provider = window.googleProvider || new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
-    // ฟังก์ชันบันทึก user หลังล็อกอินสำเร็จ
-    function handleAuthResult(user) {
-      setToken("firebase:" + user.uid);
-      setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
-      return { token: "firebase:" + user.uid, username: user.displayName || user.email, userId: user.uid };
-    }
-
-    try {
-      // 1. ลอง popup ก่อน
-      const result = await window.firebaseAuth.signInWithPopup(provider);
-      return handleAuthResult(result.user);
-    } catch (err) {
-      const code = err && err.code;
-
-      // popup ถูกปิดโดยผู้ใช้ — ไม่ใช่ error ร้ายแรง
-      if (code === "auth/popup-closed-by-user") {
-        // ลองใช้ redirect แทน (เปิดหน้า Google แทน popup)
-        console.log("[firebase] popup ปิดโดยผู้ใช้ — ลอง redirect แทน");
-        await window.firebaseAuth.signInWithRedirect(provider);
-        // หลัง redirect กลับมา จะได้ผลลัพธ์ในหน้าใหม่
-        return { redirecting: true };
-      }
-
-      // popup โดนบล็อก (browser popup blocker) — ใช้ redirect แทน
-      if (code === "auth/popup-blocked" || code === "auth/cancelled-popup-request") {
-        console.log("[firebase] popup ถูกบล็อก — ใช้ redirect แทน");
-        await window.firebaseAuth.signInWithRedirect(provider);
-        return { redirecting: true };
-      }
-
-      // domain ยังไม่ถูกรับรอง
-      if (code === "auth/unauthorized-domain") {
-        throw new Error("⚠️ Domain นี้ยังไม่ได้เพิ่มใน Firebase Authorized domains\nไปที่ Firebase Console → Authentication → Settings → Authorized domains → เพิ่ม domain นี้");
-      }
-
-      // error อื่น ๆ
-      throw err;
-    }
+    // ใช้ redirect เสมอ (เปิดหน้า Google เต็มหน้า — ทำงานได้ทุกที่)
+    console.log("[firebase] เริ่ม Google Sign-in แบบ redirect");
+    await window.firebaseAuth.signInWithRedirect(provider);
+    // หลัง redirect กลับมา firebaseCheckRedirectResult จะทำงาน
+    return { redirecting: true };
   }
 
   // --- ตรวจสอบผลลัพธ์จาก redirect (เรียกตอนเริ่มแอป) ---
@@ -85,26 +52,54 @@
     }
   }
 
+  // --- แปลง error code ของ Firebase เป็นข้อความภาษาไทย ---
+  function firebaseErrorMessage(err) {
+    const code = err && err.code;
+    const map = {
+      "auth/email-already-in-use": "อีเมลนี้ถูกใช้แล้ว — ลองเข้าสู่ระบบแทน หรือใช้อีเมลอื่น",
+      "auth/invalid-email": "รูปแบบอีเมลไม่ถูกต้อง",
+      "auth/weak-password": "รหัสผ่านสั้นเกินไป (อย่างน้อย 6 ตัวอักษร)",
+      "auth/user-not-found": "ไม่พบผู้ใช้นี้ — ตรวจสอบอีเมลหรือสมัครบัญชีใหม่",
+      "auth/wrong-password": "รหัสผ่านไม่ถูกต้อง",
+      "auth/invalid-credential": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+      "auth/too-many-requests": "ลองหลายครั้งเกินไป — รอสักครู่แล้วลองใหม่",
+      "auth/network-request-failed": "เครือข่ายขัดข้อง — ตรวจสอบอินเทอร์เน็ต",
+      "auth/operation-not-allowed": "ยังไม่ได้เปิดใช้งาน Email/Password ใน Firebase Console → Authentication → Sign-in method",
+      "auth/unauthorized-domain": "⚠️ Domain นี้ยังไม่ได้เพิ่มใน Firebase Authorized domains\nไปที่ Firebase Console → Authentication → Settings → Authorized domains → เพิ่ม domain นี้",
+      "auth/popup-closed-by-user": "ปิดหน้าต่างล็อกอินก่อนเสร็จ — ลองอีกครั้ง",
+      "auth/popup-blocked": "เบราว์เซอร์บล็อก popup — อนุญาต popup แล้วลองอีกครั้ง"
+    };
+    return map[code] || (err && err.message) || "เกิดข้อผิดพลาด กรุณาลองใหม่";
+  }
+
   // --- Firebase email/password register ---
   async function firebaseRegister(username, password) {
     // ใช้ username เป็น email ถ้าไม่มี @ ให้เติม @vocab.app
     const email = username.indexOf("@") !== -1 ? username : username + "@vocab.app";
-    const cred = await window.firebaseAuth.createUserWithEmailAndPassword(email, password);
-    // อัปเดต display name
-    await cred.user.updateProfile({ displayName: username });
-    setToken("firebase:" + cred.user.uid);
-    setUser({ username: username, userId: cred.user.uid, provider: "email" });
-    return { token: "firebase:" + cred.user.uid, username: username, userId: cred.user.uid };
+    try {
+      const cred = await window.firebaseAuth.createUserWithEmailAndPassword(email, password);
+      // อัปเดต display name
+      await cred.user.updateProfile({ displayName: username });
+      setToken("firebase:" + cred.user.uid);
+      setUser({ username: username, userId: cred.user.uid, provider: "email" });
+      return { token: "firebase:" + cred.user.uid, username: username, userId: cred.user.uid };
+    } catch (err) {
+      throw new Error(firebaseErrorMessage(err));
+    }
   }
 
   // --- Firebase email/password login ---
   async function firebaseLogin(username, password) {
     const email = username.indexOf("@") !== -1 ? username : username + "@vocab.app";
-    const cred = await window.firebaseAuth.signInWithEmailAndPassword(email, password);
-    const displayName = cred.user.displayName || username;
-    setToken("firebase:" + cred.user.uid);
-    setUser({ username: displayName, userId: cred.user.uid, provider: "email" });
-    return { token: "firebase:" + cred.user.uid, username: displayName, userId: cred.user.uid };
+    try {
+      const cred = await window.firebaseAuth.signInWithEmailAndPassword(email, password);
+      const displayName = cred.user.displayName || username;
+      setToken("firebase:" + cred.user.uid);
+      setUser({ username: displayName, userId: cred.user.uid, provider: "email" });
+      return { token: "firebase:" + cred.user.uid, username: displayName, userId: cred.user.uid };
+    } catch (err) {
+      throw new Error(firebaseErrorMessage(err));
+    }
   }
 
   // --- Firebase Firestore: ดึงข้อมูล ---

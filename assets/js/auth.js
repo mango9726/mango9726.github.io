@@ -140,6 +140,7 @@
           headers: { "Authorization": "Bearer ping" }
         });
         const ct = res.headers.get("content-type") || "";
+        // ต้องเป็น JSON response (ไม่ใช่ HTML fallback จาก static host)
         backendOnline = ct.indexOf("application/json") !== -1 && (res.status === 401 || res.ok);
       } catch (e) {
         backendOnline = false;
@@ -148,6 +149,16 @@
       return backendOnline;
     })();
     return backendCheckPromise;
+  }
+
+  // ตรวจสอบว่า response เป็น JSON จริง หรือ HTML (static host fallback)
+  async function safeJson(res) {
+    try {
+      const text = await res.text();
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error("backend unavailable — server returned non-JSON response");
+    }
   }
 
   function isStaticMode() {
@@ -275,7 +286,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password, lang })
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || "สมัครไม่สำเร็จ");
       setToken(data.token);
       setUser({ username: data.username, userId: data.userId });
@@ -319,7 +330,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password, lang })
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || "เข้าสู่ระบบไม่สำเร็จ");
       setToken(data.token);
       setUser({ username: data.username, userId: data.userId });
@@ -386,7 +397,7 @@
         if (res.status === 401) logout();
         return null;
       }
-      const data = await res.json();
+      const data = await safeJson(res);
       return data.data;
     }
 
@@ -464,7 +475,7 @@
           headers: { "Authorization": "Bearer " + token }
         });
         if (!res.ok) { logout(); return false; }
-        const data = await res.json();
+        const data = await safeJson(res);
         setUser({ username: data.username, userId: data.userId });
         return true;
       } catch (e) {

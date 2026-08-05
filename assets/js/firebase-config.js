@@ -23,39 +23,45 @@ const firebaseConfig = {
   measurementId: "G-GKLEFNXRY7"
 };
 
-// ตรวจสอบว่า config ถูกตั้งค่าแล้วหรือยัง
-const FIREBASE_CONFIGURED =
-  firebaseConfig.apiKey &&
-  firebaseConfig.apiKey.indexOf("YOUR_") === -1 &&
-  typeof firebase !== "undefined";
+// ตรวจสอบว่า Firebase SDK โหลดสำเร็จหรือไม่
+function isFirebaseSdkReady() {
+  try { return typeof firebase !== "undefined" && !!firebase.initializeApp; }
+  catch (e) { return false; }
+}
 
-// เริ่มต้น Firebase (ถ้า config ถูกตั้งค่าแล้ว)
-if (FIREBASE_CONFIGURED) {
-  firebase.initializeApp(firebaseConfig);
-  // เปิดใช้งาน Google Auth provider
-  const googleProvider = new firebase.auth.GoogleAuthProvider();
-  googleProvider.setCustomParameters({ prompt: "select_account" });
+// เริ่มต้น Firebase (ถ้า config ถูกตั้งค่าและ SDK โหลดสำเร็จ)
+try {
+  if (firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("YOUR_") === -1 && isFirebaseSdkReady()) {
+    firebase.initializeApp(firebaseConfig);
+    // เปิดใช้งาน Google Auth provider
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: "select_account" });
 
-  // Expose ให้ auth.js ใช้
-  window.FIREBASE_CONFIGURED = true;
-  window.firebaseAuth = firebase.auth();
-  window.firebaseDb = firebase.firestore();
-  window.googleProvider = googleProvider;
+    // Expose ให้ auth.js ใช้
+    window.FIREBASE_CONFIGURED = true;
+    window.firebaseAuth = firebase.auth();
+    window.firebaseDb = firebase.firestore();
+    window.googleProvider = googleProvider;
 
-  // ตั้งค่า Firestore persistence (ให้ทำงาน offline ได้)
-  try {
-    firebase.firestore().enablePersistence({ synchronizeTabs: true })
-      .catch(function (err) {
-        console.warn("[firebase] persistence ไม่พร้อม:", err.code);
-      });
-  } catch (e) {
-    console.warn("[firebase] persistence init:", e);
+    // ตั้งค่า Firestore persistence (ให้ทำงาน offline ได้)
+    try {
+      firebase.firestore().enablePersistence({ synchronizeTabs: true })
+        .catch(function (err) {
+          console.warn("[firebase] persistence ไม่พร้อม:", err.code);
+        });
+    } catch (e) {
+      console.warn("[firebase] persistence init:", e);
+    }
+
+    console.log("[firebase] เริ่มต้นสำเร็จ — Google Login + Firestore sync พร้อมใช้");
+  } else if (!isFirebaseSdkReady()) {
+    window.FIREBASE_CONFIGURED = false;
+    console.warn("[firebase] SDK โหลดไม่สำเร็จ (อาจถูก CSP บล็อก) — ใช้ localStorage mode");
+  } else {
+    window.FIREBASE_CONFIGURED = false;
+    console.log("[firebase] ยังไม่ได้ตั้งค่า config — ใช้ localStorage mode");
   }
-
-  console.log("[firebase] เริ่มต้นสำเร็จ — Google Login + Firestore sync พร้อมใช้");
-} else {
+} catch (e) {
   window.FIREBASE_CONFIGURED = false;
-  if (firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("YOUR_") !== -1) {
-    console.log("[firebase] ยังไม่ได้ตั้งค่า — ใช้ localStorage mode (แก้ไข firebase-config.js เพื่อเปิดใช้งาน)");
-  }
+  console.warn("[firebase] init error:", e.message || e);
 }

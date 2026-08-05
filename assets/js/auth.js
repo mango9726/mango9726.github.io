@@ -888,26 +888,32 @@
   function initAuthUI() {
     try { updateSidebarAuthBtn(); } catch (e) { console.warn("[auth] updateSidebarAuthBtn:", e); }
 
-    // ถ้า Firebase mode ตรวจสอบผลลัพธ์จาก redirect ก่อน
-    (async function () {
-      if (isFirebaseMode()) {
-        // ตรวจสอบ redirect result (มาจาก Google Sign-in แบบ redirect)
-        const redirectOk = await firebaseCheckRedirectResult();
+    // ถ้า Firebase mode — ใช้ onAuthStateChanged เป็นหลัก (เชื่อถือได้กว่า getRedirectResult)
+    if (isFirebaseMode()) {
+      // ตรวจสอบ redirect result ก่อน (มาจาก Google Sign-in แบบ redirect)
+      firebaseCheckRedirectResult().then(function (redirectOk) {
         if (redirectOk) {
+          console.log("[firebase] redirect login สำเร็จ");
           updateSidebarAuthBtn();
           // รีโหลดเพื่อ sync ข้อมูล
           location.reload();
           return;
         }
 
-        // ตรวจสอบ onAuthStateChanged (ล็อกอินปกติ)
-        if (isLoggedIn()) {
-          firebaseVerifyToken().then(function (ok) {
-            if (ok) updateSidebarAuthBtn();
-          });
-        }
-      }
-    })();
+        // ใช้ onAuthStateChanged ตรวจสอบสถานะล็อกอิน (ทำงานเสมอ ไม่พลาด)
+        window.firebaseAuth.onAuthStateChanged(function (user) {
+          if (user) {
+            const displayName = user.displayName || user.email || "User";
+            setToken("firebase:" + user.uid);
+            setUser({ username: displayName, userId: user.uid, provider: "google" });
+            console.log("[firebase] onAuthStateChanged: ล็อกอินแล้ว —", displayName);
+            updateSidebarAuthBtn();
+          } else {
+            console.log("[firebase] onAuthStateChanged: ยังไม่ล็อกอิน");
+          }
+        });
+      });
+    }
 
     const sidebarAuthBtn = document.getElementById("sidebarAuthBtn");
     if (sidebarAuthBtn) {

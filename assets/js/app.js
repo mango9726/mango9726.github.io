@@ -397,8 +397,11 @@
       return openDB().then(function (db) {
         return idbGet(db, KEY_ID).then(function (k) {
           if (!k) {
-            k = crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
-            return idbPut(db, KEY_ID, k).then(function () { return k; });
+            // generateKey returns a Promise — ต้อง await ก่อนเก็บลง IndexedDB
+            return crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"])
+              .then(function (generatedKey) {
+                return idbPut(db, KEY_ID, generatedKey).then(function () { return generatedKey; });
+              });
           }
           return k;
         });

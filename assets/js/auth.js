@@ -21,17 +21,68 @@
     return !!(window.FIREBASE_CONFIGURED && window.firebaseAuth && window.firebaseDb);
   }
 
-  // --- Google Sign-in ---
+  // --- Google Sign-in (popup + fallback redirect) ---
   async function signInWithGoogle() {
     if (!isFirebaseMode()) throw new Error("Firebase not configured");
     const provider = window.googleProvider || new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
-    const result = await window.firebaseAuth.signInWithPopup(provider);
-    // บันทึก user info ลง localStorage (สำหรับ UI ทันที)
-    const user = result.user;
-    setToken("firebase:" + user.uid);
-    setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
-    return { token: "firebase:" + user.uid, username: user.displayName || user.email, userId: user.uid };
+
+    // ฟังก์ชันบันทึก user หลังล็อกอินสำเร็จ
+    function handleAuthResult(user) {
+      setToken("firebase:" + user.uid);
+      setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
+      return { token: "firebase:" + user.uid, username: user.displayName || user.email, userId: user.uid };
+    }
+
+    try {
+      // 1. ลอง popup ก่อน
+      const result = await window.firebaseAuth.signInWithPopup(provider);
+      return handleAuthResult(result.user);
+    } catch (err) {
+      const code = err && err.code;
+
+      // popup ถูกปิดโดยผู้ใช้ — ไม่ใช่ error ร้ายแรง
+      if (code === "auth/popup-closed-by-user") {
+        // ลองใช้ redirect แทน (เปิดหน้า Google แทน popup)
+        console.log("[firebase] popup ปิดโดยผู้ใช้ — ลอง redirect แทน");
+        await window.firebaseAuth.signInWithRedirect(provider);
+        // หลัง redirect กลับมา จะได้ผลลัพธ์ในหน้าใหม่
+        return { redirecting: true };
+      }
+
+      // popup โดนบล็อก (browser popup blocker) — ใช้ redirect แทน
+      if (code === "auth/popup-blocked" || code === "auth/cancelled-popup-request") {
+        console.log("[firebase] popup ถูกบล็อก — ใช้ redirect แทน");
+        await window.firebaseAuth.signInWithRedirect(provider);
+        return { redirecting: true };
+      }
+
+      // domain ยังไม่ถูกรับรอง
+      if (code === "auth/unauthorized-domain") {
+        throw new Error("⚠️ Domain นี้ยังไม่ได้เพิ่มใน Firebase Authorized domains\nไปที่ Firebase Console → Authentication → Settings → Authorized domains → เพิ่ม domain นี้");
+      }
+
+      // error อื่น ๆ
+      throw err;
+    }
+  }
+
+  // --- ตรวจสอบผลลัพธ์จาก redirect (เรียกตอนเริ่มแอป) ---
+  async function firebaseCheckRedirectResult() {
+    if (!isFirebaseMode()) return false;
+    try {
+      const result = await window.firebaseAuth.getRedirectResult();
+      if (result && result.user) {
+        const user = result.user;
+        setToken("firebase:" + user.uid);
+        setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.warn("[firebase] redirect result error:", e.message || e.code);
+      return false;
+    }
   }
 
   // --- Firebase email/password register ---
@@ -604,12 +655,21 @@
         googleBtnEl.disabled = true;
         error.classList.add("hidden");
         try {
-          await signInWithGoogle();
-          closeAuthModal();
-          location.reload();
+          const result = await signInWithGoogle();
+          if (result && result.redirecting) {
+            // กำลัง redirect ไปหน้า Google — ไม่ต้องทำอะไร
+            // หลัง redirect กลับมา firebaseCheckRedirectResult จะทำงาน
+            error.textContent = t("auth.redirectingToGoogle") || "กำลังไปที่หน้า Google...";
+            error.classList.remove("hidden");
+            error.style.color = "var(--primary)";
+          } else {
+            closeAuthModal();
+            location.reload();
+          }
         } catch (e) {
           error.textContent = e.message;
           error.classList.remove("hidden");
+          error.style.color = "";
           googleBtnEl.disabled = false;
         }
       };
@@ -825,6 +885,7 @@
     isStaticMode: isStaticMode,
     isFirebaseMode: isFirebaseMode,
     signInWithGoogle: signInWithGoogle,
+    firebaseCheckRedirectResult: firebaseCheckRedirectResult,
     t: t
   };
 
@@ -832,12 +893,26 @@
   function initAuthUI() {
     try { updateSidebarAuthBtn(); } catch (e) { console.warn("[auth] updateSidebarAuthBtn:", e); }
 
-    // ถ้า Firebase mode และมี user อยู่แล้ว ให้ verify ทันที
-    if (isFirebaseMode() && isLoggedIn()) {
-      firebaseVerifyToken().then(function (ok) {
-        if (ok) updateSidebarAuthBtn();
-      });
-    }
+    // ถ้า Firebase mode ตรวจสอบผลลัพธ์จาก redirect ก่อน
+    (async function () {
+      if (isFirebaseMode()) {
+        // ตรวจสอบ redirect result (มาจาก Google Sign-in แบบ redirect)
+        const redirectOk = await firebaseCheckRedirectResult();
+        if (redirectOk) {
+          updateSidebarAuthBtn();
+          // รีโหลดเพื่อ sync ข้อมูล
+          location.reload();
+          return;
+        }
+
+        // ตรวจสอบ onAuthStateChanged (ล็อกอินปกติ)
+        if (isLoggedIn()) {
+          firebaseVerifyToken().then(function (ok) {
+            if (ok) updateSidebarAuthBtn();
+          });
+        }
+      }
+    })();
 
     const sidebarAuthBtn = document.getElementById("sidebarAuthBtn");
     if (sidebarAuthBtn) {

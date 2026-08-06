@@ -679,6 +679,7 @@
         <span>Apple</span>
       </button>`;
 
+    let mode = "login";
     overlay.innerHTML = `
       <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
         <div class="auth-hero">
@@ -752,7 +753,6 @@
       n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n.dataset.icon] || "") + "</svg>";
     });
 
-    let mode = "login";
     const title = overlay.querySelector("#authTitle");
     const sub = overlay.querySelector("#authSub");
     const submit = overlay.querySelector("#authSubmit");
@@ -1221,11 +1221,10 @@
           }
         });
       });
-      return;
     }
 
     // Backend mode — verify token and sync data on app startup
-    if (!isStaticMode()) {
+    if (!isStaticMode() && !isFirebaseMode()) {
       verifyToken().then(function (valid) {
         if (valid) {
           const user = getUser();

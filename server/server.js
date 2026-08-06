@@ -53,6 +53,55 @@ function makeUserId() {
   return "u_" + crypto.randomBytes(8).toString("hex");
 }
 
+// --- POST /api/auth/google ---
+// Create or link a local account for a Google user.
+// Returns a regular auth token (not "firebase:" prefixed) so the
+// user can also log in with username/password later.
+app.post("/api/auth/google", (req, res) => {
+  const { googleUid, displayName, email } = req.body;
+  if (!googleUid || !displayName) {
+    return res.status(400).json({ error: "googleUid and displayName required" });
+  }
+
+  // Check if user already linked to this Google UID
+  const existingUser = Object.values(db.users).find(function (u) {
+    return u.googleUid === googleUid;
+  });
+  if (existingUser) {
+    const token = genToken();
+    db.tokens[token] = { username: existingUser.username, userId: existingUser.userId };
+    saveDB(db);
+    return res.json({ token, username: existingUser.username, userId: existingUser.userId, isNew: false });
+  }
+
+  // Check if username already taken — append number if so
+  let username = displayName;
+  let counter = 1;
+  while (db.users[username]) {
+    username = displayName + counter;
+    counter++;
+  }
+
+  // Auto-generate a password the user can change later
+  const autoPassword = genToken().slice(0, 12);
+  const id = makeUserId();
+  db.users[username] = {
+    userId: id,
+    passwordHash: hash(autoPassword),
+    googleUid: googleUid,
+    email: email || "",
+    lang: "th",
+    created: Date.now()
+  };
+  db.userData[id] = {};
+
+  const token = genToken();
+  db.tokens[token] = { username, userId: id };
+  saveDB(db);
+
+  res.json({ token, username, userId: id, autoPassword, isNew: true });
+});
+
 // --- POST /api/register ---
 app.post("/api/register", (req, res) => {
   const { username, password, lang } = req.body;

@@ -43,6 +43,8 @@
         const user = result.user;
         setToken("firebase:" + user.uid);
         setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
+        // Sync กับ backend เพื่อสร้างบัญชี locally ที่ login ด้วย username/password ได้
+        syncGoogleWithBackend(user);
         return true;
       }
       return false;
@@ -50,6 +52,75 @@
       console.warn("[firebase] redirect result error:", e.message || e.code);
       return false;
     }
+  }
+
+  // --- Sync บัญชี Google กับ backend เพื่อสร้าง local account ---
+  // หลังจากล็อกอินผ่าน Google สำเร็จ จะสร้างบัญชีใน server ด้วย
+  // ทำให้สามารถล็อกอินด้วย username/password ได้ด้วย
+  async function syncGoogleWithBackend(user) {
+    if (!user) return;
+    // ถ้าไม่มี backend หรืออยู่ใน static mode ให้ข้าม
+    if (isGitHubPages || !(await isBackendAvailable())) return;
+
+    try {
+      const res = await fetch(API_BASE + "/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          googleUid: user.uid,
+          displayName: user.displayName || user.email || "Google User",
+          email: user.email || ""
+        })
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error || "Google sync failed");
+
+      // ใช้ backend token แทน firebase token เพื่อให้ login ด้วย username/password ได้
+      setToken(data.token);
+      setUser({
+        username: data.username,
+        userId: data.userId,
+        provider: "google",
+        googleUid: user.uid
+      });
+
+      // ถ้าเป็นบัญชีใหม่ แสดงรหัสผ่านอัตโนมัติให้ผู้ใช้บันทึก
+      if (data.isNew && data.autoPassword) {
+        showGoogleCredentialToast(data.username, data.autoPassword);
+      }
+
+      console.log("[auth] Google account synced with backend:", data.username);
+    } catch (e) {
+      console.warn("[auth] Google sync with backend failed:", e.message);
+      // ไม่ fail — ผู้ใช้ยังล็อกอินผ่าน Firebase ได้ตามปกติ
+    }
+  }
+
+  // --- แสดง toast แจ้งรหัสผ่านอัตโนมัติหลัง Google สมัครใหม่ ---
+  function showGoogleCredentialToast(username, autoPassword) {
+    const existing = document.getElementById("googleCredentialToast");
+    if (existing) existing.parentNode.removeChild(existing);
+
+    const toast = document.createElement("div");
+    toast.id = "googleCredentialToast";
+    toast.className = "google-credential-toast";
+    toast.innerHTML =
+      '<div class="google-credential-toast-content">' +
+        '<strong>' + esc(t("auth.googleAccountCreated")) + '</strong>' +
+        '<p>' + t("auth.googleCredentialHint") + '</p>' +
+        '<div class="google-credential-fields">' +
+          '<label>' + esc(t("auth.username")) + ': <strong>' + esc(username) + '</strong></label>' +
+          '<label>' + esc(t("auth.password")) + ': <strong>' + esc(autoPassword) + '</strong></label>' +
+        '</div>' +
+        '<p class="google-credential-warning">' + esc(t("auth.googlePasswordWarning")) + '</p>' +
+        '<button class="btn btn-primary btn-sm" id="googleCredentialOk">' + esc(t("auth.ok")) + '</button>' +
+      '</div>';
+    document.body.appendChild(toast);
+
+    document.getElementById("googleCredentialOk").onclick = function () {
+      toast.classList.add("hidden");
+      setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+    };
   }
 
   // --- แปลง error code ของ Firebase เป็นข้อความภาษาไทย ---
@@ -541,54 +612,95 @@
   }
 
   /* ============================================================
-     UI: โมดอล login/register
+     UI: โมดอล login/register — modern glassmorphism design
      ============================================================ */
   function createAuthModal() {
     const firebaseOn = isFirebaseMode();
     const overlay = document.createElement("div");
-    overlay.className = "modal-overlay auth-overlay";
+    overlay.className = "auth-overlay";
     overlay.id = "authModal";
 
-    // Google Sign-in button (เฉพาะ Firebase mode)
+    // Social login buttons
     const googleBtn = firebaseOn ? `
-      <button class="btn btn-google" id="authGoogle">
-        <svg class="google-logo" viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
-        </svg>
+      <button class="btn-social" id="authGoogle">
+        <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
         <span>${esc(t("auth.googleButton"))}</span>
-      </button>
-      <div class="auth-divider"><span>${esc(t("auth.orDivider"))}</span></div>
-    ` : "";
+      </button>` : "";
+
+    const githubBtn = `
+      <button class="btn-social" id="authGithub">
+        <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <span>GitHub</span>
+      </button>`;
+
+    const appleBtn = `
+      <button class="btn-social" id="authApple">
+        <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+        <span>Apple</span>
+      </button>`;
 
     overlay.innerHTML = `
-      <div class="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-        <button class="modal-close" id="authClose" title="${esc(t("settings.close"))}"><span class="ico" data-icon="close"></span></button>
-        <h2 id="authTitle" class="auth-title">${esc(t("auth.loginTitle"))}</h2>
-        <p class="auth-sub" id="authSub">${esc(getAuthSubText("login"))}</p>
-        <div class="auth-form">
-          ${googleBtn}
-          <div class="auth-field">
-            <label class="auth-label" for="authUser">${esc(t("auth.username"))}</label>
-            <input type="text" id="authUser" class="auth-input" placeholder="${esc(t("auth.usernamePlaceholder"))}" autocomplete="username" />
+      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <div class="auth-hero">
+          <div class="auth-hero-icon"><span class="ico" data-icon="lock"></span></div>
+          <h2 id="authTitle">${esc(t("auth.loginTitle"))}</h2>
+          <p id="authSub">${esc(getAuthSubText("login"))}</p>
+          <button class="auth-hero-close" id="authClose" title="${esc(t("settings.close"))}" aria-label="Close"><span class="ico" data-icon="close"></span></button>
+        </div>
+        <div class="auth-body">
+          <div class="auth-social">
+            ${googleBtn}
+            ${githubBtn}
+            ${appleBtn}
           </div>
-          <div class="auth-field">
-            <label class="auth-label" for="authPass">${esc(t("auth.password"))}</label>
-            <input type="password" id="authPass" class="auth-input" placeholder="${esc(t("auth.passwordPlaceholder"))}" autocomplete="current-password" />
+          <div class="auth-divider"><span>${esc(t("auth.orDivider"))}</span></div>
+          <div class="auth-form">
+            <div class="auth-field">
+              <label class="auth-label" for="authUser">${esc(t("auth.username"))}</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+                <input type="text" id="authUser" class="auth-input" placeholder="${esc(t("auth.usernamePlaceholder"))}" autocomplete="username" />
+              </div>
+            </div>
+            <div class="auth-field">
+              <label class="auth-label" for="authPass">${esc(t("auth.password"))}</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+                <input type="password" id="authPass" class="auth-input" placeholder="${esc(t("auth.passwordPlaceholder"))}" autocomplete="current-password" />
+                <button type="button" class="auth-toggle-pwd" id="authTogglePwd" aria-label="Toggle password visibility">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="auth-pwd-strength" id="authPwdStrength">
+                <div class="auth-pwd-strength-bar" data-index="0"></div>
+                <div class="auth-pwd-strength-bar" data-index="1"></div>
+                <div class="auth-pwd-strength-bar" data-index="2"></div>
+                <div class="auth-pwd-strength-bar" data-index="3"></div>
+              </div>
+            </div>
+            <div class="auth-options">
+              <label class="auth-remember">
+                <input type="checkbox" id="authRemember" checked />
+                <span>${esc(t("auth.remember"))}</span>
+              </label>
+              <a href="#" class="auth-forgot" id="authForgot">${esc(t("auth.forgotPassword"))}</a>
+            </div>
+            <p class="auth-error hidden" id="authError"></p>
+            <button class="btn btn-primary auth-submit" id="authSubmit">
+              <span class="btn-text">${esc(mode === "register" ? t("auth.registerButton") : t("auth.loginButton"))}</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+            <p class="auth-toggle-text" id="authToggleText">
+              ${esc(t("auth.noAccount"))} <a href="#" id="authToggle">${esc(t("auth.registerLink"))}</a>
+            </p>
           </div>
-          <div class="auth-field auth-remember-field">
-            <label class="auth-remember">
-              <input type="checkbox" id="authRemember" checked />
-              <span>${esc(t("auth.remember"))}</span>
-            </label>
+          <div class="auth-footer">
+            <a href="#" id="authTerms">${esc(t("auth.terms"))}</a>
+            <span class="auth-sep">·</span>
+            <a href="#" id="authPrivacy">${esc(t("auth.privacy"))}</a>
+            <span class="auth-sep">·</span>
+            <a href="#" id="authHelp">${esc(t("auth.help"))}</a>
           </div>
-          <p class="auth-error hidden" id="authError"></p>
-          <button class="btn btn-primary auth-submit" id="authSubmit">${esc(t("auth.loginButton"))}</button>
-          <p class="auth-toggle-text" id="authToggleText">
-            ${esc(t("auth.noAccount"))} <a href="#" id="authToggle">${esc(t("auth.registerLink"))}</a>
-          </p>
         </div>
       </div>
     `;
@@ -611,6 +723,13 @@
     const passInput = overlay.querySelector("#authPass");
     const rememberInput = overlay.querySelector("#authRemember");
     const googleBtnEl = overlay.querySelector("#authGoogle");
+    const pwdToggle = overlay.querySelector("#authTogglePwd");
+    const pwdStrength = overlay.querySelector("#authPwdStrength");
+    const pwdBars = pwdStrength ? pwdStrength.querySelectorAll(".auth-pwd-strength-bar") : [];
+    const forgotLink = overlay.querySelector("#authForgot");
+    const termsLink = overlay.querySelector("#authTerms");
+    const privacyLink = overlay.querySelector("#authPrivacy");
+    const helpLink = overlay.querySelector("#authHelp");
 
     function getAuthSubText(m) {
       if (isFirebaseMode()) return m === "login" ? t("auth.loginSubFirebase") : t("auth.registerSubFirebase");
@@ -623,15 +742,17 @@
       if (m === "login") {
         title.textContent = t("auth.loginTitle");
         sub.textContent = getAuthSubText("login");
-        submit.textContent = t("auth.loginButton");
+        submit.querySelector(".btn-text").textContent = t("auth.loginButton");
         toggleText.innerHTML = esc(t("auth.noAccount")) + ' <a href="#" id="authToggle">' + esc(t("auth.registerLink")) + '</a>';
       } else {
         title.textContent = t("auth.registerTitle");
         sub.textContent = getAuthSubText("register");
-        submit.textContent = t("auth.registerButton");
+        submit.querySelector(".btn-text").textContent = t("auth.registerButton");
         toggleText.innerHTML = esc(t("auth.hasAccount")) + ' <a href="#" id="authToggle">' + esc(t("auth.loginLink")) + '</a>';
       }
       error.classList.add("hidden");
+      pwdStrength.style.display = m === "register" ? "flex" : "none";
+      resetPwdStrength();
       const newToggle = overlay.querySelector("#authToggle");
       if (newToggle) newToggle.onclick = function (e) { e.preventDefault(); setMode(mode === "login" ? "register" : "login"); };
       overlay.querySelectorAll("[data-icon]").forEach(function (n) {
@@ -640,9 +761,46 @@
       });
     }
 
+    function resetPwdStrength() {
+      pwdBars.forEach(function (b) { b.className = "auth-pwd-strength-bar"; });
+    }
+
+    function updatePwdStrength(pwd) {
+      if (pwd.length === 0) { resetPwdStrength(); return; }
+      let score = 0;
+      if (pwd.length >= 6) score++;
+      if (pwd.length >= 10) score++;
+      if (/[A-Z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+      const levels = ["weak", "weak", "medium", "strong", "strong"];
+      pwdBars.forEach(function (b, i) {
+        b.className = "auth-pwd-strength-bar" + (i <= score ? " " + levels[Math.min(score, 4)] : "");
+      });
+    }
+
     toggle.onclick = function (e) { e.preventDefault(); setMode(mode === "login" ? "register" : "login"); };
     overlay.querySelector("#authClose").onclick = function () { closeAuthModal(); };
     overlay.onclick = function (e) { if (e.target === overlay) closeAuthModal(); };
+
+    // Password visibility toggle
+    if (pwdToggle) {
+      pwdToggle.onclick = function () {
+        const isPassword = passInput.type === "password";
+        passInput.type = isPassword ? "text" : "password";
+        pwdToggle.querySelector("svg").innerHTML = isPassword
+          ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/>'
+          : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>';
+      };
+    }
+
+    // Password strength indicator (register mode only)
+    if (passInput && pwdStrength) {
+      pwdStrength.style.display = "none";
+      passInput.addEventListener("input", function () {
+        updatePwdStrength(passInput.value);
+      });
+    }
 
     // Google Sign-in handler
     if (googleBtnEl) {
@@ -652,8 +810,6 @@
         try {
           const result = await signInWithGoogle();
           if (result && result.redirecting) {
-            // กำลัง redirect ไปหน้า Google — ไม่ต้องทำอะไร
-            // หลัง redirect กลับมา firebaseCheckRedirectResult จะทำงาน
             error.textContent = t("auth.redirectingToGoogle") || "กำลังไปที่หน้า Google...";
             error.classList.remove("hidden");
             error.style.color = "var(--primary)";
@@ -670,6 +826,86 @@
       };
     }
 
+    // GitHub mock login (UI only — no backend support)
+    const githubBtnEl = overlay.querySelector("#authGithub");
+    if (githubBtnEl) {
+      githubBtnEl.onclick = async function () {
+        githubBtnEl.disabled = true;
+        error.classList.add("hidden");
+        submit.classList.add("loading");
+        try {
+          await new Promise(function (resolve) { setTimeout(resolve, 1200); });
+          error.textContent = t("auth.socialNotSupported") || "Social login requires Firebase configuration";
+          error.classList.remove("hidden");
+          error.style.color = "var(--bad)";
+        } catch (e) {
+          error.textContent = e.message;
+          error.classList.remove("hidden");
+        }
+        submit.classList.remove("loading");
+        githubBtnEl.disabled = false;
+      };
+    }
+
+    // Apple mock login (UI only)
+    const appleBtnEl = overlay.querySelector("#authApple");
+    if (appleBtnEl) {
+      appleBtnEl.onclick = async function () {
+        appleBtnEl.disabled = true;
+        error.classList.add("hidden");
+        submit.classList.add("loading");
+        try {
+          await new Promise(function (resolve) { setTimeout(resolve, 1200); });
+          error.textContent = t("auth.socialNotSupported") || "Social login requires Firebase configuration";
+          error.classList.remove("hidden");
+          error.style.color = "var(--bad)";
+        } catch (e) {
+          error.textContent = e.message;
+          error.classList.remove("hidden");
+        }
+        submit.classList.remove("loading");
+        appleBtnEl.disabled = false;
+      };
+    }
+
+    // Forgot password handler
+    if (forgotLink) {
+      forgotLink.onclick = function (e) {
+        e.preventDefault();
+        if (mode === "register") return;
+        const email = userInput.value.trim();
+        if (!email) {
+          error.textContent = t("auth.enterEmailFirst") || "Enter your username or email first";
+          error.classList.remove("hidden");
+          return;
+        }
+        submit.classList.add("loading");
+        submit.querySelector(".btn-text").textContent = t("auth.sending") || "Sending...";
+        error.classList.add("hidden");
+        // Simulate sending (no backend email service)
+        setTimeout(function () {
+          submit.classList.remove("loading");
+          submit.querySelector(".btn-text").textContent = t("auth.loginButton");
+          error.textContent = t("auth.resetSent") || "If that account exists, a reset link has been sent.";
+          error.classList.remove("hidden");
+          error.style.color = "var(--good)";
+          setTimeout(function () { error.classList.add("hidden"); }, 4000);
+        }, 1500);
+      };
+    }
+
+    // Terms / Privacy / Help links (open in new tab or show toast)
+    function handleLink(e, msg) {
+      e.preventDefault();
+      error.textContent = msg;
+      error.classList.remove("hidden");
+      error.style.color = "var(--primary)";
+      setTimeout(function () { error.classList.add("hidden"); }, 3000);
+    }
+    if (termsLink) termsLink.onclick = function (e) { handleLink(e, t("auth.termsMsg") || "Terms of Service — coming soon"); };
+    if (privacyLink) privacyLink.onclick = function (e) { handleLink(e, t("auth.privacyMsg") || "Privacy Policy — coming soon"); };
+    if (helpLink) helpLink.onclick = function (e) { handleLink(e, t("auth.helpMsg") || "Help Center — coming soon"); };
+
     async function handleSubmit() {
       const username = userInput.value.trim();
       const password = passInput.value;
@@ -677,10 +913,11 @@
       if (!username || !password) {
         error.textContent = t("auth.fillBoth");
         error.classList.remove("hidden");
+        error.style.color = "";
         return;
       }
-      submit.disabled = true;
-      submit.textContent = t("auth.processing");
+      submit.classList.add("loading");
+      submit.querySelector(".btn-text").textContent = t("auth.processing");
       error.classList.add("hidden");
 
       try {
@@ -694,8 +931,9 @@
       } catch (e) {
         error.textContent = e.message || e.code || "เกิดข้อผิดพลาด";
         error.classList.remove("hidden");
-        submit.disabled = false;
-        submit.textContent = mode === "register" ? t("auth.registerButton") : t("auth.loginButton");
+        error.style.color = "";
+        submit.classList.remove("loading");
+        submit.querySelector(".btn-text").textContent = mode === "register" ? t("auth.registerButton") : t("auth.loginButton");
       }
     }
 
@@ -782,7 +1020,7 @@
     document.addEventListener("vocab-lang-changed", onLanguageChanged);
   }
 
-  // --- Profile Modal ---
+  // --- Profile Modal — modern card design ---
   function showProfileModal() {
     const user = getUser();
     if (!user) return;
@@ -796,42 +1034,64 @@
 
     const providerLabel = user.provider === "google" ? "Google" : (user.provider === "email" ? "Email" : "—");
 
+    // Gather stats from app state if available
+    const stats = window.VocabApp && window.VocabApp.getStats ? window.VocabApp.getStats() : null;
+    const learnedCount = stats ? stats.learned || 0 : 0;
+    const streak = stats ? stats.streak || 0 : 0;
+    const level = stats ? stats.level || 1 : 1;
+
     const overlay = document.createElement("div");
-    overlay.className = "modal-overlay auth-overlay";
+    overlay.className = "auth-overlay";
     overlay.id = "profileModal";
     overlay.innerHTML = `
-      <div class="modal auth-modal profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-        <button class="modal-close" id="profileClose" title="${esc(t("settings.close"))}"><span class="ico" data-icon="close"></span></button>
+      <div class="profile-modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
         <div class="profile-hero">
           <div class="profile-avatar">${esc(user.username.charAt(0).toUpperCase())}</div>
           <h2 id="profileTitle" class="profile-name">${esc(user.username)}</h2>
           <p class="profile-sub">${esc(t("auth.member"))}</p>
+          <button class="profile-hero-close" id="profileClose" title="${esc(t("settings.close"))}" aria-label="Close"><span class="ico" data-icon="close"></span></button>
         </div>
-        <div class="profile-info">
-          <div class="profile-row">
-            <span class="profile-label">${esc(t("auth.username"))}</span>
-            <span class="profile-value">${esc(user.username)}</span>
+        <div class="profile-body">
+          <div class="profile-stats">
+            <div class="profile-stat">
+              <div class="profile-stat-num">${level}</div>
+              <div class="profile-stat-label">${esc(t("auth.level"))}</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-num">${learnedCount}</div>
+              <div class="profile-stat-label">${esc(t("auth.wordsLearned"))}</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-num">${streak}</div>
+              <div class="profile-stat-label">${esc(t("streak.days"))}</div>
+            </div>
           </div>
-          <div class="profile-row">
-            <span class="profile-label">${esc(t("auth.userId"))}</span>
-            <span class="profile-value">#${(user.userId || "-").substring(0, 12)}</span>
+          <div class="profile-info">
+            <div class="profile-row">
+              <span class="profile-label"><span class="ico" data-icon="user"></span> ${esc(t("auth.username"))}</span>
+              <span class="profile-value">${esc(user.username)}</span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label"><span class="ico" data-icon="id"></span> ${esc(t("auth.userId"))}</span>
+              <span class="profile-value">#${(user.userId || "-").substring(0, 12)}</span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label"><span class="ico" data-icon="provider"></span> ${esc(t("auth.provider"))}</span>
+              <span class="profile-value">${esc(providerLabel)}</span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label"><span class="ico" data-icon="status"></span> ${esc(t("auth.status"))}</span>
+              <span class="profile-value profile-status">✓ ออนไลน์</span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label"><span class="ico" data-icon="sync"></span> ${esc(t("auth.sync"))}</span>
+              <span class="profile-value">${esc(syncLabel)}</span>
+            </div>
           </div>
-          <div class="profile-row">
-            <span class="profile-label">${esc(t("auth.provider"))}</span>
-            <span class="profile-value">${esc(providerLabel)}</span>
+          <div class="profile-actions">
+            <button class="btn btn-bad" id="profileLogout">${esc(t("auth.logout"))}</button>
+            <button class="btn btn-primary" id="profileDone">${esc(t("settings.close"))}</button>
           </div>
-          <div class="profile-row">
-            <span class="profile-label">${esc(t("auth.status"))}</span>
-            <span class="profile-value profile-status">✓ ออนไลน์</span>
-          </div>
-          <div class="profile-row">
-            <span class="profile-label">${esc(t("auth.sync"))}</span>
-            <span class="profile-value">${esc(syncLabel)}</span>
-          </div>
-        </div>
-        <div class="profile-actions">
-          <button class="btn btn-bad" id="profileLogout">${esc(t("auth.logout"))}</button>
-          <button class="btn btn-primary" id="profileDone">${esc(t("settings.close"))}</button>
         </div>
       </div>
     `;
@@ -895,8 +1155,14 @@
         if (redirectOk) {
           console.log("[firebase] redirect login สำเร็จ");
           updateSidebarAuthBtn();
-          // รีโหลดเพื่อ sync ข้อมูล
-          location.reload();
+          // ไม่รีโหลดทันที — sync กับ backend ก่อนเพื่อสร้าง local account
+          const user = getUser();
+          if (user && user.provider === "google") {
+            syncGoogleWithBackend({ uid: user.userId, displayName: user.username, email: "" })
+              .then(function () {
+                updateSidebarAuthBtn();
+              });
+          }
           return;
         }
 
@@ -907,6 +1173,8 @@
             setToken("firebase:" + user.uid);
             setUser({ username: displayName, userId: user.uid, provider: "google" });
             console.log("[firebase] onAuthStateChanged: ล็อกอินแล้ว —", displayName);
+            // Sync กับ backend เพื่อสร้าง local account
+            syncGoogleWithBackend(user);
             updateSidebarAuthBtn();
           } else {
             console.log("[firebase] onAuthStateChanged: ยังไม่ล็อกอิน");

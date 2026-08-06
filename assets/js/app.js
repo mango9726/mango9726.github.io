@@ -86,7 +86,12 @@
     medal: '<circle cx="12" cy="14" r="5"/><path d="M9 3l3 6 3-6"/>',
     compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
     circle: '<circle cx="12" cy="12" r="8"/>',
-    lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'
+    lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    id: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8h20"/><path d="M6 12h.01M10 12h4"/>',
+    provider: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+    status: '<circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/>',
+    sync: '<path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>'
   };
   // Expose icons for auth.js and other modules
   window.VOCAB_ICONS = ICONS;
@@ -192,6 +197,9 @@
       "auth.remember": "จดจำการเข้าสู่ระบบ (เก็บไว้ในเครื่องนี้)",
       "auth.googleButton": "เข้าสู่ระบบด้วย Google", "auth.orDivider": "หรือ",
       "auth.redirectingToGoogle": "กำลังไปที่หน้า Google...",
+      "auth.googleAccountCreated": "บัญชีถูกสร้างแล้ว!",
+      "auth.googleCredentialHint": "บัญชีใหม่ถูกสร้างขึ้นโดยเชื่อมกับ Google ของคุณ บันทึกรหัสผ่านนี้ไว้เพื่อเข้าสู่ระบบด้วยวิธีปกติ:",
+      "auth.googlePasswordWarning": "⚠️ รหัสผ่านนี้แสดงเพียงครั้งเดียว — กรุณาบันทึกไว้หรือเปลี่ยนรหัสผ่านหลังจากเข้าสู่ระบบครั้งแรก",
       "auth.loginSubFirebase": "เข้าสู่ระบบเพื่อ sync ข้ามเครื่อง (Firebase)", "auth.registerSubFirebase": "สร้างบัญชีเพื่อ sync ข้ามเครื่อง (Firebase)",
       "auth.syncFirebase": "Firebase (sync ข้ามเครื่อง)", "auth.provider": "ผู้ให้บริการ",
       "auth.member": "สมาชิก Vocab Trainer", "auth.userId": "User ID",
@@ -199,6 +207,15 @@
       "auth.logout": "ออกจากระบบ", "auth.logoutConfirm": "ออกจากระบบ?\nข้อมูลในเครื่องนี้จะยังอยู่ แต่จะไม่ sync กับ server อีก",
       "auth.guestHint": "เข้าสู่ระบบเพื่อบันทึกความคืบหน้าและซิงค์ข้อมูล",
       "auth.signedInAs": "ล็อกอินแล้วในชื่อ {user}",
+      "auth.forgotPassword": "ลืมรหัสผ่าน?",
+      "auth.terms": "ข้อกำหนดการใช้งาน", "auth.privacy": "นโยบายความเป็นส่วนตัว", "auth.help": "ความช่วยเหลือ",
+      "auth.termsMsg": "หน้าข้อกำหนดการใช้งาน — กำลังเตรียมการ", "auth.privacyMsg": "หน้านโยบายความเป็นส่วนตัว — กำลังเตรียมการ", "auth.helpMsg": "หน้าความช่วยเหลือ — กำลังเตรียมการ",
+      "auth.socialNotSupported": "การเข้าสู่ระบบผ่านโซเชียลต้องการการเชื่อมต่อ Firebase",
+      "auth.enterEmailFirst": "กรุณากรอก username หรืออีเมลก่อน",
+      "auth.resetSent": "หากบัญชีนี้มีอยู่ จะส่งลิงก์รีเซ็ตรหัสผ่านไปแล้ว",
+      "auth.sending": "กำลังส่ง...",
+      "auth.level": "เลเวล", "auth.wordsLearned": "คำศัพท์ที่เรียน",
+      "auth.provider": "ผู้ให้บริการ", "auth.status": "สถานะ", "auth.sync": "การซิงค์ข้อมูล",
       "settings.close": "ปิด"
     },
     en: {
@@ -278,6 +295,9 @@
       "auth.remember": "Remember me (keep me logged in on this device)",
       "auth.googleButton": "Sign in with Google", "auth.orDivider": "or",
       "auth.redirectingToGoogle": "Redirecting to Google...",
+      "auth.googleAccountCreated": "Account created!",
+      "auth.googleCredentialHint": "A new account was created linked to your Google. Save this password for normal login:",
+      "auth.googlePasswordWarning": "⚠️ This password is shown only once — please save it or change it after your first login",
       "auth.loginSubFirebase": "Sign in to sync across devices (Firebase)", "auth.registerSubFirebase": "Create an account to sync across devices (Firebase)",
       "auth.syncFirebase": "Firebase (cross-device sync)", "auth.provider": "Provider",
       "auth.member": "Vocab Trainer Member", "auth.userId": "User ID",
@@ -285,6 +305,15 @@
       "auth.logout": "Log Out", "auth.logoutConfirm": "Log out?\nLocal data will remain but won't sync with the server anymore",
       "auth.guestHint": "Sign in to save progress and sync across devices",
       "auth.signedInAs": "Signed in as {user}",
+      "auth.forgotPassword": "Forgot password?",
+      "auth.terms": "Terms", "auth.privacy": "Privacy", "auth.help": "Help",
+      "auth.termsMsg": "Terms of Service — coming soon", "auth.privacyMsg": "Privacy Policy — coming soon", "auth.helpMsg": "Help Center — coming soon",
+      "auth.socialNotSupported": "Social login requires Firebase configuration",
+      "auth.enterEmailFirst": "Enter your username or email first",
+      "auth.resetSent": "If that account exists, a reset link has been sent.",
+      "auth.sending": "Sending...",
+      "auth.level": "Level", "auth.wordsLearned": "Words Learned",
+      "auth.provider": "Provider", "auth.status": "Status", "auth.sync": "Data Sync",
       "settings.close": "Close"
     }
   };

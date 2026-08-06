@@ -497,8 +497,22 @@
         if (document.visibilityState === "hidden" && available) flush();
       });
     }
+    function remove(k) {
+      delete cache[k];
+      try { localStorage.removeItem(k); } catch (e) {}
+      if (available) scheduleFlush();
+    }
+    function clear() {
+      Object.keys(cache).forEach(function (k) { delete cache[k]; });
+      try {
+        Object.keys(localStorage).forEach(function (k) {
+          if (k.indexOf("vocab_") === 0) localStorage.removeItem(k);
+        });
+      } catch (e) {}
+      if (available) scheduleFlush();
+    }
     const ready = bootstrap();
-    return { get ready() { return ready; }, get available() { return available; }, load: load, save: save, flush: flush };
+    return { get ready() { return ready; }, get available() { return available; }, load: load, save: save, remove: remove, clear: clear, flush: flush };
   })();
   window.SecureStore = SecureStore;
 

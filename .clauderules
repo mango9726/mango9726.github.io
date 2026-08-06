@@ -1,0 +1,19 @@
+# .clauderules — Standing directives for Claude on this project
+
+These rules are ALSO mirrored in `CLAUDE.md` (which Claude Code auto-loads) so they take
+effect without manual action.
+
+1. **ALWAYS read `DEVELOPMENT_WORKFLOW.md`** (repository root) **before starting any
+   coding session** — so you know the project state, how to run it, and what to work on next.
+
+2. **ALWAYS update the "Dynamic Task Board" in `DEVELOPMENT_WORKFLOW.md` immediately after
+   completing any coding task, refactoring, bug fix, or feature work:**
+   - toggle the relevant checkbox(es): `[ ]` → `[x]` (or `[x]` → `[ ]` if reverted),
+   - move tasks between **Backlog / In Progress / Done**,
+   - stamp Done items with the completion date: `- [x] Task name — YYYY-MM-DD`.
+
+3. **Keep the file highly organized, clean, and up to date** — do NOT wait to be reminded.
+   If a task's status changed, reflect it in the *same turn* you made the change.
+
+4. When new work appears, **append it to the correct section** (Backlog or In Progress) so
+   the board always mirrors reality. Never leave the board stale.

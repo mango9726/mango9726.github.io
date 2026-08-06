@@ -1,0 +1,48 @@
+{
+  "users": {
+    "demo_user": {
+      "userId": "u_01064e86bf9b3f5c",
+      "passwordHash": "d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791",
+      "lang": "th"
+    },
+    "admin": {
+      "userId": "u_1903b8cb50cccff7",
+      "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "lang": "en"
+    }
+  },
+  "tokens": {
+    "7d0b3df3707ce54ecbc493190cec0eee2c2a67706d308b63c0a96a725dea3e09": {
+      "username": "demo_user",
+      "userId": "u_01064e86bf9b3f5c"
+    },
+    "2f3787c88bc0a6dd7eb03fcd45a3e12daecae8b92cb9ebbb5bbc099707c9ae3e": {
+      "username": "demo_user",
+      "userId": "u_01064e86bf9b3f5c"
+    },
+    "6b3724e1bf1acf30970d031b676c786eac720edb10955fa302beb3f328771e44": {
+      "username": "admin",
+      "userId": "u_1903b8cb50cccff7"
+    },
+    "850b639ac87316760ca04bb9971bed499fd4abd2036b67a20a3bc2ad0a0def88": {
+      "username": "admin",
+      "userId": "u_1903b8cb50cccff7"
+    },
+    "6d776cdd216a6993ed1b7927d6ec25211a5413814ccc0991af0e49e56c32d4b0": {
+      "username": "admin",
+      "userId": "u_1903b8cb50cccff7"
+    }
+  },
+  "userData": {
+    "u_01064e86bf9b3f5c": {},
+    "u_1903b8cb50cccff7": {
+      "vocab_progress_v1": "{}",
+      "vocab_settings_v1": "{\"theme\":\"dark\",\"accent\":\"aurora\",\"music\":true,\"musicVol\":0.5,\"pageSong\":0,\"gameSong\":0,\"effects\":\"full\",\"lang\":\"en\",\"showMiniPlayer\":true,\"reminder\":{\"on\":false,\"time\":\"20:00\"},\"hideAllMeanings\":false,\"hiddenMeanings\":{}}",
+      "vocab_streak_v1": "{}",
+      "vocab_reviews_v1": "{}",
+      "vocab_history_v1": "{}",
+      "vocab_learned_v1": "{}",
+      "vocab_game_v1": "{\"xp\":0,\"achievements\":{},\"modesUsed\":[],\"typesTouched\":[],\"perfectGames\":0,\"dailyAnswered\":{},\"lastLevelUp\":0,\"nightOwl\":false,\"earlyBird\":false,\"_quizPerfect\":0,\"combo\":0,\"bestCombo\":0,\"dailyMastered\":{},\"dailyModes\":{},\"dailyCombo\":{},\"questDate\":\"2026-08-05\",\"questsClaimed\":false,\"title\":\"\"}"
+    }
+  }
+}

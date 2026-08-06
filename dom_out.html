@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vocab Trainer · Learn English Vocabulary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans+Thai:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/mini-player.css">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Vocab Trainer">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/img/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="sidebarNav"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+  <div class="scrim" id="scrim"></div>
+  <div class="bg-decor" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebarNav">
+    <div class="sidebar-brand">
+      <span class="brand-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-4 9 4-9 4z"></path><path d="M7 11v5c0 1 2.5 2.5 5 2.5S17 17 17 16v-5"></path><path d="M21 9v5"></path></svg></span>
+      <div>
+        <h1>Vocab Trainer</h1>
+        <p class="brand-sub">Learn B1-level English vocabulary</p>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="nav-btn active" data-view="home"><span class="nav-ico"><span class="ico ico-tile" data-icon="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg></span></span><span>Home</span></button>
+      <button class="nav-btn" data-view="tasks"><span class="nav-ico"><span class="ico ico-tile" data-icon="calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"></rect><path d="M3 9h18"></path><path d="M8 2.5v4M16 2.5v4"></path></svg></span></span><span>Daily Tasks</span></button>
+      <button class="nav-btn" data-view="browse"><span class="nav-ico"><span class="ico ico-tile" data-icon="book"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-2-5-2-7 0v13c2-2 5-2 7 0 2-2 5-2 7 0V6c-2-2-5-2-7 0z"></path></svg></span></span><span>Word List</span></button>
+      <div class="nav-group-wrap">
+        <button class="nav-group" id="navGames" aria-expanded="false" aria-controls="navGamesSub">
+          <span class="nav-ico"><span class="ico ico-tile" data-icon="grid"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg></span></span><span>Games</span><span class="nav-chevron" data-icon="chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span>
+        </button>
+        <div class="nav-sub" id="navGamesSub">
+          <button class="nav-sub-btn" data-view="cards"><span class="nav-ico"><span class="ico ico-tile" data-icon="cards"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="15" rx="2"></rect><path d="M8 3.5h11a2 2 0 0 1 2 2v11"></path></svg></span></span>Flashcards</button>
+          <button class="nav-sub-btn" data-view="quiz"><span class="nav-ico"><span class="ico ico-tile" data-icon="pencil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l3.5-1L18 8.5 15.5 6 4 17.5z"></path><path d="M14 6l3 3"></path></svg></span></span>Quiz</button>
+          <button class="nav-sub-btn" data-view="pron"><span class="nav-ico"><span class="ico ico-tile" data-icon="mic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg></span></span>Pronunciation</button>
+          <button class="nav-sub-btn" data-view="fill"><span class="nav-ico"><span class="ico ico-tile" data-icon="pencil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l3.5-1L18 8.5 15.5 6 4 17.5z"></path><path d="M14 6l3 3"></path></svg></span></span>Fill-in-the-Blank</button>
+          <button class="nav-sub-btn" data-view="match"><span class="nav-ico"><span class="ico ico-tile" data-icon="cards"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="15" rx="2"></rect><path d="M8 3.5h11a2 2 0 0 1 2 2v11"></path></svg></span></span>Card Match</button>
+          <button class="nav-sub-btn" data-view="tf"><span class="nav-ico"><span class="ico ico-tile" data-icon="clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></span></span>True / False</button>
+          <button class="nav-sub-btn" data-view="hang"><span class="nav-ico"><span class="ico ico-tile" data-icon="target"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.5"></circle><circle cx="12" cy="12" r="1"></circle></svg></span></span>Hangman</button>
+          <button class="nav-sub-btn" data-view="build"><span class="nav-ico"><span class="ico ico-tile" data-icon="puzzle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5a1.6 1.6 0 0 1 3.2 0c0 .5-.3 1 0 1.3.4.4 1.8.2 2.3.2h1.7c.6 0 1 .4 1 1v1.8c0 .5-.2 1.9.2 2.3.3.3.8 0 1.3 0a1.6 1.6 0 0 1 0 3.2c-.5 0-1-.3-1.3 0-.4.4-.2 1.8-.2 2.3v1.7c0 .6-.4 1-1 1h-1.8c-.5 0-1.9.2-2.3-.2-.3-.3 0-.8 0-1.3a1.6 1.6 0 0 0-3.2 0c0 .5.3 1 0 1.3-.4.4-1.8.2-2.3.2H4.6c-.6 0-1-.4-1-1v-1.7c0-.5.2-1.9-.2-2.3-.3-.3-.8 0-1.3 0a1.6 1.6 0 0 1 0-3.2c.5 0 1 .3 1.3 0 .4-.4.2-1.8.2-2.3V8c0-.6.4-1 1-1h1.7c.5 0 1.9.2 2.3-.2.3-.3 0-.8 0-1.3z"></path></svg></span></span>Sentence Builder</button>
+          <button class="nav-sub-btn" data-view="cloze"><span class="nav-ico"><span class="ico ico-tile" data-icon="pencil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l3.5-1L18 8.5 15.5 6 4 17.5z"></path><path d="M14 6l3 3"></path></svg></span></span>Cloze</button>
+          <button class="nav-sub-btn" data-view="listen"><span class="nav-ico"><span class="ico ico-tile" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span></span>Listen &amp; Type</button>
+        </div>
+      </div>
+      <button class="nav-btn" data-view="settings"><span class="nav-ico"><span class="ico ico-tile" data-icon="gear"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.15-1.5l2-1.5-2-3.5-2.3 1a7 7 0 0 0-2.6-1.5L13.45 2h-2.9l-.55 2.5a7 7 0 0 0-2.6 1.5L5 4.5l-2 3.5 2 1.5A7 7 0 0 0 3.6 13l-2 1.5 2 3.5 2.3-1a7 7 0 0 0 2.6 1.5l.55 2.5h2.9l.55-2.5a7 7 0 0 0 2.6-1.5l2.3 1 2-3.5-2-1.5c.1-.5.15-1 .15-1.5z"></path></svg></span></span><span>Settings</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="streak" id="streakBox" title="Day streak of daily review"><span class="ico ico-tile sm" data-icon="flame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3 3.5 4.5 6 4.5 9a4.5 4.5 0 0 1-9 0c0-1.6.8-2.9 1.7-3.9.2 1 .9 1.7 1.8 1.7 1.2 0 2-1.2 1.3-2.6C11.5 5.7 12 4.2 12 3z"></path></svg></span> <span id="streak">0</span> days</div>
+      <button class="icon-btn" id="installBtn" title="Install Vocab Trainer" aria-label="Install Vocab Trainer as an app"><span class="ico" data-icon="download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg></span></button>
+      <button class="icon-btn" id="helpBtn" title="Keyboard shortcuts" aria-label="Keyboard shortcuts"><span class="ico" data-icon="keyboard"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.2"></rect><path d="M6 9.5h.01M9.5 9.5h.01M13.5 9.5h.01M17 9.5h.01M7.5 13h9"></path></svg></span></button>
+      <button class="icon-btn" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"></path></svg></span></button>
+    </div>
+  </aside>
+
+  <main class="container" id="main" tabindex="-1">
+
+    <!-- ===== HOME ===== -->
+    <section class="view active" id="view-home">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-main">
+          <p class="hero-greet" id="heroGreeting">Good evening!</p>
+          <h2 class="hero-title">Ready to grow your vocabulary?</h2>
+          <p class="hero-date" id="heroDate">Friday, July 17</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="homeCards">Start Flashcard Review</button>
+            <button class="btn" id="homeQuiz">Take a Quiz</button>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="streak-card">
+            <span class="streak-flame"><span class="ico ico-tile lg" data-icon="flame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3 3.5 4.5 6 4.5 9a4.5 4.5 0 0 1-9 0c0-1.6.8-2.9 1.7-3.9.2 1 .9 1.7 1.8 1.7 1.2 0 2-1.2 1.3-2.6C11.5 5.7 12 4.2 12 3z"></path></svg></span></span>
+            <div class="streak-num"><span id="streakPill">0</span><span class="streak-unit">day streak</span></div>
+          </div>
+          <div class="wotd" id="wotd"><div class="wotd-label"><span class="ico ico-tile sm" data-icon="sparkle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path><path d="M18.5 15l.8 2.2L21.5 18l-2.2.8L18.5 21l-.8-2.2L15.5 18l2.2-.8z"></path></svg></span>Word of the Day</div><div class="wotd-badge">COLLOCATION</div><div class="wotd-word">keep in touch</div><div class="wotd-th" lang="th">See example below</div><button class="btn btn-sm wotd-btn">View details <span class="ico" data-icon="info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 16v-4.5"></path><path d="M12 8h.01"></path></svg></span></button></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-ico"><span class="ico" data-icon="book"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-2-5-2-7 0v13c2-2 5-2 7 0 2-2 5-2 7 0V6c-2-2-5-2-7 0z"></path></svg></span></span><span class="stat-num" id="statTotal">15</span><span class="stat-label">Total words</span></div>
+        <div class="stat-card"><span class="stat-ico"><span class="ico" data-icon="check"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8.2 12.4l2.6 2.6L16 9"></path></svg></span></span><span class="stat-num" id="statMastered">0</span><span class="stat-label">Mastered</span></div>
+        <div class="stat-card"><span class="stat-ico"><span class="ico" data-icon="clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></span></span><span class="stat-num" id="statDue">15</span><span class="stat-label">Due for review</span></div>
+        <div class="stat-card"><span class="stat-ico"><span class="ico" data-icon="calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"></rect><path d="M3 9h18"></path><path d="M8 2.5v4M16 2.5v4"></path></svg></span></span><span class="stat-num" id="statDays">1</span><span class="stat-label">Days studied</span></div>
+        <div class="stat-card accent"><span class="stat-ico"><span class="ico" data-icon="chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11"></path><path d="M10 20V4"></path><path d="M16 20v-6"></path><path d="M3 20h18"></path></svg></span></span><span class="stat-num" id="statAcc">0</span><span class="stat-label">Accuracy (7d)</span></div>
+      </div>
+
+      <!-- Memory Strength -->
+      <div class="panel memory-panel2">
+        <h2><span class="ico ico-tile" data-icon="brain"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5a2.2 2.2 0 0 0-2.2 2.2 2.2 2.2 0 0 0-2 3.1A2.2 2.2 0 0 0 7.5 16 2.2 2.2 0 0 0 9.6 19c.9 0 1.6-.5 2-1.3h.8c.4.8 1.1 1.3 2 1.3a2.2 2.2 0 0 0 2.1-3 2.2 2.2 0 0 0-1-3.1A2.2 2.2 0 0 0 17 7.7 2.2 2.2 0 0 0 14.8 5.5c-.9 0-1.6.5-2 1.3v.4c-.4-.8-1.1-1.3-2-1.3z"></path></svg></span>Memory Strength</h2>
+        <p class="hint">How much you're retaining right now, across the words you've learned.</p>
+        <div class="ms-wrap">
+          <div class="ms-gauge" id="msGauge" style="--val: 0%;"><span id="msPct">0%</span><small>retained</small></div>
+          <div class="ms-curve"><svg id="msCurve" viewBox="0 0 220 64" preserveAspectRatio="none" aria-hidden="true"><polyline class="ms-ref" points="5,5 15,10.619640463067384 25,15.654459464391365 35,20.165317862306807 45,24.20674288288719 55,27.827587244687834 65,31.071619690080247 75,33.97805406151653 85,36.58202331819406 95,38.915004223030685 105,41.00519783356392 115,42.87787039614534 125,44.55565876415716 135,46.05884403214411 145,47.40559669354835 155,48.61219628551238 165,49.69322817581491 175,50.661759870698724 185,51.52949897479861 195,52.30693471258765 205,53.00346472205236 215,53.627508653277644"></polyline></svg></div>
+        </div>
+        <button class="btn btn-primary ms-btn" id="homeSmart"><span class="ico" data-icon="brain"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5a2.2 2.2 0 0 0-2.2 2.2 2.2 2.2 0 0 0-2 3.1A2.2 2.2 0 0 0 7.5 16 2.2 2.2 0 0 0 9.6 19c.9 0 1.6-.5 2-1.3h.8c.4.8 1.1 1.3 2 1.3a2.2 2.2 0 0 0 2.1-3 2.2 2.2 0 0 0-1-3.1A2.2 2.2 0 0 0 17 7.7 2.2 2.2 0 0 0 14.8 5.5c-.9 0-1.6.5-2 1.3v.4c-.4-.8-1.1-1.3-2-1.3z"></path></svg></span> Smart Review <span class="badge-sm" id="smartCount">30 due</span></button>
+      </div>
+
+      <!-- Chart + Mastery -->
+      <div class="dash-row">
+        <div class="panel chart-panel">
+          <div class="panel-head">
+            <h2><span class="ico ico-tile" data-icon="chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11"></path><path d="M10 20V4"></path><path d="M16 20v-6"></path><path d="M3 20h18"></path></svg></span>Study Activity</h2>
+            <div class="chip-group sm" id="chartRange"><button class="chip" type="button" data-value="7">7d</button><button class="chip active" type="button" data-value="14">14d</button><button class="chip" type="button" data-value="30">30d</button></div>
+          </div>
+          <div class="chart-wrap" id="chartWrap"><svg class="chart-svg" viewBox="0 0 560 200" role="img" aria-label="Study activity over 14 days"><defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--primary)" stop-opacity="0.38"></stop><stop offset="100%" stop-color="var(--primary)" stop-opacity="0"></stop></linearGradient></defs><line class="chart-grid" x1="10" y1="57.5" x2="550" y2="57.5"></line><line class="chart-grid" x1="10" y1="97.0" x2="550" y2="97.0"></line><line class="chart-grid" x1="10" y1="136.5" x2="550" y2="136.5"></line><path class="chart-area" d="M 10.0 176.0 L 10.0 176.0 L 51.5 176.0 L 93.1 176.0 L 134.6 176.0 L 176.2 176.0 L 217.7 176.0 L 259.2 176.0 L 300.8 176.0 L 342.3 176.0 L 383.8 176.0 L 425.4 176.0 L 466.9 176.0 L 508.5 176.0 L 550.0 176.0 L 550.0 176.0 Z" fill="url(#chartGrad)"></path><path class="chart-acc" d="M 10.0 176.0 L 51.5 176.0 L 93.1 176.0 L 134.6 176.0 L 176.2 176.0 L 217.7 176.0 L 259.2 176.0 L 300.8 176.0 L 342.3 176.0 L 383.8 176.0 L 425.4 176.0 L 466.9 176.0 L 508.5 176.0 L 550.0 176.0" fill="none"></path><path class="chart-line" d="M 10.0 176.0 L 51.5 176.0 L 93.1 176.0 L 134.6 176.0 L 176.2 176.0 L 217.7 176.0 L 259.2 176.0 L 300.8 176.0 L 342.3 176.0 L 383.8 176.0 L 425.4 176.0 L 466.9 176.0 L 508.5 176.0 L 550.0 176.0" fill="none" style="stroke-dasharray: 540; stroke-dashoffset: 0; transition: stroke-dashoffset 0.95s cubic-bezier(0.2, 0.8, 0.2, 1);"></path><circle class="chart-dot" cx="10.0" cy="176.0" r="3.4" data-i="0"></circle><circle class="chart-dot" cx="51.5" cy="176.0" r="3.4" data-i="1"></circle><circle class="chart-dot" cx="93.1" cy="176.0" r="3.4" data-i="2"></circle><circle class="chart-dot" cx="134.6" cy="176.0" r="3.4" data-i="3"></circle><circle class="chart-dot" cx="176.2" cy="176.0" r="3.4" data-i="4"></circle><circle class="chart-dot" cx="217.7" cy="176.0" r="3.4" data-i="5"></circle><circle class="chart-dot" cx="259.2" cy="176.0" r="3.4" data-i="6"></circle><circle class="chart-dot" cx="300.8" cy="176.0" r="3.4" data-i="7"></circle><circle class="chart-dot" cx="342.3" cy="176.0" r="3.4" data-i="8"></circle><circle class="chart-dot" cx="383.8" cy="176.0" r="3.4" data-i="9"></circle><circle class="chart-dot" cx="425.4" cy="176.0" r="3.4" data-i="10"></circle><circle class="chart-dot" cx="466.9" cy="176.0" r="3.4" data-i="11"></circle><circle class="chart-dot" cx="508.5" cy="176.0" r="3.4" data-i="12"></circle><circle class="chart-dot" cx="550.0" cy="176.0" r="3.4" data-i="13"></circle><text class="chart-x" x="10.0" y="194">04/07</text><text class="chart-x" x="259.2" y="194">10/07</text><text class="chart-x" x="550.0" y="194">17/07</text></svg><div class="chart-tip" id="chartTip"></div></div>
+          <div class="chart-legend"><span class="lg-dot area"></span>Words studied&nbsp;&nbsp;<span class="lg-dot line"></span>Accuracy</div>
+        </div>
+
+        <div class="panel mastery-panel">
+          <h2><span class="ico ico-tile" data-icon="trophy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M7 5H4v2a3 3 0 0 0 3 3"></path><path d="M17 5h3v2a3 3 0 0 1-3 3"></path></svg></span>Mastery by Type</h2>
+          <div class="mastery" id="mastery"><div class="donut-wrap"><svg class="donut" viewBox="0 0 140 140"><circle class="donut-bg" cx="70" cy="70" r="54" fill="none" stroke-width="16"></circle><circle class="donut-seg seg-vocab" cx="70" cy="70" r="54" fill="none" stroke-width="16" stroke-dasharray="203.58 135.72" stroke-dashoffset="0.00" transform="rotate(-90 70 70)"></circle><circle class="donut-seg seg-colloc" cx="70" cy="70" r="54" fill="none" stroke-width="16" stroke-dasharray="113.10 226.19" stroke-dashoffset="-203.58" transform="rotate(-90 70 70)"></circle><circle class="donut-seg seg-idiom" cx="70" cy="70" r="54" fill="none" stroke-width="16" stroke-dasharray="22.62 316.67" stroke-dashoffset="-316.67" transform="rotate(-90 70 70)"></circle><text class="donut-center" x="70" y="67">0</text><text class="donut-sub" x="70" y="84">mastered</text></svg></div><div class="legend"><div class="leg-row"><span class="leg-dot seg-vocab"></span><span class="leg-label">Vocab</span><span class="leg-val">18</span></div><div class="leg-row"><span class="leg-dot seg-colloc"></span><span class="leg-label">Collocations</span><span class="leg-val">10</span></div><div class="leg-row"><span class="leg-dot seg-idiom"></span><span class="leg-label">Idioms</span><span class="leg-val">2</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Heatmap -->
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="grid"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"></rect></svg></span>Activity Heatmap</h2>
+        <p class="hint">Your daily study over the last 12 weeks</p>
+        <div class="heatmap" id="heatmap"><div class="hm-grid"><span class="hm-cell lvl-0" data-date="2026-04-25" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-04-26" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-04-27" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-04-28" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-04-29" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-04-30" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-01" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-02" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-03" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-04" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-05" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-06" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-07" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-08" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-09" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-10" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-11" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-12" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-13" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-14" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-15" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-16" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-17" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-18" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-19" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-20" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-21" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-22" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-23" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-24" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-25" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-26" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-27" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-28" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-29" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-30" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-05-31" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-01" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-02" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-03" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-04" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-05" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-06" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-07" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-08" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-09" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-10" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-11" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-12" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-13" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-14" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-15" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-16" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-17" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-18" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-19" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-20" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-21" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-22" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-23" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-24" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-25" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-26" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-27" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-28" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-29" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-06-30" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-01" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-02" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-03" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-04" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-05" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-06" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-07" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-08" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-09" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-10" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-11" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-12" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-13" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-14" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-15" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-16" data-count="0"></span><span class="hm-cell lvl-0" data-date="2026-07-17" data-count="0"></span></div><div class="hm-legend">Less<span class="hm-cell lvl-0"></span><span class="hm-cell lvl-1"></span><span class="hm-cell lvl-2"></span><span class="hm-cell lvl-3"></span><span class="hm-cell lvl-4"></span>More</div><div class="chart-tip" id="heatmapTip"></div></div>
+      </div>
+
+      <!-- Daily Progress -->
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"></rect><path d="M3 9h18"></path><path d="M8 2.5v4M16 2.5v4"></path></svg></span>Daily Progress</h2>
+        <div id="dayProgress" class="day-progress"><div class="day-row" style="animation-delay: 0ms;"><span class="day-name">Day 1</span><div class="day-mini-bar"><div class="day-mini-fill" style="width: 0%;"></div></div><span class="day-pct">0%</span></div><div class="day-row" style="animation-delay: 60ms;"><span class="day-name">Day 2</span><div class="day-mini-bar"><div class="day-mini-fill" style="width: 0%;"></div></div><span class="day-pct">0%</span></div></div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="home-actions">
+        <button class="btn" id="homeFill">Fill-in-the-Blank</button>
+        <button class="btn" id="homeMatch">Card Match</button>
+        <button class="btn" id="homeTf">True / False</button>
+      </div>
+
+      <div class="home-actions">
+        <button class="btn" id="homeHang">Hangman</button>
+        <button class="btn" id="homeBuild">Sentence Builder</button>
+        <button class="btn" id="homeCloze">Cloze</button>
+        <button class="btn" id="homeListen">Listen &amp; Type</button>
+      </div>
+    </section>
+
+    <!-- ===== FLASHCARDS ===== -->
+    <section class="view" id="view-cards">
+      <div class="panel" id="cardControls">
+        <h2>Review Settings</h2>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="cardFilterType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Day</span>
+            <div class="chip-group scroll" id="cardFilterDay"><button class="chip active" type="button" data-value="all">Every day</button><button class="chip" type="button" data-value="1">Day 1</button><button class="chip" type="button" data-value="2">Day 2</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Mode</span>
+            <div class="chip-group" id="cardMode"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="due">Due only</button><button class="chip" type="button" data-value="random">Random</button></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startCards">Start Learning</button>
+      </div>
+
+      <div class="session hidden" id="cardSession">
+        <div class="session-top">
+          <span id="cardCounter">0 / 0</span>
+          <div class="progress-bar"><div class="progress-fill" id="cardProgress"></div></div>
+        </div>
+        <div class="flip-card" id="flipCard">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <span class="badge" id="cardBadge">VOCAB</span>
+              <button class="info-btn" id="cardInfo" title="View details"><span class="ico" data-icon="info"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 16v-4.5"></path><path d="M12 8h.01"></path></svg></span></button>
+              <p class="card-word" id="cardWord">word</p>
+              <p class="card-pos" id="cardPos"></p>
+              <button class="speak-btn" id="cardSpeak" title="Listen"><span class="ico" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span></button>
+              <p class="hint">Tap to reveal the translation · tap ℹ️ for details</p>C
+            </div>
+            <div class="flip-back">
+              <p class="card-th" id="cardTh"></p>
+              <div class="card-ex">
+                <p class="ex-en" id="cardExEn"></p>
+                <p class="ex-th" id="cardExTh"></p>
+              </div>
+              <p class="card-note hidden" id="cardNote"></p>
+            </div>
+          </div>
+        </div>
+        <div class="session-actions grade-actions" id="cardGradeRow">
+          <button class="btn btn-grade again" data-q="1"><b>Again</b><span class="g-hint" data-qhint="1">now</span></button>
+          <button class="btn btn-grade hard" data-q="3"><b>Hard</b><span class="g-hint" data-qhint="3"></span></button>
+          <button class="btn btn-grade good" data-q="4"><b>Good</b><span class="g-hint" data-qhint="4"></span></button>
+          <button class="btn btn-grade easy" data-q="5"><b>Easy</b><span class="g-hint" data-qhint="5"></span></button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="cardResult" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- ===== QUIZ ===== -->
+    <section class="view" id="view-quiz">
+      <div class="panel" id="quizControls">
+        <h2>Quiz Settings</h2>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Question format</span>
+            <div class="chip-group" id="quizMode"><button class="chip active" type="button" data-value="meaning">Word → Meaning</button><button class="chip" type="button" data-value="sentence">Sentence → Thai</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Number of questions</span>
+            <div class="chip-group" id="quizCount"><button class="chip active" type="button" data-value="10">10</button><button class="chip" type="button" data-value="20">20</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="quizType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startQuiz">Start Quiz</button>
+      </div>
+
+      <div class="session hidden" id="quizSession">
+        <div class="session-top">
+          <span id="quizCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="quizProgress"></div></div>
+        </div>
+        <div class="quiz-q">
+          <button class="speak-btn" id="quizSpeak" title="Listen"><span class="ico" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span></button>
+          <p id="quizPrompt" class="quiz-prompt"></p>
+        </div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <p class="quiz-feedback hidden" id="quizFeedback" aria-live="polite"></p>
+        <button class="btn btn-primary hidden" id="quizNext">Next Question →</button>
+      </div>
+
+      <div class="result hidden" id="quizResult" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- ===== DAILY TASKS ===== -->
+    <section class="view" id="view-tasks">
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2"></rect><path d="M3 9h18"></path><path d="M8 2.5v4M16 2.5v4"></path></svg></span>Daily Tasks — Spaced Review</h2>
+        <p class="hint" id="tasksToday"></p>
+        <p class="hint">The system brings back previous days' words at increasing intervals (e.g., Day 1 recurs on days 2, 4, 7, 14 …). The more often you review, the less frequently a word returns, until it's locked in.</p>
+      </div>
+      <div id="tasksList" class="tasks-list"></div>
+    </section>
+
+    <!-- ===== BROWSE ===== -->
+    <section class="view" id="view-browse">
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="book"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-2-5-2-7 0v13c2-2 5-2 7 0 2-2 5-2 7 0V6c-2-2-5-2-7 0z"></path></svg></span>Search &amp; Browse</h2>
+        <p class="hint">💡 Click a card to see word details · tap the speaker to hear it</p>
+        <div class="controls">
+          <div class="field grow">
+            <span class="field-label">Search</span>
+            <input type="text" id="browseSearch" placeholder="Type a word or its meaning…">
+          </div>
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="browseType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Day</span>
+            <div class="chip-group scroll" id="browseDay"><button class="chip active" type="button" data-value="all">Every day</button><button class="chip" type="button" data-value="1">Day 1</button><button class="chip" type="button" data-value="2">Day 2</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="browse-list" id="browseList"></div>
+    </section>
+
+    <!-- ===== PRONUNCIATION TEST ===== -->
+    <section class="view" id="view-pron">
+      <div class="panel" id="pronControls">
+        <h2><span class="ico ico-tile" data-icon="mic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg></span>Pronunciation Test</h2>
+        <p class="hint">Speak the word into your microphone — the app checks accuracy and highlights the syllables you missed</p>
+        <p class="hint pron-file-warn" id="pronFileWarn" style="display:none;color:var(--bad)">⚠️ You're opening this as a direct file (file://) — the browser will ask for microphone permission every time. Run <b>start-server.bat</b> and open <b>http://localhost:8000</b> so "Allow always" sticks</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Number of questions</span>
+            <div class="chip-group" id="pronCount"><button class="chip active" type="button" data-value="10">10</button><button class="chip" type="button" data-value="20">20</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="pronType"><button class="chip active" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="idiom">Idioms</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startPron">Start Pronunciation Test</button>
+      </div>
+
+      <div class="session hidden" id="pronSession">
+        <div class="session-top">
+          <span id="pronCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="pronProgress"></div></div>
+        </div>
+        <div class="pron-q">
+          <span class="badge" id="pronBadge">VOwCAB</span>
+          <p class="pron-word" id="pronWord"></p>
+          <p class="pron-phon" id="pronPhon"></p>
+          <div class="pron-audio-btns">
+            <button class="speak-btn" id="pronSpeak" title="Listen to sample"><span class="ico" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span></button>
+            <button class="speak-btn" id="pronSlow" title="Listen slowly"><span class="ico" data-icon="volumeLow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"></path></svg></span></button>
+          </div>
+        </div>
+        <button class="btn btn-accent btn-mic" id="pronRecord">
+          <span class="mic-icon"><span class="ico" data-icon="mic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg></span></span> <span id="pronRecordLabel">Tap, then say this word</span>
+        </button>
+        <div class="pron-feedback hidden" id="pronFeedback"></div>
+        <button class="btn btn-primary hidden" id="pronNext">Next Question →</button>
+      </div>
+
+      <div class="result hidden" id="pronResult2"></div>
+    </section>
+
+    <!-- ===== FILL-IN-THE-BLANK ===== -->
+    <section class="view" id="view-fill">
+      <div class="panel" id="fillControls">
+        <h2><span class="ico ico-tile" data-icon="pencil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l3.5-1L18 8.5 15.5 6 4 17.5z"></path><path d="M14 6l3 3"></path></svg></span>Fill-in-the-Blank</h2>
+        <p class="hint">Read the clue, then type your answer in the box — it's checked automatically</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Direction</span>
+            <div class="chip-group" id="fillDir"><button class="chip active" type="button" data-value="th2en">Thai → Word</button><button class="chip" type="button" data-value="en2th">Word → Thai</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="fillType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Number of questions</span>
+            <div class="chip-group" id="fillCount"><button class="chip active" type="button" data-value="10">10</button><button class="chip" type="button" data-value="20">20</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startFill">Start Fill-in-the-Blank</button>
+      </div>
+
+      <div class="session hidden" id="fillSession">
+        <div class="session-top">
+          <span id="fillCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="fillProgress"></div></div>
+        </div>
+        <div class="fill-q">
+          <span class="badge" id="fillBadge">VOCAB</span>
+          <p class="fill-prompt" id="fillPrompt"></p>
+          <button class="speak-btn" id="fillSpeak" title="Listen"><span class="ico" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span></button>
+        </div>
+        <input type="text" id="fillInput" class="fill-input" placeholder="Type your answer here…" autocomplete="off">
+        <p class="fill-feedback hidden" id="fillFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="fillSkip">Skip</button>
+          <button class="btn btn-primary" id="fillCheck">Check Answer</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="fillResult"></div>
+    </section>
+
+    <!-- ===== CARD MATCH ===== -->
+    <section class="view" id="view-match">
+      <div class="panel" id="matchControls">
+        <h2><span class="ico ico-tile" data-icon="cards"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="15" rx="2"></rect><path d="M8 3.5h11a2 2 0 0 1 2 2v11"></path></svg></span>Card Match</h2>
+        <p class="hint">Flip the cards and find each pair — word ↔ meaning — until all are matched</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="matchType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Number of pairs</span>
+            <div class="chip-group" id="matchSize"><button class="chip" type="button" data-value="6">6 pairs</button><button class="chip active" type="button" data-value="8">8 pairs</button><button class="chip" type="button" data-value="10">10 pairs</button></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startMatch">Start Card Match</button>
+      </div>
+
+      <div class="session hidden" id="matchSession">
+        <div class="session-top match-top">
+          <span class="match-stat" id="matchStatus"><span class="ico ico-tile sm" data-icon="check"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8.2 12.4l2.6 2.6L16 9"></path></svg></span><span id="matchCount">0 / 0</span></span>
+          <span class="match-stat match-moves" id="matchMoves"><span class="ico ico-tile sm" data-icon="cards"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="15" rx="2"></rect><path d="M8 3.5h11a2 2 0 0 1 2 2v11"></path></svg></span><span id="matchMovesNum">0</span></span>
+          <span class="match-timer"><span class="timer-ico ico" data-icon="clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></span><span id="matchTime">0:00</span></span>
+        </div>
+        <div class="progress-bar match-progress"><div class="progress-fill" id="matchProgress"></div></div>
+        <div class="match-grid" id="matchGrid"></div>
+        <div class="match-peek hidden" id="matchPeek">
+          <div class="match-peek-inner">
+            <span class="ico ico-tile lg" data-icon="eye"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+            <p class="match-peek-title">Memorize the cards</p>
+            <p class="match-peek-sub">They'll flip over in <b id="matchPeekNum">3</b>…</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="result hidden" id="matchResult"></div>
+    </section>
+
+    <!-- ===== TRUE / FALSE (TIMED) ===== -->
+    <section class="view" id="view-tf">
+      <div class="panel" id="tfControls">
+        <h2><span class="ico ico-tile" data-icon="clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></span>True / False Quiz</h2>
+        <p class="hint">Read the word and its Thai sentence, then decide if it's true or false — against the clock!</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="tfType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Number of questions</span>
+            <div class="chip-group" id="tfCount"><button class="chip active" type="button" data-value="10">10</button><button class="chip" type="button" data-value="20">20</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Total time</span>
+            <div class="chip-group" id="tfTime"><button class="chip" type="button" data-value="30">30s</button><button class="chip active" type="button" data-value="60">60s</button><button class="chip" type="button" data-value="120">120s</button></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startTf">Start Quiz</button>
+      </div>
+
+      <div class="session hidden" id="tfSession">
+        <div class="tf-timer-bar">
+          <div class="tf-time-fill" id="tfTimeFill"></div>
+          <span class="tf-time-text" id="tfTimeText">0:00</span>
+        </div>
+        <div class="session-top">
+          <span id="tfCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="tfProgress"></div></div>
+        </div>
+        <div class="tf-q">
+          <span class="badge" id="tfBadge">VOCAB</span>
+          <p class="tf-word" id="tfWord"></p>
+          <button class="speak-btn" id="tfSpeak" title="Listen"><span class="ico" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span></button>
+        </div>
+        <p class="tf-statement" id="tfStatement"></p>
+        <p class="quiz-feedback hidden" id="tfFeedback"></p>
+        <div class="tf-options">
+          <button class="btn btn-good tf-opt-btn" id="tfTrue"><span class="opt-ico" data-icon="check"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8.2 12.4l2.6 2.6L16 9"></path></svg></span>True</button>
+          <button class="btn btn-bad tf-opt-btn" id="tfFalse"><span class="opt-ico" data-icon="cross"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9 9l6 6M15 9l-6 6"></path></svg></span>False</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="tfResult"></div>
+    </section>
+
+    <!-- ===== HANGMAN ===== -->
+    <section class="view" id="view-hang">
+      <div class="panel" id="hangControls">
+        <h2><span class="ico ico-tile" data-icon="target"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.5"></circle><circle cx="12" cy="12" r="1"></circle></svg></span>Hangman</h2>
+        <p class="hint">Guess the English word from the Thai clue, one letter at a time — you get 6 wrong guesses</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="hangType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Number of questions</span>
+            <div class="chip-group" id="hangCount"><button class="chip active" type="button" data-value="10">10</button><button class="chip" type="button" data-value="20">20</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startHang">Start Hangman</button>
+      </div>
+
+      <div class="session hidden" id="hangSession">
+        <div class="session-top">
+          <span id="hangCounter">Round 1</span>
+          <div class="hang-lives" id="hangLives"></div>
+        </div>
+        <div class="hang-clue">
+          <span class="badge" id="hangBadge">VOCAB</span>
+          <p class="hang-th" id="hangTh"></p>
+          <p class="hang-pos" id="hangPos"></p>
+        </div>
+        <div class="hang-figure" id="hangFigure">
+          <svg viewBox="0 0 200 230" aria-hidden="true">
+            <g class="hf-gallows">
+              <line x1="40" y1="215" x2="165" y2="215"></line>
+              <line x1="72" y1="215" x2="72" y2="28"></line>
+              <line x1="72" y1="28" x2="142" y2="28"></line>
+              <line x1="142" y1="28" x2="142" y2="55"></line>
+            </g>
+            <g class="hf-part" data-part="1"><circle cx="142" cy="74" r="19"></circle></g>
+            <g class="hf-part" data-part="2"><line x1="142" y1="93" x2="142" y2="155"></line></g>
+            <g class="hf-part" data-part="3"><line x1="142" y1="108" x2="116" y2="138"></line></g>
+            <g class="hf-part" data-part="4"><line x1="142" y1="108" x2="168" y2="138"></line></g>
+            <g class="hf-part" data-part="5"><line x1="142" y1="155" x2="120" y2="200"></line></g>
+            <g class="hf-part" data-part="6"><line x1="142" y1="155" x2="164" y2="200"></line></g>
+          </svg>
+        </div>
+        <div class="hang-word" id="hangWord"></div>
+        <p class="hang-msg hidden" id="hangMsg"></p>
+        <div class="hang-keyboard" id="hangKeyboard"></div>
+        <div class="session-actions">
+          <button class="btn" id="hangSkip">Skip</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="hangResult"></div>
+    </section>
+
+    <!-- ===== SENTENCE BUILDER ===== -->
+    <section class="view" id="view-build">
+      <div class="panel" id="buildControls">
+        <h2><span class="ico ico-tile" data-icon="puzzle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5a1.6 1.6 0 0 1 3.2 0c0 .5-.3 1 0 1.3.4.4 1.8.2 2.3.2h1.7c.6 0 1 .4 1 1v1.8c0 .5-.2 1.9.2 2.3.3.3.8 0 1.3 0a1.6 1.6 0 0 1 0 3.2c-.5 0-1-.3-1.3 0-.4.4-.2 1.8-.2 2.3v1.7c0 .6-.4 1-1 1h-1.8c-.5 0-1.9.2-2.3-.2-.3-.3 0-.8 0-1.3a1.6 1.6 0 0 0-3.2 0c0 .5.3 1 0 1.3-.4.4-1.8.2-2.3.2H4.6c-.6 0-1-.4-1-1v-1.7c0-.5.2-1.9-.2-2.3-.3-.3-.8 0-1.3 0a1.6 1.6 0 0 1 0-3.2c.5 0 1 .3 1.3 0 .4-.4.2-1.8.2-2.3V8c0-.6.4-1 1-1h1.7c.5 0 1.9.2 2.3-.2.3-.3 0-.8 0-1.3z"></path></svg></span>Sentence Builder</h2>
+        <p class="hint">Tap a word below to place it in the sentence · tap a word in the sentence to take it back down</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="buildType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Number of questions</span>
+            <div class="chip-group" id="buildCount"><button class="chip active" type="button" data-value="10">10</button><button class="chip" type="button" data-value="20">20</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startBuild">Start Sentence Builder</button>
+      </div>
+
+      <div class="session hidden" id="buildSession">
+        <div class="session-top">
+          <span id="buildCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="buildProgress"></div></div>
+        </div>
+        <p class="build-hint">Tap a word below to place it in the sentence · tap a word in the sentence to take it back down</p>
+        <div class="build-answer" id="buildSentence" aria-label="Your sentence"></div>
+        <p class="build-zone-label">Words left</p>
+        <div class="build-tiles" id="buildBank"></div>
+        <p class="build-feedback hidden" id="buildFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="buildSkip">Skip</button>
+          <button class="btn btn-primary" id="buildCheck">Check Answer</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="buildResult"></div>
+    </section>
+
+    <!-- ===== CLOZE ===== -->
+    <section class="view" id="view-cloze">
+      <div class="panel" id="clozeControls">
+        <h2><span class="ico ico-tile" data-icon="pencil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l3.5-1L18 8.5 15.5 6 4 17.5z"></path><path d="M14 6l3 3"></path></svg></span>Cloze (Fill in the Blank)</h2>
+        <p class="hint">Fill the blank to complete the sentence</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="clozeType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Number of questions</span>
+            <div class="chip-group" id="clozeCount"><button class="chip active" type="button" data-value="10">10</button><button class="chip" type="button" data-value="20">20</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" id="startCloze">Start Cloze</button>
+      </div>
+
+      <div class="session hidden" id="clozeSession">
+        <div class="session-top">
+          <span id="clozeCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="clozeProgress"></div></div>
+        </div>
+        <p class="cloze-sentence" id="clozeSentence"></p>
+        <div class="quiz-options" id="clozeOptions"></div>
+        <p class="quiz-feedback hidden" id="clozeFeedback"></p>
+        <button class="btn btn-primary hidden" id="clozeNext">Next Question →</button>
+      </div>
+
+      <div class="result hidden" id="clozeResult"></div>
+    </section>
+
+    <!-- ===== LISTEN & TYPE ===== -->
+    <section class="view" id="view-listen">
+      <div class="panel" id="listenControls">
+        <h2><span class="ico ico-tile" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span>Listen &amp; Type</h2>
+        <p class="hint">Listen to the word and type what you hear — no microphone needed</p>
+        <div class="controls">
+          <div class="field">
+            <span class="field-label">Type</span>
+            <div class="chip-group" id="listenType"><button class="chip active" type="button" data-value="all">All</button><button class="chip" type="button" data-value="vocab">Vocab</button><button class="chip" type="button" data-value="collocation">Collocations</button><button class="chip" type="button" data-value="idiom">Idioms</button></div>
+          </div>
+          <div class="field">
+            <span class="field-label">Number of questions</span>
+            <div class="chip-group" id="listenCount"><button class="chip active" type="button" data-value="10">10</button><button class="chip" type="button" data-value="20">20</button><button class="chip" type="button" data-value="all">All</button></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="startListen">Start Listen &amp; Type</button>
+      </div>
+
+      <div class="session hidden" id="listenSession">
+        <div class="session-top">
+          <span id="listenCounter">Question 1</span>
+          <div class="progress-bar"><div class="progress-fill" id="listenProgress"></div></div>
+        </div>
+        <div class="listen-q">
+          <button class="speak-btn lg" id="listenSpeak" title="Listen"><span class="ico" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span></button>
+          <p class="listen-pos" id="listenPos"></p>
+        </div>
+        <input type="text" id="listenInput" class="fill-input" placeholder="Type what you hear…" autocomplete="off">
+        <p class="fill-feedback hidden" id="listenFeedback"></p>
+        <div class="session-actions">
+          <button class="btn" id="listenSkip">Skip</button>
+          <button class="btn btn-primary" id="listenCheck">Check Answer</button>
+        </div>
+      </div>
+
+      <div class="result hidden" id="listenResult"></div>
+    </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section class="view" id="view-settings">
+      <div class="panel">
+        <h2 id="settingsTitle"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.15-1.5l2-1.5-2-3.5-2.3 1a7 7 0 0 0-2.6-1.5L13.45 2h-2.9l-.55 2.5a7 7 0 0 0-2.6 1.5L5 4.5l-2 3.5 2 1.5A7 7 0 0 0 3.6 13l-2 1.5 2 3.5 2.3-1a7 7 0 0 0 2.6 1.5l.55 2.5h2.9l.55-2.5a7 7 0 0 0 2.6-1.5l2.3 1 2-3.5-2-1.5c.1-.5.15-1 .15-1.5z"></path></svg></span>Settings</h2>
+        <div class="settings-row">
+          <span>Dark mode</span>
+          <button class="btn" id="settingsTheme">Toggle Theme</button>
+        </div>
+        <div class="settings-row">
+          <span>Sound &amp; effects</span>
+          <button class="btn" id="settingsSound"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"></path></svg></span>Sound: On</button>
+        </div>
+        <div class="settings-row">
+          <span>Background music</span>
+          <button class="btn" id="settingsMusic"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"></path></svg></span> Music: On</button>
+        </div>
+        <div class="settings-row">
+          <span>Page music</span>
+          <select id="settingsPageSong" class="set-select"><option value="0" selected="">Alex Morgan Jazz Restaurant Music</option><option value="1">Alex Morgan Late Night Jazz Midnight Club Music</option><option value="2">Alex Morgan Lofi Jazz Retro Coffee Shop</option><option value="3">Alex Morgan Lofi Jazz Soulful Midnight Club</option><option value="4">Alex Morgan Lofi Jazz Study Music</option><option value="5">Alex Morgan Smooth Jazz Lounge Relaxing Evening</option><option value="6">Alex Morgan Sultry Jazz Sunny Cafe Music</option><option value="7">Alex Morgan Trumpet Jazz Study Music</option><option value="8">Atlasaudio Jazz</option><option value="9">Lofiroomcafe Cafe Calma Lofi Chill For Cozy Moments</option></select>
+        </div>
+        <div class="settings-row">
+          <span>Game music</span>
+          <select id="settingsGameSong" class="set-select"><option value="0" selected="">Game Track 13</option><option value="1">Game Track 23</option><option value="2">Game Track 33</option><option value="3">Game Track 43</option><option value="4">Game Track 53</option><option value="5">Game Track 63</option><option value="6">Game Track 73</option><option value="7">Game Track 83</option></select>
+        </div>
+        <div class="settings-row">
+          <span>Music volume</span>
+          <input type="range" id="settingsMusicVol" min="0" max="100" value="50" class="set-range">
+        </div>
+        <div class="settings-row">
+          <span>Current study day (per plan)</span>
+          <div class="stepper">
+            <button class="btn btn-sm" id="planDayMinus">−</button>
+            <span id="planDayLabel" class="plan-day-label">Day 6</span>
+            <button class="btn btn-sm" id="planDayPlus">+</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <span>Auto-set day from calendar</span>
+          <button class="btn btn-sm" id="planDayAuto">Reset</button>
+        </div>
+        <div class="settings-row">
+          <span>Clear all progress (reset reviews)</span>
+          <button class="btn btn-bad" id="resetProgress">Reset</button>
+        </div>
+        <div class="settings-info" id="settingsInfo">Words learned: 0 words
+Mastered (box 4+): 0 words
+Total days in system: 2 days
+Total vocabulary: 30 entries</div>
+
+        <div class="backup-box">
+          <h3><span class="ico ico-tile sm" data-icon="save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path><path d="M8 3v5h7"></path><rect x="8" y="13" width="8" height="6"></rect></svg></span>Backup / Restore (move to another device)</h3>
+          <p class="hint">Progress is stored only on this device. To move to another device or browser, 'Export' from the old one and 'Import' on the new one.</p>
+          <div class="backup-actions">
+            <button class="btn btn-primary" id="exportFile"><span class="ico" data-icon="download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg></span>Download Backup File</button>
+            <button class="btn" id="exportCopy"><span class="ico" data-icon="copy"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"></path></svg></span>Copy Backup Code</button>
+          </div>
+          <textarea id="backupCode" class="backup-code" placeholder="Paste a backup code here to import, or click 'Copy Backup Code' to get this device's code"></textarea>
+          <div class="backup-actions">
+            <button class="btn btn-accent" id="importCode"><span class="ico" data-icon="upload"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"></path><path d="M7 13l5-5 5 5"></path><path d="M4 5h16"></path></svg></span>Import from Code Above</button>
+            <label class="btn file-label"><span class="ico" data-icon="file"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"></path><path d="M14 2v5h5"></path></svg></span>Choose Backup File<input type="file" id="importFile" accept=".json,application/json" hidden=""></label>
+          </div>
+          <p class="backup-status hidden" id="backupStatus"></p>
+        </div>
+        <p class="hint">💡 Add new words daily by telling Claude: <em>"Day N, [topic or random]"</em> — they'll appear here automatically</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== WORD DETAIL MODAL ===== -->
+  <div class="modal-overlay" id="detailModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detailWord">
+      <button class="modal-close" id="detailClose" title="Close (Esc)"><span class="ico" data-icon="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></span></button>
+      <div class="detail-head">
+        <div class="detail-head-text">
+          <span class="detail-type" id="detailType"></span>
+          <h2 class="detail-word" id="detailWord"></h2>
+          <p class="detail-phonetic" id="detailPhonetic"></p>
+          <p class="detail-pos" id="detailPos"></p>
+        </div>
+        <button class="speak-btn" id="detailSpeak" title="Listen to this word"><span class="ico" data-icon="speaker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"></path></svg></span></button>
+      </div>
+
+      <div class="detail-th" id="detailTh"></div>
+
+      <div class="detail-section">
+        <h3><span class="ico ico-tile sm" data-icon="bulb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 18h5"></path><path d="M10 21h4"></path><path d="M8.5 14.5a5.5 5.5 0 1 1 7 0c-.7.6-1 1.2-1 2h-5c0-.8-.3-1.4-1-2z"></path></svg></span>Example Usage</h3>
+        <div class="detail-ex">
+          <p class="ex-en" id="detailExEn"></p>
+          <p class="ex-th" id="detailExTh"></p>
+        </div>
+      </div>
+
+      <div class="detail-note hidden" id="detailNote"></div>
+
+      <div class="detail-section">
+        <h3><span class="ico ico-tile sm" data-icon="chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11"></path><path d="M10 20V4"></path><path d="M16 20v-6"></path><path d="M3 20h18"></path></svg></span>Your Progress</h3>
+        <div class="detail-progress" id="detailProgress"></div>
+      </div>
+
+      <div class="detail-meta" id="detailMeta"></div>
+
+      <div class="detail-mnemonic hidden" id="detailMnemonic"></div>
+
+      <div class="detail-related" id="detailRelated"></div>
+
+      <div class="detail-actions">
+        <button class="btn" id="detailSlow"><span class="ico" data-icon="volumeLow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"></path></svg></span>Hear Slowly</button>
+        <button class="btn btn-primary" id="detailClose2">Close</button>
+      </div>
+
+      <div class="detail-section pron-practice">
+        <h3>🎤 Pronunciation Practice</h3>
+        <button class="btn btn-accent" id="detailPron">Tap, then say this word</button>
+
+        
+        <div class="pron-feedback hidden" id="pronResult"></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="false"></div>
+  <div class="confirm-overlay" id="confirmOverlay" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMsg"></div>
+
+  <div class="kb-help-overlay" id="kbHelp" role="dialog" aria-modal="true" aria-labelledby="kbHelpTitle" aria-hidden="true"></div>
+
+  <footer class="footer">Built for learning</footer>
+
+  <script src="assets/js/vocab-data.js"></script>
+  <!-- Flag set BEFORE app.js so it hands music control to the mini-player
+       overlay instead of starting the built-in looping player. -->
+  <script>window.MINI_PLAYER_ENABLED = true;</script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/mini-player.js"></script>
+  <script>
+    // Boot the mini music player. It reuses the song lists exposed by app.js
+    // (window.VOCAB_MUSIC) and starts on the first user gesture (autoplay policy).
+    if (window.MiniMusicPlayer) {
+      window.MiniMusicPlayer.init({ autoStart: true });
+    }
+  </script><div class="mmp" data-state="collapsed" data-playing="false" data-pinned="false" role="application" aria-label="Mini music player"><div class="mmp-panel" role="region" aria-label="Music player"><div class="mmp-head"><div class="mmp-art"><i></i><i></i><i></i></div><div class="mmp-titles"><div class="mmp-title-row"><span class="mmp-title" tabindex="0">Alex Morgan Jazz Restaurant Music</span><button class="mmp-icon-btn mmp-rename" type="button" title="Rename this song" aria-label="Rename this song"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></button></div><div class="mmp-artist">Your Library</div><input class="mmp-rename-input" type="text" maxlength="60" aria-label="Custom song name" hidden=""></div><div class="mmp-head-actions"><button class="mmp-icon-btn mmp-pin" type="button" title="Keep open" aria-label="Keep player open" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 3h6l-1 7 4 3v2H6v-2l4-3z"></path><path d="M12 15v6"></path></svg></button><button class="mmp-icon-btn mmp-close" type="button" title="Close" aria-label="Close player"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div><div class="mmp-playlists" hidden=""></div><div class="mmp-progress"><span class="mmp-time mmp-cur">0:00</span><div class="mmp-slider mmp-seek" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Seek"><div class="mmp-slider-track"><div class="mmp-slider-fill"></div><div class="mmp-slider-thumb"></div></div></div><span class="mmp-time mmp-dur">2:49</span></div><div class="mmp-controls"><button class="mmp-ctrl mmp-prev" type="button" title="Previous" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 5v14l-9-7z"></path><path d="M5 5v14"></path></svg></button><button class="mmp-ctrl mmp-play" type="button" title="Play / Pause" aria-label="Play or pause"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5l12 7-12 7z"></path></svg></button><button class="mmp-ctrl mmp-next" type="button" title="Next" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5v14l9-7z"></path><path d="M19 5v14"></path></svg></button><button class="mmp-ctrl mmp-queue" type="button" title="Up next" aria-label="Show queue" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 6h13M8 12h13M8 18h13"></path><path d="M3 6h.01M3 12h.01M3 18h.01"></path></svg></button></div><div class="mmp-volume"><span class="mmp-vol-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"></path><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"></path></svg></span><div class="mmp-slider mmp-vol" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" aria-label="Volume"><div class="mmp-slider-track"><div class="mmp-slider-fill" style="width: 60%;"></div><div class="mmp-slider-thumb" style="left: 60%;"></div></div></div></div><div class="mmp-queue-panel" hidden=""><div class="mmp-queue-head">Up next</div><ul class="mmp-queue-list"><li class="mmp-queue-item" role="button" tabindex="0" aria-current="true" data-playing="false"><span class="mmp-qi-idx"></span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Alex Morgan Jazz Restaurant Music</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">2</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Alex Morgan Late Night Jazz Midnight Club Music</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">3</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Alex Morgan Lofi Jazz Retro Coffee Shop</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">4</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Alex Morgan Lofi Jazz Soulful Midnight Club</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">5</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Alex Morgan Lofi Jazz Study Music</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">6</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Alex Morgan Smooth Jazz Lounge Relaxing Evening</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">7</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Alex Morgan Sultry Jazz Sunny Cafe Music</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">8</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Alex Morgan Trumpet Jazz Study Music</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">9</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Atlasaudio Jazz</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">10</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Lofiroomcafe Cafe Calma Lofi Chill For Cozy Moments</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">11</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Game Track 13</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">12</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Game Track 23</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">13</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Game Track 33</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">14</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Game Track 43</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">15</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Game Track 53</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">16</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Game Track 63</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">17</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Game Track 73</span></li><li class="mmp-queue-item" role="button" tabindex="0"><span class="mmp-qi-idx">18</span><span class="mmp-qi-eq"><i></i><i></i><i></i></span><span class="mmp-qi-name">Game Track 83</span></li></ul></div></div><button class="mmp-hotzone" type="button" aria-label="Open music player" aria-expanded="false"><span class="mmp-hz-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle></svg></span><span class="mmp-hz-eq"><i></i><i></i><i></i></span><span class="mmp-hz-label">Music</span></button><div class="mmp-toast" role="status"></div></div>
+
+
+</body></html>

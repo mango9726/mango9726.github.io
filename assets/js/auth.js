@@ -407,6 +407,8 @@
       if (!res.ok) throw new Error(data.error || "สมัครไม่สำเร็จ");
       setToken(data.token);
       setUser({ username: data.username, userId: data.userId });
+      // Sync backend data → local SecureStore so the app can load it immediately
+      await syncBackendDataToLocal(data.userId);
       return data;
     }
 
@@ -451,6 +453,8 @@
       if (!res.ok) throw new Error(data.error || "เข้าสู่ระบบไม่สำเร็จ");
       setToken(data.token);
       setUser({ username: data.username, userId: data.userId });
+      // Sync backend data → local SecureStore so the app can load it immediately
+      await syncBackendDataToLocal(data.userId);
       return data;
     }
 
@@ -470,12 +474,36 @@
   }
 
   /* ============================================================
+     Sync backend data → local SecureStore (per-user isolation)
+     ============================================================ */
+  const SYNC_KEYS = [
+    "vocab_progress_v1", "vocab_settings_v1", "vocab_streak_v1",
+    "vocab_reviews_v1", "vocab_history_v1", "vocab_learned_v1", "vocab_game_v1"
+  ];
+
+  async function syncBackendDataToLocal(userId) {
+    if (!userId) return;
+    try {
+      const data = await fetchData();
+      if (!data || Object.keys(data).length === 0) return;
+      SYNC_KEYS.forEach(function (key) {
+        if (data[key] != null) {
+          try { SecureStore.save(key, JSON.parse(data[key])); } catch (e) {}
+        }
+      });
+    } catch (e) {
+      console.warn("[auth] syncBackendDataToLocal failed:", e.message);
+    }
+  }
+
+  /* ============================================================
      ออกจากระบบ
      ============================================================ */
   async function logout() {
     // Firebase logout
     if (isFirebaseMode()) {
       await firebaseLogout();
+      clearUserDataFromLocal();
       location.reload();
       return;
     }
@@ -489,8 +517,18 @@
         saveStaticTokens(tokens);
       }
     }
+    clearUserDataFromLocal();
     clearAuth();
     location.reload();
+  }
+
+  /* ============================================================
+     Clear user-specific data from local storage on logout
+     ============================================================ */
+  function clearUserDataFromLocal() {
+    SYNC_KEYS.forEach(function (key) {
+      try { SecureStore.remove(key); } catch (e) {}
+    });
   }
 
   /* ============================================================
@@ -594,6 +632,8 @@
         if (!res.ok) { logout(); return false; }
         const data = await safeJson(res);
         setUser({ username: data.username, userId: data.userId });
+        // Sync backend data → local SecureStore on token verification
+        syncBackendDataToLocal(data.userId);
         return true;
       } catch (e) {
         return false;
@@ -639,6 +679,7 @@
         <span>Apple</span>
       </button>`;
 
+    let mode = "login";
     overlay.innerHTML = `
       <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
         <div class="auth-hero">
@@ -712,7 +753,6 @@
       n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n.dataset.icon] || "") + "</svg>";
     });
 
-    let mode = "login";
     const title = overlay.querySelector("#authTitle");
     const sub = overlay.querySelector("#authSub");
     const submit = overlay.querySelector("#authSubmit");
@@ -1180,6 +1220,18 @@
             console.log("[firebase] onAuthStateChanged: ยังไม่ล็อกอิน");
           }
         });
+      });
+    }
+
+    // Backend mode — verify token and sync data on app startup
+    if (!isStaticMode() && !isFirebaseMode()) {
+      verifyToken().then(function (valid) {
+        if (valid) {
+          const user = getUser();
+          if (user && user.userId) {
+            syncBackendDataToLocal(user.userId);
+          }
+        }
       });
     }
 

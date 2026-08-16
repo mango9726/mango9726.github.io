@@ -279,6 +279,52 @@ app.post("/api/auth/reset-password", (req, res) => {
   res.json({ ok: true, message: "Password successfully reset" });
 });
 
+// --- POST /api/auth/change-password ---
+// Logged-in user changes their password (verifies the current one first).
+app.post("/api/auth/change-password", (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "no token" });
+  }
+  const t = db.tokens[auth.slice(7)];
+  if (!t) return res.status(401).json({ error: "invalid token" });
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: "currentPassword and newPassword required" });
+  }
+  if (newPassword.length < 4) {
+    return res.status(400).json({ error: "new password too short" });
+  }
+  const user = db.users[t.username];
+  if (!user) return res.status(404).json({ error: "user not found" });
+  if (user.passwordHash !== hash(currentPassword)) {
+    return res.status(401).json({ error: "current password incorrect" });
+  }
+  user.passwordHash = hash(newPassword);
+  saveDB(db);
+  res.json({ ok: true, message: "Password changed" });
+});
+
+// --- POST /api/auth/change-email ---
+// Logged-in user updates the email stored on their account record.
+app.post("/api/auth/change-email", (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "no token" });
+  }
+  const t = db.tokens[auth.slice(7)];
+  if (!t) return res.status(401).json({ error: "invalid token" });
+  const { newEmail } = req.body;
+  if (!newEmail) {
+    return res.status(400).json({ error: "newEmail required" });
+  }
+  const user = db.users[t.username];
+  if (!user) return res.status(404).json({ error: "user not found" });
+  user.email = newEmail;
+  saveDB(db);
+  res.json({ ok: true, message: "Email updated" });
+});
+
 app.listen(PORT, () => {
   console.log(`Vocab auth server running on http://localhost:${PORT}`);
 });

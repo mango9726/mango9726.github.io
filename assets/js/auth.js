@@ -123,9 +123,275 @@
     };
   }
 
+  // --- Modal พรอมต์ 1 ช่อง input (ใช้กับ social login / เปลี่ยนข้อมูล) ---
+  // คืน Promise<string|null> — null เมื่อยกเลิก.
+  function showPromptModal(title, label, placeholder, confirmLabel, inputType) {
+    if (window.__VOCAB_TEST_PROMPT__) {
+      const v = window.__VOCAB_TEST_PROMPT__;
+      return Promise.resolve(typeof v === "string" && v.length ? v : null);
+    }
+    return new Promise(function (resolve) {
+      const overlay = document.createElement("div");
+      overlay.className = "auth-overlay";
+      overlay.id = "promptModal";
+      overlay.innerHTML =
+        '<div class="auth-modal" role="dialog" aria-modal="true">' +
+          '<div class="auth-hero">' +
+            '<div class="auth-hero-icon"><span class="ico" data-icon="lock"></span></div>' +
+            '<h2>' + esc(title) + '</h2>' +
+            '<button class="auth-hero-close" id="promptClose" title="' + esc(t("settings.close")) + '"><span class="ico" data-icon="close"></span></button>' +
+          '</div>' +
+          '<div class="auth-body">' +
+            '<div class="auth-field">' +
+              '<label class="auth-label" for="promptInput">' + esc(label) + '</label>' +
+              '<div class="auth-input-wrap">' +
+                '<input type="' + (inputType || "text") + '" id="promptInput" class="auth-input" placeholder="' + esc(placeholder || "") + '" />' +
+              '</div>' +
+            '</div>' +
+            '<p class="auth-error hidden" id="promptError"></p>' +
+            '<button class="btn btn-primary auth-submit" id="promptOk">' +
+              '<span class="btn-text">' + esc(confirmLabel || t("auth.ok")) + '</span>' +
+              '<span class="spinner" aria-hidden="true"></span>' +
+            '</button>' +
+            '<button class="btn auth-submit" id="promptCancel" style="margin-top:8px">' + esc(t("auth.cancel")) + '</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(overlay);
+      overlay.querySelectorAll("[data-icon]").forEach(function (n) {
+        const ICONS = window.VOCAB_ICONS || {};
+        n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n.dataset.icon] || "") + "</svg>";
+      });
+      const input = overlay.querySelector("#promptInput");
+      const errorEl = overlay.querySelector("#promptError");
+      const okBtn = overlay.querySelector("#promptOk");
+      function close(val) {
+        overlay.classList.remove("open");
+        overlay.setAttribute("aria-hidden", "true");
+        setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+        resolve(val);
+      }
+      overlay.querySelector("#promptClose").onclick = function () { close(null); };
+      overlay.querySelector("#promptCancel").onclick = function () { close(null); };
+      overlay.onclick = function (e) { if (e.target === overlay) close(null); };
+      okBtn.onclick = function () {
+        const v = input.value.trim();
+        if (!v) {
+          errorEl.textContent = t("auth.fillField");
+          errorEl.classList.remove("hidden");
+          return;
+        }
+        close(v);
+      };
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") okBtn.click(); });
+      overlay.classList.add("open");
+      overlay.setAttribute("aria-hidden", "false");
+      setTimeout(function () { input.focus(); }, 100);
+    });
+  }
+
+  // --- สร้าง/ลิงก์บัญชีจาก GitHub ผ่าน backend (เช่น flow Google) ---
+  async function signInWithGithub() {
+    if (!(await isBackendAvailable())) {
+      throw new Error(t("auth.socialRequiresBackend"));
+    }
+    const gh = await showPromptModal(t("auth.githubPromptTitle"), t("auth.githubUsername"), t("auth.githubUsernamePlaceholder"), t("auth.continue"));
+    if (!gh) return null;
+    const res = await fetch(API_BASE + "/api/auth/github", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ githubId: gh, displayName: gh, email: "" })
+    });
+    const data = await safeJson(res);
+    if (!res.ok) throw new Error(data.error || "GitHub sync failed");
+    setToken(data.token);
+    setUser({ username: data.username, userId: data.userId, provider: "github", githubId: gh });
+    if (data.isNew && data.autoPassword) {
+      showGoogleCredentialToast(data.username, data.autoPassword);
+    }
+    return { username: data.username, userId: data.userId, isNew: data.isNew };
+  }
+
+  // --- สร้าง/ลิงก์บัญชีจาก Apple ID ผ่าน backend ---
+  async function signInWithApple() {
+    if (!(await isBackendAvailable())) {
+      throw new Error(t("auth.socialRequiresBackend"));
+    }
+    const appleId = await showPromptModal(t("auth.applePromptTitle"), t("auth.appleEmail"), t("auth.appleEmailPlaceholder"), t("auth.continue"), "email");
+    if (!appleId) return null;
+    const res = await fetch(API_BASE + "/api/auth/apple", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ appleId: appleId, displayName: appleId, email: appleId })
+    });
+    const data = await safeJson(res);
+    if (!res.ok) throw new Error(data.error || "Apple sync failed");
+    setToken(data.token);
+    setUser({ username: data.username, userId: data.userId, provider: "apple", appleId: appleId });
+    if (data.isNew && data.autoPassword) {
+      showGoogleCredentialToast(data.username, data.autoPassword);
+    }
+    return { username: data.username, userId: data.userId, isNew: data.isNew };
+  }
+
+  // --- ลืมรหัสผ่าน: Firebase > Backend (reset code) > Static (ไม่รองรับ) ---
+  async function forgotPassword(username) {
+    if (!username) throw new Error(t("auth.fillField"));
+    // 1. Firebase mode — ส่งอีเมลรีเซ็ตจริง
+    if (isFirebaseMode()) {
+      const email = username.indexOf("@") !== -1 ? username : username + "@vocab.app";
+      await window.firebaseAuth.sendPasswordResetEmail(email);
+      return { mode: "firebase" };
+    }
+    // 2. Backend mode — ขอรหัสรีเซ็ต (ไม่ต้องมีอีเมลจริง)
+    if (await isBackendAvailable()) {
+      const res = await fetch(API_BASE + "/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username })
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error || "เกิดข้อผิดพลาด");
+      if (data.resetCode) {
+        // backend นี้ส่งรหัสมาใน response (เหมือนอีเมล) — แสดงให้ผู้ใช้กรอกขั้นต่อไป
+        return { mode: "backend", username: username, resetCode: data.resetCode };
+      }
+      return { mode: "backend", username: username, resetCode: null };
+    }
+    // 3. Static mode — รีเซ็ตได้ทันทีโดยตั้งรหัสใหม่ (ไม่มีอีเมล/secret)
+    return { mode: "static", username: username };
+  }
+
+  async function resetPasswordWithCode(username, resetCode, newPassword) {
+    const res = await fetch(API_BASE + "/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, resetCode, newPassword })
+    });
+    const data = await safeJson(res);
+    if (!res.ok) throw new Error(data.error || "เกิดข้อผิดพลาด");
+    return data;
+  }
+
+  // --- เปลี่ยนรหัสผ่าน: Firebase > Backend > Static ---
+  async function changePassword(currentPassword, newPassword) {
+    if (!currentPassword || !newPassword) throw new Error(t("auth.fillField"));
+    if (newPassword.length < 4) throw new Error(t("auth.passwordTooShort"));
+    const user = getUser();
+    if (!user) throw new Error(t("auth.notLoggedIn"));
+
+    // 1. Firebase mode
+    if (isFirebaseMode()) {
+      const cur = window.firebaseAuth.currentUser;
+      if (!cur) throw new Error(t("auth.notLoggedIn"));
+      // ต้องยืนยันตัวตนใหม่ก่อนเปลี่ยน (recent login)
+      try {
+        const email = cur.email || (user.username.indexOf("@") !== -1 ? user.username : user.username + "@vocab.app");
+        const cred = firebase.auth.EmailAuthProvider.credential(email, currentPassword);
+        await cur.reauthenticateWithCredential(cred);
+      } catch (e) {
+        throw new Error(firebaseErrorMessage(e) || t("auth.wrongCurrentPassword"));
+      }
+      await cur.updatePassword(newPassword);
+      return true;
+    }
+
+    // 2. Backend mode
+    if (await isBackendAvailable()) {
+      const res = await fetch(API_BASE + "/api/auth/change-password", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + getToken(),
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error || t("auth.changeFailed"));
+      return true;
+    }
+
+    // 3. Static mode — ยืนยัน hash เดิมแล้วตั้งค่าใหม่
+    const users = getStaticUsers();
+    const u = users[user.username];
+    if (!u) throw new Error(t("auth.userNotFound"));
+    const curHash = await hashPassword(currentPassword);
+    if (u.passwordHash !== curHash) throw new Error(t("auth.wrongCurrentPassword"));
+    u.passwordHash = await hashPassword(newPassword);
+    saveStaticUsers(users);
+    return true;
+  }
+
+  // --- เปลี่ยนอีเมล: Firebase > Backend (Static ไม่มีอีเมล) ---
+  async function changeEmail(newEmail) {
+    if (!newEmail || newEmail.indexOf("@") === -1) throw new Error(t("auth.invalidEmail"));
+    if (isFirebaseMode()) {
+      const cur = window.firebaseAuth.currentUser;
+      if (!cur) throw new Error(t("auth.notLoggedIn"));
+      await cur.updateEmail(newEmail);
+      const user = getUser();
+      if (user) { user.email = newEmail; setUser(user); }
+      return true;
+    }
+    if (await isBackendAvailable()) {
+      const res = await fetch(API_BASE + "/api/auth/change-email", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + getToken(),
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ newEmail })
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error || t("auth.changeFailed"));
+      const user = getUser();
+      if (user) { user.email = newEmail; setUser(user); }
+      return true;
+    }
+    throw new Error(t("auth.emailNotSupported"));
+  }
+
+  // --- ส่งอีเมลยืนยัน (Firebase เท่านั้น) ---
+  async function verifyEmail() {
+    if (!isFirebaseMode()) throw new Error(t("auth.emailVerifyFirebaseOnly"));
+    const cur = window.firebaseAuth.currentUser;
+    if (!cur) throw new Error(t("auth.notLoggedIn"));
+    await cur.sendEmailVerification();
+    return true;
+  }
+
+  // --- เปลี่ยน username ใน static mode (re-key users/tokens map) ---
+  async function changeUsername(newUsername) {
+    if (!newUsername) throw new Error(t("auth.fillField"));
+    if (newUsername.length < 3) throw new Error(t("auth.nameTooShort"));
+    const user = getUser();
+    if (!user) throw new Error(t("auth.notLoggedIn"));
+    if (newUsername === user.username) return true;
+
+    // Static mode เท่านั้น
+    if (isStaticMode()) {
+      const users = getStaticUsers();
+      if (users[newUsername]) throw new Error(t("auth.usernameTaken"));
+      const tokens = getStaticTokens();
+      // re-key users map
+      users[newUsername] = users[user.username];
+      delete users[user.username];
+      // re-key tokens ที่เป็นของ user นี้
+      Object.keys(tokens).forEach(function (tok) {
+        if (tokens[tok].username === user.username) tokens[tok].username = newUsername;
+      });
+      saveStaticUsers(users);
+      saveStaticTokens(tokens);
+      user.username = newUsername;
+      setUser(user);
+      return true;
+    }
+
+    // Backend/Firebase mode ยังไม่มี endpoint — แสดงข้อความ
+    throw new Error(t("auth.usernameChangeUnsupported"));
+  }
+
   // --- แปลง error code ของ Firebase เป็นข้อความภาษาไทย ---
   function firebaseErrorMessage(err) {
-    const code = err && err.code;
     const map = {
       "auth/email-already-in-use": "อีเมลนี้ถูกใช้แล้ว — ลองเข้าสู่ระบบแทน หรือใช้อีเมลอื่น",
       "auth/invalid-email": "รูปแบบอีเมลไม่ถูกต้อง",
@@ -140,6 +406,7 @@
       "auth/popup-closed-by-user": "ปิดหน้าต่างล็อกอินก่อนเสร็จ — ลองอีกครั้ง",
       "auth/popup-blocked": "เบราว์เซอร์บล็อก popup — อนุญาต popup แล้วลองอีกครั้ง"
     };
+    const code = err && err.code;
     return map[code] || (err && err.message) || "เกิดข้อผิดพลาด กรุณาลองใหม่";
   }
 
@@ -357,6 +624,9 @@
   function isStaticMode() {
     if (isFirebaseMode()) return false;
     if (isGitHubPages) return true;
+    // Port 8000 (python static server) / file:// are always static — the backend
+    // probe short-circuits there without setting backendOnline, so check explicitly.
+    if (window.location.port === "8000" || window.location.protocol === "file:") return true;
     if (backendOnline === false) return true;
     return false;
   }
@@ -434,19 +704,44 @@
   let _remember = true;
 
   function setToken(token) {
-    if (_remember) localStorage.setItem(TOKEN_KEY, token);
-    else sessionStorage.setItem(TOKEN_KEY, token);
+    // SecureStore encrypts all vocab_* keys at rest — route through it so the
+    // value stays readable after the ciphertext flush (raw localStorage would
+    // be re-encrypted and then fail JSON.parse in getToken/getUser).
+    if (_remember) {
+      if (window.SecureStore) window.SecureStore.save(TOKEN_KEY, token);
+      else localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      sessionStorage.setItem(TOKEN_KEY, token);
+    }
   }
   function setUser(user) {
-    const str = JSON.stringify(user);
-    if (_remember) localStorage.setItem(USER_KEY, str);
-    else sessionStorage.setItem(USER_KEY, str);
+    // Preserve profile customization (avatar/banner/bio) across re-logins.
+    if (user && !user.profile) {
+      try {
+        const prev = getUser();
+        if (prev && prev.profile) user.profile = prev.profile;
+      } catch (e) {}
+    }
+    if (_remember) {
+      if (window.SecureStore) window.SecureStore.save(USER_KEY, user);
+      else localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } else {
+      sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+    }
   }
 
   function getToken() {
+    if (_remember && window.SecureStore) {
+      const t = window.SecureStore.load(TOKEN_KEY, null);
+      if (t != null) return String(t);
+    }
     return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
   }
   function getUser() {
+    if (_remember && window.SecureStore) {
+      const u = window.SecureStore.load(USER_KEY, null);
+      if (u) return u;
+    }
     const str = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
     try { return JSON.parse(str || "null"); }
     catch (e) { return null; }
@@ -454,10 +749,107 @@
   function isLoggedIn() { return !!getToken(); }
 
   function clearAuth() {
+    if (window.SecureStore) {
+      try { window.SecureStore.remove(TOKEN_KEY); } catch (e) {}
+      try { window.SecureStore.remove(USER_KEY); } catch (e) {}
+    }
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
+  }
+
+  /* ============================================================
+     GUEST SESSION ISOLATION
+     ผู้ใช้ที่ยังไม่ล็อกอิน (guest) ทำงานใน "session" หนึ่ง ๆ เท่านั้น —
+     เมื่อเปิดเว็บมาใน session ใหม่ (ปิด tab/เบราว์เซอร์แล้วกลับมา)
+     ข้อมูลทั้งหมดจะถูกรีเซ็ตให้เป็นค่าเริ่มต้น แต่ F5/reload ใน session
+     เดียวกันยังคงข้อมูลไว้ (ตามข้อตกลง "รีเซ็ตเฉพาะ session ใหม่")
+     ============================================================ */
+  const GUEST_SESSION_KEY = "vocab_guest_session";
+
+  function setGuestSessionMarker() {
+    try { sessionStorage.setItem(GUEST_SESSION_KEY, "1"); } catch (e) {}
+  }
+  function clearGuestSessionMarker() {
+    try { sessionStorage.removeItem(GUEST_SESSION_KEY); } catch (e) {}
+  }
+
+  /** ล้างข้อมูล guest ทั้งหมด ยกเว้นบัญชี/auth และข้อมูลสำรองของบัญชี. */
+  function clearGuestData() {
+    const protectedKeys = {
+      "vocab_auth_token": 1,
+      "vocab_auth_user": 1,
+      "vocab_static_users_v1": 1,
+      "vocab_static_tokens_v1": 1
+    };
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf("vocab_") !== 0) return;
+        if (protectedKeys[k]) return;
+        if (k.indexOf(STATIC_DATA_PREFIX) === 0) return; // ข้อมูลสำรองของบัญชี
+        if (window.SecureStore && window.SecureStore.remove) window.SecureStore.remove(k);
+        else localStorage.removeItem(k);
+      });
+    } catch (e) {}
+  }
+
+  /**
+   * ถ้ายังไม่ล็อกอินและเป็น session ใหม่ → ล้างข้อมูล guest (รีเซ็ตทุกอย่าง).
+   * ถ้าล็อกอินอยู่ หรือเป็น session เดิม → ไม่แตะข้อมูล.
+   * เรียกจาก app.js init ก่อน loadInitialState() เพื่อให้ UI โหลดค่าเริ่มต้น.
+   */
+  function resetGuestDataIfNewSession() {
+    if (isLoggedIn()) {
+      setGuestSessionMarker();
+      return;
+    }
+    let isNewSession = true;
+    try { isNewSession = !sessionStorage.getItem(GUEST_SESSION_KEY); } catch (e) { isNewSession = true; }
+    if (!isNewSession) return; // session เดิม → เก็บข้อมูลไว้
+    clearGuestData();
+    setGuestSessionMarker();
+  }
+
+  /** รวมข้อมูลท้องถิ่นปัจจุบัน (SYNC_KEYS + ข้อมูลเสริม) ไว้สำหรับอัปโหลดเข้าบัญชี. */
+  function buildLocalPayload() {
+    const payload = {};
+    SYNC_KEYS.forEach(function (k) {
+      try { payload[k] = JSON.stringify(SecureStore.load(k, null)); } catch (e) {}
+    });
+    return payload;
+  }
+
+  /**
+   * อัปโหลดข้อมูล guest/ท้องถิ่นทั้งหมดไปยังบัญชี (Firebase > Backend > Static).
+   * ใช้ตอนสมัครบัญชี/ล็อกอิน เพื่อให้ "สร้างบัญชีใหม่ = เซฟทุกอย่าง" และ
+   * ล็อกเอาต์แล้วข้อมูลยังกู้คืนได้.
+   */
+  async function pushLocalDataToAccount() {
+    const user = getUser();
+    if (!user || !user.userId) return false;
+    const payload = buildLocalPayload();
+    if (isFirebaseMode()) {
+      if (firebaseSyncTimer) clearTimeout(firebaseSyncTimer);
+      return firebaseSaveData(payload, true);
+    }
+    if (await isBackendAvailable()) {
+      try {
+        const res = await fetch(API_BASE + "/api/data", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + getToken(),
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ data: payload })
+        });
+        return res.ok;
+      } catch (e) { return false; }
+    }
+    try {
+      localStorage.setItem(STATIC_DATA_PREFIX + user.userId, JSON.stringify(payload));
+      return true;
+    } catch (e) { return false; }
   }
 
   /* ============================================================
@@ -468,7 +860,10 @@
 
     // 1. Firebase mode
     if (isFirebaseMode()) {
-      return firebaseRegister(username, password);
+      const fb = await firebaseRegister(username, password);
+      // สร้างบัญชีใหม่ = เซฟทุกอย่าง: push ข้อมูล guest ไปยังบัญชีทันที
+      await pushLocalDataToAccount();
+      return fb;
     }
 
     // 2. Backend mode
@@ -485,6 +880,8 @@
       setUser({ username: data.username, userId: data.userId });
       // Sync backend data → local SecureStore so the app can load it immediately
       await syncBackendDataToLocal(data.userId);
+      // สร้างบัญชีใหม่ = เซฟทุกอย่าง: push ข้อมูล guest ไปยังบัญชีทันที
+      await pushLocalDataToAccount();
       return data;
     }
 
@@ -503,6 +900,8 @@
     saveStaticTokens(tokens);
     setToken(token);
     setUser({ username, userId });
+    // สร้างบัญชีใหม่ = เซฟทุกอย่าง: push ข้อมูล guest ไปยังบัญชีทันที
+    await pushLocalDataToAccount();
     // Initialize CEFR system for new user
     if (window.CefrSelector && window.CefrSelector.onLogin) {
       window.CefrSelector.onLogin();
@@ -550,6 +949,8 @@
     saveStaticTokens(tokens);
     setToken(token);
     setUser({ username, userId: user.userId });
+    // ข้อมูลบัญชีถูกเก็บไว้ใน localStorage (vocab_static_data_<userId>) — ดึงกลับมา
+    await syncBackendDataToLocal(user.userId);
     // Initialize CEFR system on login
     if (window.CefrSelector && window.CefrSelector.onLogin) {
       window.CefrSelector.onLogin();
@@ -625,10 +1026,15 @@
      ออกจากระบบ
      ============================================================ */
   async function logout() {
+    // เซฟข้อมูลปัจจุบันเข้าบัญชีก่อนออกระบบ — ข้อมูลจะถูกเก็บไว้ (vocab_static_data_<userId>
+    // สำหรับ static mode หรือ server สำหรับ backend/firebase) และกู้คืนได้เมื่อล็อกอินใหม่
+    try { await pushLocalDataToAccount(); } catch (e) { console.warn("[auth] logout push failed:", e.message); }
+
     // Firebase logout
     if (isFirebaseMode()) {
       await firebaseLogout();
       clearUserDataFromLocal();
+      clearGuestSessionMarker();
       // Reset CEFR system on logout
       if (window.CefrSelector && window.CefrSelector.onLogout) {
         window.CefrSelector.onLogout();
@@ -648,6 +1054,7 @@
     }
     clearUserDataFromLocal();
     clearAuth();
+    clearGuestSessionMarker();
     // Reset CEFR system on logout
     if (window.CefrSelector && window.CefrSelector.onLogout) {
       window.CefrSelector.onLogout();
@@ -999,55 +1406,59 @@
       };
     }
 
-    // GitHub mock login (UI only — no backend support)
+    // GitHub login — ผ่าน backend (เช่น flow Google: สร้าง account + แสดงรหัสผ่านอัตโนมัติ)
     const githubBtnEl = overlay.querySelector("#authGithub");
     if (githubBtnEl) {
       githubBtnEl.onclick = async function () {
         githubBtnEl.disabled = true;
         error.classList.add("hidden");
-        submit.classList.add("loading");
         try {
-          await new Promise(function (resolve) { setTimeout(resolve, 1200); });
-          error.textContent = t("auth.socialNotSupported") || "Social login requires Firebase configuration";
-          error.classList.remove("hidden");
-          error.style.color = "var(--bad)";
+          const result = await signInWithGithub();
+          if (result) {
+            closeAuthModal();
+            location.reload();
+          } else {
+            githubBtnEl.disabled = false;
+          }
         } catch (e) {
-          error.textContent = e.message;
+          error.textContent = e.message || e.code || "เกิดข้อผิดพลาด";
           error.classList.remove("hidden");
+          error.style.color = "";
+          githubBtnEl.disabled = false;
         }
-        submit.classList.remove("loading");
-        githubBtnEl.disabled = false;
       };
     }
 
-    // Apple mock login (UI only)
+    // Apple login — ผ่าน backend
     const appleBtnEl = overlay.querySelector("#authApple");
     if (appleBtnEl) {
       appleBtnEl.onclick = async function () {
         appleBtnEl.disabled = true;
         error.classList.add("hidden");
-        submit.classList.add("loading");
         try {
-          await new Promise(function (resolve) { setTimeout(resolve, 1200); });
-          error.textContent = t("auth.socialNotSupported") || "Social login requires Firebase configuration";
-          error.classList.remove("hidden");
-          error.style.color = "var(--bad)";
+          const result = await signInWithApple();
+          if (result) {
+            closeAuthModal();
+            location.reload();
+          } else {
+            appleBtnEl.disabled = false;
+          }
         } catch (e) {
-          error.textContent = e.message;
+          error.textContent = e.message || e.code || "เกิดข้อผิดพลาด";
           error.classList.remove("hidden");
+          error.style.color = "";
+          appleBtnEl.disabled = false;
         }
-        submit.classList.remove("loading");
-        appleBtnEl.disabled = false;
       };
     }
 
-    // Forgot password handler
+    // Forgot password handler — จริง (Firebase: ส่งอีเมล / backend: ขอ reset code / static: ตั้งใหม่เลย)
     if (forgotLink) {
-      forgotLink.onclick = function (e) {
+      forgotLink.onclick = async function (e) {
         e.preventDefault();
         if (mode === "register") return;
-        const email = userInput.value.trim();
-        if (!email) {
+        const username = userInput.value.trim();
+        if (!username) {
           error.textContent = t("auth.enterEmailFirst") || "Enter your username or email first";
           error.classList.remove("hidden");
           return;
@@ -1055,15 +1466,34 @@
         submit.classList.add("loading");
         submit.querySelector(".btn-text").textContent = t("auth.sending") || "Sending...";
         error.classList.add("hidden");
-        // Simulate sending (no backend email service)
-        setTimeout(function () {
-          submit.classList.remove("loading");
-          submit.querySelector(".btn-text").textContent = t("auth.loginButton");
-          error.textContent = t("auth.resetSent") || "If that account exists, a reset link has been sent.";
+        try {
+          const result = await forgotPassword(username);
+          if (result.mode === "firebase") {
+            error.textContent = t("auth.resetSent") || "If that account exists, a reset link has been sent.";
+            error.classList.remove("hidden");
+            error.style.color = "var(--good)";
+            setTimeout(function () { error.classList.add("hidden"); }, 5000);
+          } else if (result.mode === "backend" && result.resetCode) {
+            // backend ส่งรหัสมา — เปิด modal ให้กรอกรหัส + รหัสใหม่
+            error.classList.add("hidden");
+            showResetCodeModal(result.username, result.resetCode);
+          } else if (result.mode === "backend") {
+            error.textContent = t("auth.resetSent") || "If that account exists, a reset link has been sent.";
+            error.classList.remove("hidden");
+            error.style.color = "var(--good)";
+            setTimeout(function () { error.classList.add("hidden"); }, 5000);
+          } else {
+            // Static mode — ให้ตั้งรหัสใหม่ทันที
+            error.classList.add("hidden");
+            showStaticResetModal(result.username);
+          }
+        } catch (e) {
+          error.textContent = e.message || "เกิดข้อผิดพลาด";
           error.classList.remove("hidden");
-          error.style.color = "var(--good)";
-          setTimeout(function () { error.classList.add("hidden"); }, 4000);
-        }, 1500);
+          error.style.color = "";
+        }
+        submit.classList.remove("loading");
+        submit.querySelector(".btn-text").textContent = t("auth.loginButton");
       };
     }
 
@@ -1148,6 +1578,148 @@
     }
   }
 
+  // --- Modal กรอกรหัสยืนยัน + รหัสผ่านใหม่ (backend reset flow) ---
+  function showResetCodeModal(username, resetCode) {
+    const overlay = document.createElement("div");
+    overlay.className = "auth-overlay";
+    overlay.id = "resetCodeModal";
+    overlay.innerHTML =
+      '<div class="auth-modal" role="dialog" aria-modal="true">' +
+        '<div class="auth-hero">' +
+          '<div class="auth-hero-icon"><span class="ico" data-icon="lock"></span></div>' +
+          '<h2>' + esc(t("auth.resetTitle")) + '</h2>' +
+          '<button class="auth-hero-close" id="resetClose" title="' + esc(t("settings.close")) + '"><span class="ico" data-icon="close"></span></button>' +
+        '</div>' +
+        '<div class="auth-body">' +
+          '<p class="reset-code-hint">' + esc(t("auth.resetCodeHint")) + '</p>' +
+          '<div class="reset-code-box">' + esc(resetCode) + '</div>' +
+          '<div class="auth-field">' +
+            '<label class="auth-label" for="resetCodeInput">' + esc(t("auth.resetCode")) + '</label>' +
+            '<div class="auth-input-wrap"><input type="text" id="resetCodeInput" class="auth-input" placeholder="ABC123" /></div>' +
+          '</div>' +
+          '<div class="auth-field">' +
+            '<label class="auth-label" for="resetNewPass">' + esc(t("auth.newPassword")) + '</label>' +
+            '<div class="auth-input-wrap"><input type="password" id="resetNewPass" class="auth-input" /></div>' +
+          '</div>' +
+          '<p class="auth-error hidden" id="resetError"></p>' +
+          '<button class="btn btn-primary auth-submit" id="resetSubmit">' +
+            '<span class="btn-text">' + esc(t("auth.resetPassword")) + '</span><span class="spinner" aria-hidden="true"></span>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelectorAll("[data-icon]").forEach(function (n) {
+      const ICONS = window.VOCAB_ICONS || {};
+      n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n.dataset.icon] || "") + "</svg>";
+    });
+    const errorEl = overlay.querySelector("#resetError");
+    const codeIn = overlay.querySelector("#resetCodeInput");
+    const passIn = overlay.querySelector("#resetNewPass");
+    const btn = overlay.querySelector("#resetSubmit");
+    function close() {
+      overlay.classList.remove("open");
+      overlay.setAttribute("aria-hidden", "true");
+      setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+    }
+    overlay.querySelector("#resetClose").onclick = close;
+    overlay.onclick = function (e) { if (e.target === overlay) close(); };
+    btn.onclick = async function () {
+      const code = codeIn.value.trim();
+      const np = passIn.value;
+      if (!code || !np) {
+        errorEl.textContent = t("auth.fillField");
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      if (np.length < 4) {
+        errorEl.textContent = t("auth.passwordTooShort");
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      btn.classList.add("loading");
+      errorEl.classList.add("hidden");
+      try {
+        await resetPasswordWithCode(username, code, np);
+        if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.resetDone"), "ok", "check");
+        close();
+      } catch (e) {
+        errorEl.textContent = e.message || "เกิดข้อผิดพลาด";
+        errorEl.classList.remove("hidden");
+        btn.classList.remove("loading");
+      }
+    };
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+    setTimeout(function () { codeIn.focus(); }, 100);
+  }
+
+  // --- Modal ตั้งรหัสผ่านใหม่ทันที (static mode ไม่มี secret) ---
+  function showStaticResetModal(username) {
+    const overlay = document.createElement("div");
+    overlay.className = "auth-overlay";
+    overlay.id = "staticResetModal";
+    overlay.innerHTML =
+      '<div class="auth-modal" role="dialog" aria-modal="true">' +
+        '<div class="auth-hero">' +
+          '<div class="auth-hero-icon"><span class="ico" data-icon="lock"></span></div>' +
+          '<h2>' + esc(t("auth.resetTitle")) + '</h2>' +
+          '<button class="auth-hero-close" id="sResetClose" title="' + esc(t("settings.close")) + '"><span class="ico" data-icon="close"></span></button>' +
+        '</div>' +
+        '<div class="auth-body">' +
+          '<p class="reset-code-hint">' + esc(t("auth.staticResetHint")) + '</p>' +
+          '<div class="auth-field">' +
+            '<label class="auth-label" for="sResetPass">' + esc(t("auth.newPassword")) + '</label>' +
+            '<div class="auth-input-wrap"><input type="password" id="sResetPass" class="auth-input" /></div>' +
+          '</div>' +
+          '<p class="auth-error hidden" id="sResetError"></p>' +
+          '<button class="btn btn-primary auth-submit" id="sResetSubmit">' +
+            '<span class="btn-text">' + esc(t("auth.resetPassword")) + '</span><span class="spinner" aria-hidden="true"></span>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelectorAll("[data-icon]").forEach(function (n) {
+      const ICONS = window.VOCAB_ICONS || {};
+      n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n.dataset.icon] || "") + "</svg>";
+    });
+    const errorEl = overlay.querySelector("#sResetError");
+    const passIn = overlay.querySelector("#sResetPass");
+    const btn = overlay.querySelector("#sResetSubmit");
+    function close() {
+      overlay.classList.remove("open");
+      overlay.setAttribute("aria-hidden", "true");
+      setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+    }
+    overlay.querySelector("#sResetClose").onclick = close;
+    overlay.onclick = function (e) { if (e.target === overlay) close(); };
+    btn.onclick = async function () {
+      const np = passIn.value;
+      if (np.length < 4) {
+        errorEl.textContent = t("auth.passwordTooShort");
+        errorEl.classList.remove("hidden");
+        return;
+      }
+      btn.classList.add("loading");
+      errorEl.classList.add("hidden");
+      try {
+        const users = getStaticUsers();
+        const u = users[username];
+        if (!u) throw new Error(t("auth.userNotFound"));
+        u.passwordHash = await hashPassword(np);
+        saveStaticUsers(users);
+        if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.resetDone"), "ok", "check");
+        close();
+      } catch (e) {
+        errorEl.textContent = e.message || "เกิดข้อผิดพลาด";
+        errorEl.classList.remove("hidden");
+        btn.classList.remove("loading");
+      }
+    };
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+    setTimeout(function () { passIn.focus(); }, 100);
+  }
+
   // --- อัปเดต sidebar auth button ---
   function updateSidebarAuthBtn() {
     const user = getUser();
@@ -1156,8 +1728,10 @@
 
     if (user) {
       btn.classList.add("logged-in");
+      const prof = user.profile || {};
+      const emoji = prof.avatar || "";
       btn.innerHTML =
-        '<span class="auth-avatar">' + user.username.charAt(0).toUpperCase() + "</span> " +
+        '<span class="auth-avatar">' + (emoji || user.username.charAt(0).toUpperCase()) + "</span> " +
         esc(user.username);
       btn.title = "ดูโปรไฟล์ (" + user.username + ")";
       btn.setAttribute("aria-label", "ดูโปรไฟล์ (" + user.username + ")");
@@ -1193,10 +1767,27 @@
     document.addEventListener("vocab-lang-changed", onLanguageChanged);
   }
 
-  // --- Profile Modal — modern card design ---
-  function showProfileModal() {
+  // --- Profile Modal — big-site style with editable profile ---
+  const PROFILE_GRADIENTS = ["sunset", "forest", "ocean", "neon", "aurora", "gold", "candy", "midnight"];
+  const PROFILE_AVATARS = ["🦊", "🐼", "🐯", "🦁", "🐸", "🐙", "🦄", "🐨", "🐳", "🦋", "🐝", "🦉", "🐢", "🐬", "🦜", "🐺", "🦖", "🐱", "🐶", "🐭", "🐰", "🐵", "🐷", "🦈"];
+
+  function profileDefaults() {
+    return { bio: "", avatar: "", avatarBg: "aurora", banner: "sunset" };
+  }
+  function getProfile() {
+    const u = getUser();
+    return Object.assign(profileDefaults(), (u && u.profile) || {});
+  }
+  function setGrad(el, prefix, id) {
+    if (!el) return;
+    PROFILE_GRADIENTS.forEach(function (g) { el.classList.remove(prefix + g); });
+    el.classList.add(prefix + (PROFILE_GRADIENTS.indexOf(id) > -1 ? id : "sunset"));
+  }
+
+  function showProfileModal(editMode) {
     const user = getUser();
     if (!user) return;
+    closeProfileModal(true);
 
     const firebaseOn = isFirebaseMode();
     const staticMode = isStaticMode();
@@ -1207,76 +1798,269 @@
 
     const providerLabel = user.provider === "google" ? "Google" : (user.provider === "email" ? "Email" : "—");
 
-    // Gather stats from app state if available
     const stats = window.VocabApp && window.VocabApp.getStats ? window.VocabApp.getStats() : null;
-    const learnedCount = stats ? stats.learned || 0 : 0;
+    const learnedCount = stats ? stats.wordsLearned || 0 : 0;
+    const mastered = stats ? stats.mastered || 0 : 0;
     const streak = stats ? stats.streak || 0 : 0;
     const level = stats ? stats.level || 1 : 1;
+    const rank = stats ? stats.rank || "" : "";
+    const ach = stats ? stats.achievements || 0 : 0;
+    const pct = stats ? (stats.pct || 0) : 0;
+    const inLevel = stats ? stats.inLevel || 0 : 0;
+    const need = stats ? stats.need || 100 : 100;
+
+    const prof = getProfile();
+    const avatarGlyph = prof.avatar || user.username.charAt(0).toUpperCase();
 
     const overlay = document.createElement("div");
     overlay.className = "auth-overlay";
     overlay.id = "profileModal";
     overlay.innerHTML = `
-      <div class="profile-modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-        <div class="profile-hero">
-          <div class="profile-avatar">${esc(user.username.charAt(0).toUpperCase())}</div>
-          <h2 id="profileTitle" class="profile-name">${esc(user.username)}</h2>
-          <p class="profile-sub">${esc(t("auth.member"))}</p>
+      <div class="profile-modal auth-modal pp-modal" role="dialog" aria-modal="true" aria-labelledby="ppName">
+        <div class="profile-hero pp-banner" id="ppBanner">
+          <div class="profile-avatar pp-avatar" id="ppAvatar">${esc(avatarGlyph)}</div>
+          <h2 class="profile-name" id="ppName" aria-label="profile name">${esc(user.username)}</h2>
+          <p class="profile-badge" id="ppRank">${esc(rank ? t("auth.levelProgress").replace("{l}", level).replace("{rank}", rank) : (t("auth.member")))}</p>
+          <p class="profile-sub" id="ppBio">${esc(prof.bio || t("auth.member"))}</p>
           <button class="profile-hero-close" id="profileClose" title="${esc(t("settings.close"))}" aria-label="Close"><span class="ico" data-icon="close"></span></button>
         </div>
         <div class="profile-body">
-          <div class="profile-stats">
-            <div class="profile-stat">
-              <div class="profile-stat-num">${level}</div>
-              <div class="profile-stat-label">${esc(t("auth.level"))}</div>
+          <div id="ppView">
+            <div class="profile-xp">
+              <div class="profile-xp-label"><span class="ico" data-icon="bolt"></span> ${level} · ${esc(rank)}</div>
+              <div class="profile-xp-bar"><span class="profile-xp-fill" id="ppXpFill"></span></div>
+              <div class="profile-xp-text">${inLevel} / ${need} XP · ${pct}%</div>
             </div>
-            <div class="profile-stat">
-              <div class="profile-stat-num">${learnedCount}</div>
-              <div class="profile-stat-label">${esc(t("auth.wordsLearned"))}</div>
+            <div class="profile-stats">
+              <div class="profile-stat"><div class="profile-stat-num">${learnedCount}</div><div class="profile-stat-label">${esc(t("auth.wordsLearned"))}</div></div>
+              <div class="profile-stat"><div class="profile-stat-num">${mastered}</div><div class="profile-stat-label">${esc(t("auth.masteredWords"))}</div></div>
+              <div class="profile-stat"><div class="profile-stat-num">${streak}</div><div class="profile-stat-label">${esc(t("streak.days"))}</div></div>
+              <div class="profile-stat"><div class="profile-stat-num">${ach}</div><div class="profile-stat-label">${esc(t("auth.achievementsCount"))}</div></div>
             </div>
-            <div class="profile-stat">
-              <div class="profile-stat-num">${streak}</div>
-              <div class="profile-stat-label">${esc(t("streak.days"))}</div>
+            <div class="profile-info">
+              <div class="profile-row">
+                <span class="profile-label"><span class="ico" data-icon="user"></span> ${esc(t("auth.username"))}</span>
+                <span class="profile-value">${esc(user.username)}</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label"><span class="ico" data-icon="id"></span> ${esc(t("auth.userId"))}</span>
+                <span class="profile-value">#${(user.userId || "-").substring(0, 12)}</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label"><span class="ico" data-icon="provider"></span> ${esc(t("auth.provider"))}</span>
+                <span class="profile-value">${esc(providerLabel)}</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label"><span class="ico" data-icon="status"></span> ${esc(t("auth.status"))}</span>
+                <span class="profile-value profile-status"><span class="ico" data-icon="status"></span> ออนไลน์</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label"><span class="ico" data-icon="sync"></span> ${esc(t("auth.sync"))}</span>
+                <span class="profile-value">${esc(syncLabel)}</span>
+              </div>
+            </div>
+            <div class="profile-account">
+              <div class="profile-account-title"><span class="ico" data-icon="lock"></span> ${esc(t("auth.account"))}</div>
+              <button class="btn btn-sm" id="profileChangePassword">${esc(t("auth.changePassword"))}</button>
+              ${staticMode ? '<button class="btn btn-sm" id="profileChangeUsername">' + esc(t("auth.changeUsername")) + '</button>' : ""}
+              ${firebaseOn || !staticMode ? '<button class="btn btn-sm" id="profileChangeEmail">' + esc(t("auth.changeEmail")) + '</button>' : ""}
+              ${firebaseOn ? '<button class="btn btn-sm" id="profileVerifyEmail">' + esc(t("auth.verifyEmail")) + '</button>' : ""}
+            </div>
+            <div class="profile-actions">
+              <button class="btn btn-primary" id="profileEdit">${esc(t("auth.editProfile"))}</button>
+              <button class="btn btn-bad" id="profileLogout">${esc(t("auth.logout"))}</button>
+              <button class="btn" id="profileDone">${esc(t("settings.close"))}</button>
             </div>
           </div>
-          <div class="profile-info">
-            <div class="profile-row">
-              <span class="profile-label"><span class="ico" data-icon="user"></span> ${esc(t("auth.username"))}</span>
-              <span class="profile-value">${esc(user.username)}</span>
+          <div id="ppEdit" hidden>
+            <div class="pp-section">
+              <label class="pp-label" for="ppNameInput">${esc(t("auth.displayName"))}</label>
+              <input class="auth-input" type="text" id="ppNameInput" maxlength="24" value="${esc(user.username)}" />
             </div>
-            <div class="profile-row">
-              <span class="profile-label"><span class="ico" data-icon="id"></span> ${esc(t("auth.userId"))}</span>
-              <span class="profile-value">#${(user.userId || "-").substring(0, 12)}</span>
+            <div class="pp-section">
+              <label class="pp-label" for="ppBioInput">${esc(t("auth.bio"))}</label>
+              <input class="auth-input" type="text" id="ppBioInput" maxlength="80" placeholder="${esc(t("auth.bioPlaceholder"))}" value="${esc(prof.bio)}" />
             </div>
-            <div class="profile-row">
-              <span class="profile-label"><span class="ico" data-icon="provider"></span> ${esc(t("auth.provider"))}</span>
-              <span class="profile-value">${esc(providerLabel)}</span>
+            <div class="pp-section">
+              <div class="pp-label">${esc(t("auth.chooseAvatar"))}</div>
+              <div class="pp-avatars" id="ppAvatarGrid">
+                ${PROFILE_AVATARS.map(function (a) {
+                  return '<button type="button" class="pp-av" data-av="' + a + '">' + a + "</button>";
+                }).join("")}
+              </div>
+              <div class="pp-label pp-sub-label">${esc(t("auth.avatarStyle"))}</div>
+              <div class="pp-swatches" id="ppAvatarBg">
+                ${PROFILE_GRADIENTS.map(function (g) { return '<button type="button" class="pp-swatch" data-g="' + g + '"></button>'; }).join("")}
+              </div>
             </div>
-            <div class="profile-row">
-              <span class="profile-label"><span class="ico" data-icon="status"></span> ${esc(t("auth.status"))}</span>
-              <span class="profile-value profile-status"><span class="ico" data-icon="status"></span> ออนไลน์</span>
+            <div class="pp-section">
+              <div class="pp-label">${esc(t("auth.chooseBanner"))}</div>
+              <div class="pp-swatches pp-banner-row" id="ppBannerRow">
+                ${PROFILE_GRADIENTS.map(function (g) { return '<button type="button" class="pp-swatch" data-g="' + g + '"></button>'; }).join("")}
+              </div>
             </div>
-            <div class="profile-row">
-              <span class="profile-label"><span class="ico" data-icon="sync"></span> ${esc(t("auth.sync"))}</span>
-              <span class="profile-value">${esc(syncLabel)}</span>
+            <div class="profile-actions">
+              <button class="btn btn-primary" id="ppSave">${esc(t("auth.saveChanges"))}</button>
+              <button class="btn" id="ppCancel">${esc(t("auth.cancel"))}</button>
             </div>
-          </div>
-          <div class="profile-actions">
-            <button class="btn btn-bad" id="profileLogout">${esc(t("auth.logout"))}</button>
-            <button class="btn btn-primary" id="profileDone">${esc(t("settings.close"))}</button>
           </div>
         </div>
       </div>
     `;
     document.body.appendChild(overlay);
 
+    // icons
     overlay.querySelectorAll("[data-icon]").forEach(function (n) {
       const ICONS = window.VOCAB_ICONS || {};
       n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n.dataset.icon] || "") + "</svg>";
     });
 
+    // gradient application
+    setGrad(overlay.querySelector("#ppBanner"), "pp-banner-", prof.banner);
+    setGrad(overlay.querySelector("#ppAvatar"), "pp-av-", prof.avatarBg);
+    overlay.querySelectorAll(".pp-swatch").forEach(function (n) {
+      setGrad(n, "pp-swatch-", n.dataset.g);
+    });
+    overlay.querySelector("#ppAvatarGrid").querySelectorAll(".pp-av").forEach(function (n) {
+      if (n.dataset.av === prof.avatar) n.classList.add("sel");
+    });
+    overlay.querySelector("#ppAvatarBg").querySelectorAll(".pp-swatch").forEach(function (n) {
+      if (n.dataset.g === prof.avatarBg) n.classList.add("sel");
+    });
+    overlay.querySelector("#ppBannerRow").querySelectorAll(".pp-swatch").forEach(function (n) {
+      if (n.dataset.g === prof.banner) n.classList.add("sel");
+    });
+    const fill = overlay.querySelector("#ppXpFill");
+    if (fill) fill.style.width = (pct || 0) + "%";
+
+    function applyPreview() {
+      const nameIn = overlay.querySelector("#ppNameInput");
+      const bioIn = overlay.querySelector("#ppBioInput");
+      const selAv = overlay.querySelector("#ppAvatarGrid .pp-av.sel");
+      const selBg = overlay.querySelector("#ppAvatarBg .pp-swatch.sel");
+      const selBanner = overlay.querySelector("#ppBannerRow .pp-swatch.sel");
+      const nm = overlay.querySelector("#ppName");
+      const bioEl = overlay.querySelector("#ppBio");
+      const av = overlay.querySelector("#ppAvatar");
+      if (nm) nm.textContent = nameIn.value.trim() || user.username;
+      if (bioEl) bioEl.textContent = bioIn.value.trim() || t("auth.member");
+      if (av && selAv) av.textContent = selAv.dataset.av;
+      if (av && selBg) setGrad(av, "pp-av-", selBg.dataset.g);
+      const banner = overlay.querySelector("#ppBanner");
+      if (banner && selBanner) setGrad(banner, "pp-banner-", selBanner.dataset.g);
+    }
+    overlay.querySelectorAll(".pp-av").forEach(function (n) {
+      n.onclick = function () {
+        overlay.querySelectorAll(".pp-av").forEach(function (x) { x.classList.remove("sel"); });
+        n.classList.add("sel");
+        applyPreview();
+      };
+    });
+    overlay.querySelectorAll(".pp-swatch").forEach(function (n) {
+      n.onclick = function () {
+        const row = n.parentNode;
+        row.querySelectorAll(".pp-swatch").forEach(function (x) { x.classList.remove("sel"); });
+        n.classList.add("sel");
+        applyPreview();
+      };
+    });
+
     overlay.querySelector("#profileClose").onclick = function () { closeProfileModal(); };
     overlay.querySelector("#profileDone").onclick = function () { closeProfileModal(); };
+    // --- บัญชี: เปลี่ยนรหัสผ่าน / username / email / ยืนยันอีเมล ---
+    const pwBtn = overlay.querySelector("#profileChangePassword");
+    if (pwBtn) {
+      pwBtn.onclick = async function () {
+        closeProfileModal();
+        try {
+          const cur = await showPromptModal(t("auth.changePassword"), t("auth.currentPassword"), t("auth.passwordPlaceholder"), t("auth.continue"), "password");
+          if (!cur) return;
+          const np = await showPromptModal(t("auth.changePassword"), t("auth.newPassword"), t("auth.passwordPlaceholder"), t("auth.continue"), "password");
+          if (!np) return;
+          await changePassword(cur, np);
+          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.passwordChanged"), "ok", "check");
+        } catch (e) {
+          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(e.message || "เกิดข้อผิดพลาด", "err", "alert");
+        }
+      };
+    }
+    const unBtn = overlay.querySelector("#profileChangeUsername");
+    if (unBtn) {
+      unBtn.onclick = async function () {
+        closeProfileModal();
+        try {
+          const nu = await showPromptModal(t("auth.changeUsername"), t("auth.newUsername"), t("auth.usernamePlaceholder"), t("auth.continue"));
+          if (!nu) return;
+          await changeUsername(nu);
+          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.usernameChanged"), "ok", "check");
+          updateSidebarAuthBtn();
+        } catch (e) {
+          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(e.message || "เกิดข้อผิดพลาด", "err", "alert");
+        }
+      };
+    }
+    const emBtn = overlay.querySelector("#profileChangeEmail");
+    if (emBtn) {
+      emBtn.onclick = async function () {
+        closeProfileModal();
+        try {
+          const ne = await showPromptModal(t("auth.changeEmail"), t("auth.newEmail"), "name@example.com", t("auth.continue"), "email");
+          if (!ne) return;
+          await changeEmail(ne);
+          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.emailChanged"), "ok", "check");
+        } catch (e) {
+          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(e.message || "เกิดข้อผิดพลาด", "err", "alert");
+        }
+      };
+    }
+    const veBtn = overlay.querySelector("#profileVerifyEmail");
+    if (veBtn) {
+      veBtn.onclick = async function () {
+        try {
+          await verifyEmail();
+          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.verifyEmailSent"), "ok", "check");
+        } catch (e) {
+          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(e.message || "เกิดข้อผิดพลาด", "err", "alert");
+        }
+      };
+    }
+    overlay.querySelector("#profileEdit").onclick = function () {
+      overlay.querySelector("#ppView").hidden = true;
+      overlay.querySelector("#ppEdit").hidden = false;
+    };
+    overlay.querySelector("#ppCancel").onclick = function () {
+      overlay.querySelector("#ppEdit").hidden = true;
+      overlay.querySelector("#ppView").hidden = false;
+    };
+    overlay.querySelector("#ppSave").onclick = function () {
+      const nameIn = overlay.querySelector("#ppNameInput");
+      const bioIn = overlay.querySelector("#ppBioInput");
+      const selAv = overlay.querySelector("#ppAvatarGrid .pp-av.sel");
+      const selBg = overlay.querySelector("#ppAvatarBg .pp-swatch.sel");
+      const selBanner = overlay.querySelector("#ppBannerRow .pp-swatch.sel");
+      const newName = (nameIn.value || "").trim();
+      if (newName.length < 3) {
+        if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.nameTooShort"), "err", "alert");
+        nameIn.focus();
+        return;
+      }
+      const prof2 = {
+        bio: (bioIn.value || "").trim(),
+        avatar: selAv ? selAv.dataset.av : "",
+        avatarBg: selBg ? selBg.dataset.g : "aurora",
+        banner: selBanner ? selBanner.dataset.g : "sunset"
+      };
+      user.username = newName;
+      user.profile = prof2;
+      setUser(user);
+      updateSidebarAuthBtn();
+      if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.profileSaved"), "ok", "check");
+      overlay.querySelector("#ppEdit").hidden = true;
+      overlay.querySelector("#ppView").hidden = false;
+      overlay.querySelector("#ppName").textContent = newName;
+      overlay.querySelector("#ppBio").textContent = prof2.bio || t("auth.member");
+      overlay.querySelector("#ppAvatar").textContent = prof2.avatar || newName.charAt(0).toUpperCase();
+    };
     overlay.querySelector("#profileLogout").onclick = function () {
       if (confirm(t("auth.logoutConfirm") || "ออกจากระบบ?")) {
         logout();
@@ -1288,12 +2072,13 @@
     overlay.setAttribute("aria-hidden", "false");
   }
 
-  function closeProfileModal() {
+  function closeProfileModal(instant) {
     const overlay = document.getElementById("profileModal");
     if (overlay) {
       overlay.classList.remove("open");
       overlay.setAttribute("aria-hidden", "true");
-      setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+      const t = instant ? 0 : 300;
+      setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, t);
     }
   }
 
@@ -1313,10 +2098,21 @@
     verifyToken: verifyToken,
     updateSidebarAuthBtn: updateSidebarAuthBtn,
     createAuthModal: createAuthModal,
+    showProfileModal: showProfileModal,
+    getProfile: getProfile,
     isStaticMode: isStaticMode,
     isFirebaseMode: isFirebaseMode,
     signInWithGoogle: signInWithGoogle,
     firebaseCheckRedirectResult: firebaseCheckRedirectResult,
+    resetGuestDataIfNewSession: resetGuestDataIfNewSession,
+    signInWithGithub: signInWithGithub,
+    signInWithApple: signInWithApple,
+    forgotPassword: forgotPassword,
+    resetPasswordWithCode: resetPasswordWithCode,
+    changePassword: changePassword,
+    changeEmail: changeEmail,
+    changeUsername: changeUsername,
+    verifyEmail: verifyEmail,
     t: t
   };
 

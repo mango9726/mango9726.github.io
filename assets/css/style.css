@@ -3576,12 +3576,12 @@ html[data-accent="mono"][data-theme="dark"] {
 .auth-chev { color: var(--muted); font-size: 18px; line-height: 1; }
 
 /* ============================================================
-   PROFILE MODAL — modern card design
+   PROFILE MODAL — big-site style (banner + avatar + edit)
    ============================================================ */
-.profile-modal { max-width: 440px; }
+.profile-modal { max-width: 460px; }
 .profile-hero {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 24px 24px 18px; margin-bottom: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 30px 24px 22px; margin-bottom: 0;
   background: var(--grad); border-radius: 24px 24px 0 0;
   position: relative; overflow: hidden; color: #fff; text-align: center;
 }
@@ -3590,15 +3590,39 @@ html[data-accent="mono"][data-theme="dark"] {
   background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
   pointer-events: none;
 }
+/* Banner gradient presets */
+.pp-banner-sunset   { background: linear-gradient(135deg,#f97316,#fb7185); }
+.pp-banner-forest   { background: linear-gradient(135deg,#16a34a,#10b981); }
+.pp-banner-ocean    { background: linear-gradient(135deg,#0ea5e9,#06b6d4); }
+.pp-banner-neon     { background: linear-gradient(135deg,#d946ef,#22d3ee); }
+.pp-banner-aurora   { background: linear-gradient(135deg,#6366f1,#a855f7); }
+.pp-banner-gold     { background: linear-gradient(135deg,#f59e0b,#fbbf24); }
+.pp-banner-candy    { background: linear-gradient(135deg,#ec4899,#f472b6); }
+.pp-banner-midnight { background: linear-gradient(135deg,#334155,#475569); }
+
 .profile-hero .profile-avatar {
-  width: 72px; height: 72px; border-radius: 20px; font-size: 28px;
-  background: rgba(255,255,255,0.25); backdrop-filter: blur(8px);
-  color: #fff; font-weight: 800;
-  display: grid; place-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  border: 2.5px solid rgba(255,255,255,0.3);
+  width: 88px; height: 88px; border-radius: 26px; font-size: 40px;
+  color: #fff; font-weight: 800; margin-bottom: 8px;
+  display: grid; place-items: center; box-shadow: 0 6px 26px rgba(0,0,0,0.25);
+  border: 3px solid rgba(255,255,255,0.45);
 }
-.profile-name { font-size: 22px; font-weight: 800; margin: 0; }
-.profile-sub { font-size: 13px; opacity: 0.85; margin: 0; }
+/* Avatar gradient presets */
+.pp-av-sunset   { background: linear-gradient(135deg,#f97316,#fb7185); }
+.pp-av-forest   { background: linear-gradient(135deg,#16a34a,#10b981); }
+.pp-av-ocean    { background: linear-gradient(135deg,#0ea5e9,#06b6d4); }
+.pp-av-neon     { background: linear-gradient(135deg,#d946ef,#22d3ee); }
+.pp-av-aurora   { background: linear-gradient(135deg,#6366f1,#a855f7); }
+.pp-av-gold     { background: linear-gradient(135deg,#f59e0b,#fbbf24); }
+.pp-av-candy    { background: linear-gradient(135deg,#ec4899,#f472b6); }
+.pp-av-midnight { background: linear-gradient(135deg,#334155,#475569); }
+
+.profile-name { font-size: 24px; font-weight: 800; margin: 0; text-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+.profile-badge {
+  font-size: 12px; font-weight: 700; margin: 0; padding: 4px 12px; border-radius: 999px;
+  background: rgba(255,255,255,0.22); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.35); letter-spacing: 0.3px;
+}
+.profile-sub { font-size: 13px; opacity: 0.9; margin: 2px 0 0; max-width: 90%; }
 .profile-hero-close {
   position: absolute; top: 14px; right: 14px; width: 34px; height: 34px;
   border: none; background: rgba(255,255,255,0.2); color: #fff;
@@ -3607,7 +3631,7 @@ html[data-accent="mono"][data-theme="dark"] {
 }
 .profile-hero-close:hover { background: rgba(255,255,255,0.35); transform: rotate(90deg); }
 .profile-body { padding: 20px 24px 24px; }
-.profile-info { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.profile-info { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
 .profile-row {
   display: flex; justify-content: space-between; align-items: center;
   padding: 12px 14px; border-radius: 14px; background: var(--panel-solid); border: 1px solid var(--border);
@@ -3620,16 +3644,74 @@ html[data-accent="mono"][data-theme="dark"] {
 .profile-status { color: var(--good); }
 .profile-actions { display: flex; gap: 10px; }
 .profile-actions .btn { flex: 1; justify-content: center; }
+/* Account management section in profile modal */
+.profile-account { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.profile-account-title {
+  font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 2px;
+}
+.profile-account-title .ico { width: 15px; height: 15px; color: var(--primary); }
+.profile-account .btn { justify-content: center; border: 1px solid var(--border); background: var(--panel-solid); }
+.profile-account .btn:hover { background: var(--bg); }
+/* Reset-code modal helpers */
+.reset-code-hint { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.reset-code-box {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 22px; font-weight: 800; letter-spacing: 6px; text-align: center; color: var(--primary);
+  padding: 12px; border-radius: 12px; background: var(--panel-solid); border: 1px dashed var(--border); margin-bottom: 14px;
+}
+.reset-code-hint + .auth-field { margin-top: 12px; }
 /* Account stats row in profile */
 .profile-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px;
 }
 .profile-stat {
-  text-align: center; padding: 14px 10px; border-radius: 14px;
+  text-align: center; padding: 14px 8px; border-radius: 14px;
   background: var(--panel-solid); border: 1px solid var(--border);
 }
-.profile-stat-num { font-size: 22px; font-weight: 800; color: var(--primary); }
-.profile-stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.profile-stat-num { font-size: 20px; font-weight: 800; color: var(--primary); }
+.profile-stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+/* XP progress bar */
+.profile-xp { margin-bottom: 18px; }
+.profile-xp-label { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.profile-xp-label .ico { width: 16px; height: 16px; color: var(--primary); }
+.profile-xp-bar {
+  height: 10px; border-radius: 999px; background: var(--panel-solid);
+  border: 1px solid var(--border); overflow: hidden;
+}
+.profile-xp-fill {
+  display: block; height: 100%; border-radius: 999px;
+  background: var(--grad); transition: width 0.6s cubic-bezier(.2,.8,.2,1);
+}
+.profile-xp-text { font-size: 11px; color: var(--muted); margin-top: 6px; font-weight: 600; }
+/* Edit sections */
+.pp-modal .pp-section { margin-bottom: 18px; }
+.pp-label { font-size: 13px; font-weight: 700; color: var(--text); display: block; margin-bottom: 8px; }
+.pp-sub-label { margin-top: 12px; font-size: 12px; color: var(--muted); }
+.pp-avatars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.pp-av {
+  aspect-ratio: 1; border-radius: 14px; font-size: 24px; cursor: pointer;
+  background: var(--panel-solid); border: 2px solid var(--border);
+  display: grid; place-items: center; transition: 0.2s;
+}
+.pp-av:hover { transform: translateY(-2px); border-color: var(--primary); }
+.pp-av.sel { border-color: var(--primary); box-shadow: 0 0 0 3px var(--grad-soft); background: var(--bg); }
+.pp-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.pp-swatch {
+  width: 42px; height: 42px; border-radius: 12px; cursor: pointer;
+  border: 2px solid transparent; transition: 0.2s; padding: 0;
+}
+.pp-swatch:hover { transform: translateY(-2px); }
+.pp-swatch.sel { border-color: var(--text); box-shadow: 0 0 0 3px var(--primary); }
+.pp-swatch-sunset   { background: linear-gradient(135deg,#f97316,#fb7185); }
+.pp-swatch-forest   { background: linear-gradient(135deg,#16a34a,#10b981); }
+.pp-swatch-ocean    { background: linear-gradient(135deg,#0ea5e9,#06b6d4); }
+.pp-swatch-neon     { background: linear-gradient(135deg,#d946ef,#22d3ee); }
+.pp-swatch-aurora   { background: linear-gradient(135deg,#6366f1,#a855f7); }
+.pp-swatch-gold     { background: linear-gradient(135deg,#f59e0b,#fbbf24); }
+.pp-swatch-candy    { background: linear-gradient(135deg,#ec4899,#f472b6); }
+.pp-swatch-midnight { background: linear-gradient(135deg,#334155,#475569); }
+.pp-banner-row .pp-swatch { width: 56px; height: 34px; }
 
 
 /* ===================== Mini Player (merged from mini-player.css) ===================== */

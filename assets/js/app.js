@@ -5192,6 +5192,15 @@
     } catch (e) {
       console.warn("[init] SecureStore.ready failed:", e);
     }
+    // Guest session isolation: ถ้าไม่ล็อกอินและมา session ใหม่ → ล้างข้อมูล guest ทุกอย่าง
+    // (ต้องเรียกก่อน loadInitialState เพื่อให้ UI โหลดค่าเริ่มต้น)
+    try {
+      if (window.VocabAuth && window.VocabAuth.resetGuestDataIfNewSession) {
+        window.VocabAuth.resetGuestDataIfNewSession();
+      }
+    } catch (e) {
+      console.warn("[init] resetGuestDataIfNewSession failed:", e);
+    }
     try {
       loadInitialState();
     } catch (e) {
@@ -8067,6 +8076,25 @@ bookPageIdx = 0;
         window.CefrSelector.onCefrLevelChange(newLevel);
       }
     },
-    toast: toast
+    toast: toast,
+    getStats: function () {
+      try {
+        const info = levelProgress(game.xp);
+        const title = highestTitle();
+        return {
+          xp: game.xp,
+          level: info.level,
+          rank: info.rank,
+          inLevel: info.inLevel,
+          need: info.need,
+          pct: info.pct,
+          wordsLearned: totalLearned(),
+          mastered: masteredCount(),
+          streak: currentStreak(),
+          achievements: Object.keys(game.achievements || {}).length,
+          title: title ? title.name : ""
+        };
+      } catch (e) { return null; }
+    }
   };
 })();

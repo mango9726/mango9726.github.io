@@ -37,3 +37,31 @@ test("i18n: new CSV/pron keys exist in both languages", () => {
     assert.ok(STRINGS.en[k], "missing EN " + k);
   });
 });
+
+test("i18n: profile edit keys exist in both languages", () => {
+  ["auth.editProfile", "auth.saveChanges", "auth.profileSaved", "auth.displayName",
+   "auth.bio", "auth.bioPlaceholder", "auth.chooseAvatar", "auth.avatarStyle",
+   "auth.chooseBanner", "auth.nameTooShort", "auth.masteredWords",
+   "auth.achievementsCount", "auth.levelProgress", "auth.cancel"].forEach(function (k) {
+    assert.ok(STRINGS.th[k], "missing TH " + k);
+    assert.ok(STRINGS.en[k], "missing EN " + k);
+  });
+});
+
+test("i18n: account-management keys exist in both languages", () => {
+  ["auth.ok", "auth.continue", "auth.account", "auth.socialRequiresBackend",
+   "auth.githubPromptTitle", "auth.githubUsername", "auth.githubUsernamePlaceholder",
+   "auth.applePromptTitle", "auth.appleEmail", "auth.appleEmailPlaceholder",
+   "auth.fillField", "auth.resetTitle", "auth.resetCodeHint", "auth.resetCode",
+   "auth.newPassword", "auth.resetPassword", "auth.resetDone", "auth.passwordTooShort",
+   "auth.staticResetHint", "auth.userNotFound", "auth.changePassword",
+   "auth.currentPassword", "auth.passwordChanged", "auth.changeUsername",
+   "auth.newUsername", "auth.usernameChanged", "auth.usernameTaken",
+   "auth.usernameChangeUnsupported", "auth.changeEmail", "auth.newEmail",
+   "auth.emailChanged", "auth.verifyEmail", "auth.verifyEmailSent",
+   "auth.invalidEmail", "auth.notLoggedIn", "auth.changeFailed",
+   "auth.wrongCurrentPassword", "auth.emailNotSupported"].forEach(function (k) {
+    assert.ok(STRINGS.th[k], "missing TH " + k);
+    assert.ok(STRINGS.en[k], "missing EN " + k);
+  });
+});

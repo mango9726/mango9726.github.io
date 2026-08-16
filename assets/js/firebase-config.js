@@ -12,7 +12,7 @@
       (เช่น username.github.io)
    ============================================================ */
 
-// ✅ Firebase config ของคุณ (จาก Firebase Console)
+// Firebase config ของคุณ (จาก Firebase Console)
 const firebaseConfig = {
   apiKey: "AIzaSyBfNwMY4ZQRE6AHgUW82ofLKA8QQEeTfgA",
   authDomain: "vocab-c8dba.firebaseapp.com",

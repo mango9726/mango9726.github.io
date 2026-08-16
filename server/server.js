@@ -175,6 +175,110 @@ app.post("/api/data", (req, res) => {
   res.json({ ok: true });
 });
 
+// --- POST /api/auth/github ---
+app.post("/api/auth/github", (req, res) => {
+  const { githubId, displayName, email } = req.body;
+  if (!githubId || !displayName) {
+    return res.status(400).json({ error: "githubId and displayName required" });
+  }
+  const existingUser = Object.values(db.users).find(u => u.githubId === githubId);
+  if (existingUser) {
+    const token = genToken();
+    db.tokens[token] = { username: existingUser.username, userId: existingUser.userId };
+    saveDB(db);
+    return res.json({ token, username: existingUser.username, userId: existingUser.userId, isNew: false });
+  }
+  let username = displayName;
+  let counter = 1;
+  while (db.users[username]) {
+    username = displayName + counter;
+    counter++;
+  }
+  const autoPassword = genToken().slice(0, 12);
+  const id = makeUserId();
+  db.users[username] = {
+    userId: id,
+    passwordHash: hash(autoPassword),
+    githubId: githubId,
+    email: email || "",
+    lang: "th",
+    created: Date.now()
+  };
+  db.userData[id] = {};
+  const token = genToken();
+  db.tokens[token] = { username, userId: id };
+  saveDB(db);
+  res.json({ token, username, userId: id, autoPassword, isNew: true });
+});
+
+// --- POST /api/auth/apple ---
+app.post("/api/auth/apple", (req, res) => {
+  const { appleId, displayName, email } = req.body;
+  if (!appleId || !displayName) {
+    return res.status(400).json({ error: "appleId and displayName required" });
+  }
+  const existingUser = Object.values(db.users).find(u => u.appleId === appleId);
+  if (existingUser) {
+    const token = genToken();
+    db.tokens[token] = { username: existingUser.username, userId: existingUser.userId };
+    saveDB(db);
+    return res.json({ token, username: existingUser.username, userId: existingUser.userId, isNew: false });
+  }
+  let username = displayName;
+  let counter = 1;
+  while (db.users[username]) {
+    username = displayName + counter;
+    counter++;
+  }
+  const autoPassword = genToken().slice(0, 12);
+  const id = makeUserId();
+  db.users[username] = {
+    userId: id,
+    passwordHash: hash(autoPassword),
+    appleId: appleId,
+    email: email || "",
+    lang: "th",
+    created: Date.now()
+  };
+  db.userData[id] = {};
+  const token = genToken();
+  db.tokens[token] = { username, userId: id };
+  saveDB(db);
+  res.json({ token, username, userId: id, autoPassword, isNew: true });
+});
+
+// --- POST /api/auth/forgot-password ---
+app.post("/api/auth/forgot-password", (req, res) => {
+  const { username } = req.body;
+  if (!username) {
+    return res.status(400).json({ error: "username required" });
+  }
+  const user = db.users[username];
+  if (!user) {
+    return res.json({ ok: true, message: "If account exists, reset instructions sent." });
+  }
+  const resetCode = crypto.randomBytes(3).toString("hex").toUpperCase();
+  user.resetCode = resetCode;
+  saveDB(db);
+  res.json({ ok: true, message: "Reset code generated", resetCode });
+});
+
+// --- POST /api/auth/reset-password ---
+app.post("/api/auth/reset-password", (req, res) => {
+  const { username, resetCode, newPassword } = req.body;
+  if (!username || !resetCode || !newPassword) {
+    return res.status(400).json({ error: "All fields required" });
+  }
+  const user = db.users[username];
+  if (!user || user.resetCode !== resetCode) {
+    return res.status(400).json({ error: "Invalid reset code or username" });
+  }
+  user.passwordHash = hash(newPassword);
+  delete user.resetCode;
+  saveDB(db);
+  res.json({ ok: true, message: "Password successfully reset" });
+});
+
 app.listen(PORT, () => {
   console.log(`Vocab auth server running on http://localhost:${PORT}`);
 });

@@ -27,72 +27,7 @@
   }
 
   /* ---------- Inline SVG icon set (crisp, monochrome, theme-aware) ---------- */
-  const ICONS = {
-    home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
-    calendar: '<rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9h18"/><path d="M8 2.5v4M16 2.5v4"/>',
-    book: '<path d="M12 6c-2-2-5-2-7 0v13c2-2 5-2 7 0 2-2 5-2 7 0V6c-2-2-5-2-7 0z"/>',
-    grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
-    cards: '<rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3.5h11a2 2 0 0 1 2 2v11"/>',
-    chevron: '<path d="M9 6l6 6-6 6"/>',
-    pen: '<path d="M12 20h8"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
-    pencil: '<path d="M3 21l3.5-1L18 8.5 15.5 6 4 17.5z"/><path d="M14 6l3 3"/>',
-    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/>',
-    clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
-    check: '<circle cx="12" cy="12" r="9"/><path d="M8.2 12.4l2.6 2.6L16 9"/>',
-    cross: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>',
-    target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
-    puzzle: '<path d="M9 4.5a1.6 1.6 0 0 1 3.2 0c0 .5-.3 1 0 1.3.4.4 1.8.2 2.3.2h1.7c.6 0 1 .4 1 1v1.8c0 .5-.2 1.9.2 2.3.3.3.8 0 1.3 0a1.6 1.6 0 0 1 0 3.2c-.5 0-1-.3-1.3 0-.4.4-.2 1.8-.2 2.3v1.7c0 .6-.4 1-1 1h-1.8c-.5 0-1.9.2-2.3-.2-.3-.3 0-.8 0-1.3a1.6 1.6 0 0 0-3.2 0c0 .5.3 1 0 1.3-.4.4-1.8.2-2.3.2H4.6c-.6 0-1-.4-1-1v-1.7c0-.5.2-1.9-.2-2.3-.3-.3-.8 0-1.3 0a1.6 1.6 0 0 1 0-3.2c.5 0 1 .3 1.3 0 .4-.4.2-1.8.2-2.3V8c0-.6.4-1 1-1h1.7c.5 0 1.9.2 2.3-.2.3-.3 0-.8 0-1.3z"/>',
-    speaker: '<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"/>',
-    gear: '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.15-1.5l2-1.5-2-3.5-2.3 1a7 7 0 0 0-2.6-1.5L13.45 2h-2.9l-.55 2.5a7 7 0 0 0-2.6 1.5L5 4.5l-2 3.5 2 1.5A7 7 0 0 0 3.6 13l-2 1.5 2 3.5 2.3-1a7 7 0 0 0 2.6 1.5l.55 2.5h2.9l.55-2.5a7 7 0 0 0 2.6-1.5l2.3 1 2-3.5-2-1.5c.1-.5.15-1 .15-1.5z"/>',
-    sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 15l.8 2.2L21.5 18l-2.2.8L18.5 21l-.8-2.2L15.5 18l2.2-.8z"/>',
-    eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
-    eyeOff: '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/>',
-    flame: '<path d="M12 3c3 3.5 4.5 6 4.5 9a4.5 4.5 0 0 1-9 0c0-1.6.8-2.9 1.7-3.9.2 1 .9 1.7 1.8 1.7 1.2 0 2-1.2 1.3-2.6C11.5 5.7 12 4.2 12 3z"/>',
-    moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
-    sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/>',
-    info: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5"/><path d="M12 8h.01"/>',
-    volume: '<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
-    volumeLow: '<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"/>',
-    volumeX: '<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
-    music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
-    musicX: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M3 21L21 3"/>',
-    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
-    bellOff: '<path d="M8.7 3A6 6 0 0 1 19 8c0 7 3 9 3 9H8.4"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M2 2l20 20"/>',
-    close: '<path d="M6 6l12 12M18 6L6 18"/>',
-    download: '<path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/>',
-    keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><path d="M6 9.5h.01M9.5 9.5h.01M13.5 9.5h.01M17 9.5h.01M7.5 13h9"/>',
-    brain: '<path d="M12 5.5a2.2 2.2 0 0 0-2.2 2.2 2.2 2.2 0 0 0-2 3.1A2.2 2.2 0 0 0 7.5 16 2.2 2.2 0 0 0 9.6 19c.9 0 1.6-.5 2-1.3h.8c.4.8 1.1 1.3 2 1.3a2.2 2.2 0 0 0 2.1-3 2.2 2.2 0 0 0-1-3.1A2.2 2.2 0 0 0 17 7.7 2.2 2.2 0 0 0 14.8 5.5c-.9 0-1.6.5-2 1.3v.4c-.4-.8-1.1-1.3-2-1.3z"/>',
-    upload: '<path d="M12 21V9"/><path d="M7 13l5-5 5 5"/><path d="M4 5h16"/>',
-    copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/>',
-    file: '<path d="M6 2h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v5h5"/>',
-    refresh: '<path d="M20 11a8 8 0 0 0-14-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 4.5L20 16"/><path d="M20 20v-4h-4"/>',
-    save: '<path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7"/><rect x="8" y="13" width="8" height="6"/>',
-    bulb: '<path d="M9.5 18h5"/><path d="M10 21h4"/><path d="M8.5 14.5a5.5 5.5 0 1 1 7 0c-.7.6-1 1.2-1 2h-5c0-.8-.3-1.4-1-2z"/>',
-    chart: '<path d="M4 20V11"/><path d="M10 20V4"/><path d="M16 20v-6"/><path d="M3 20h18"/>',
-    trending: '<path d="M3 17l6-6 4 4 7-7"/><path d="M17 7h4v4"/>',
-    link: '<path d="M9.5 14.5l5-5"/><path d="M11 6.5l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 17.5l-1 1a4 4 0 0 1-6-6l1-1"/>',
-    heart: '<path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z"/>',
-    trophy: '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/>',
-    party: '<path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18.5 14l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/>',
-    frown: '<circle cx="12" cy="12" r="9"/><path d="M8.5 15.5a4 4 0 0 1 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/>',
-    alert: '<path d="M12 3.5l9 16H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/>',
-    map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>',
-    leaf: '<path d="M5 19c0-8 6-13 14-13 0 8-5 14-13 14a6 6 0 0 1-1-1z"/><path d="M5 19c3-4 6-6 10-7"/>',
-    wave: '<path d="M3 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>',
-    bolt: '<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>',
-    quill: '<path d="M4 20c8-2 14-8 16-16C12 4 6 10 4 20z"/><path d="M4 20l3-7"/>',
-    shield: '<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>',
-    list: '<path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1.2"/><circle cx="4" cy="12" r="1.2"/><circle cx="4" cy="18" r="1.2"/>',
-    medal: '<circle cx="12" cy="14" r="5"/><path d="M9 3l3 6 3-6"/>',
-    compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
-    circle: '<circle cx="12" cy="12" r="8"/>',
-    lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
-    user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-    id: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8h20"/><path d="M6 12h.01M10 12h4"/>',
-    provider: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
-    status: '<circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/>',
-    sync: '<path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>'
-  };
+  const ICONS = window.VOCAB_ICONS;
   // Expose icons for auth.js and other modules
   window.VOCAB_ICONS = ICONS;
   /** Return an <svg> icon wrapped in a sizing <span>, for use in innerHTML strings. */
@@ -119,204 +54,7 @@
   }
 
   /* ---------- i18n: EN / TH string tables ---------- */
-  const STRINGS = {
-    th: {
-      "app.sub": "เรียนรู้คำศัพท์ภาษาอังกฤษระดับ B1",
-      "nav.home": "หน้าแรก", "nav.tasks": "ภารกิจรายวัน", "nav.browse": "รายการคำศัพท์", "nav.stats": "สถิติ", "tasks.heading": "ภารกิจรายวัน — ทบทวนแบบห่างกัน",
-      "nav.achievements": "ความสำเร็จ", "nav.games": "เกม", "nav.settings": "ตั้งค่า",
-      "nav.cards": "การ์ดทบทวน", "nav.quiz": "ควิซ", "nav.pron": "การออกเสียง",
-      "nav.fill": "เติมคำในช่องว่าง", "nav.match": "จับคู่การ์ด", "nav.tf": "ถูก / ผิด",
-      "nav.hang": "แขวนคอ", "nav.build": "เรียบเรียงประโยค", "nav.cloze": "เติมช่องว่าง", "nav.listen": "ฟังและพิมพ์",
-      "streak.days": "วันติดต่อกัน",
-      "profile.title": "ดูความสำเร็จของคุณ",
-      "hero.greet": "สวัสดีวันนี้!", "hero.title": "พร้อมที่จะเพิ่มคำศัพท์ไหม?",
-      "hero.morning": "สวัสดีตอนเช้า", "hero.afternoon": "สวัสดีตอนบ่าย", "hero.evening": "สวัสดีตอนเย็น",
-      "ach.unlocked": "ความสำเร็จปลดล็อก!", "reward.unlocked": "ปลดล็อก:",
-      "hero.date": "", "btn.startCards": "เริ่มทบทวนการ์ด", "btn.homeQuiz": "ทำควิซ",
-      "stat.total": "คำทั้งหมด", "stat.mastered": "จำได้แล้ว", "stat.due": "ครบกำหนดทบทวน", "stat.days": "วันที่เรียน", "stat.acc": "ความแม่นยำ (7 วัน)",
-      "quest.heading": "ภารกิจรายวัน", "quest.claim": "รับรางวัล", "quest.reward": "+50 XP",
-      "memory.heading": "ความทรงจำ", "memory.hint": "คำที่คุณเรียนไป รอดอยู่ในสมองกี่เปอร์เซ็นต์ในตอนนี้",
-      "memory.retained": "จำได้", "memory.smart": "ทบทวนฉลาด ๆ",
-      "boss.heading": "Boss Rush", "boss.hint": "ทวน 12 คำที่คุณจำได้แย่ที่สุด — ตอบภายใน 30 วินาทีต่อคำ ทำได้ Perfect รับโบนัส +25 XP",
-      "boss.start": "เริ่ม Boss Rush", "boss.close": "ออก", "boss.ask": "คุณจำความหมายนี้ได้ไหม?",
-      "boss.know": "จำได้", "boss.forgot": "ยังไม่แน่", "boss.result": "สรุปผล Boss Rush", "boss.again": "ลองอีกครั้ง", "boss.tag": "Lv 20",
-      "chart.study": "กิจกรรมการเรียน", "chart.legendArea": "คำที่เรียน", "chart.legendAcc": "ความแม่นยำ",
-      "mastery.heading": "ความเชี่ยวชาญตามประเภท", "heatmap.heading": "แผนที่ความเคลื่อนไหว", "heatmap.hint": "การเรียนรายวันใน 12 สัปดาห์ที่ผ่านมา",
-      "learned.heading": "คำที่เรียนไป", "learned.legend": "จำนวนคำสะสมที่เรียนไป",
-      "dailyProgress.heading": "ความก้าวหน้ารายวัน",
-      "ach.heading": "ความสำเร็จ", "ach.count": "ปลดล็อกแล้ว", "ach.level": "เลเวล", "ach.total": "รวม",
-      "ach.hint": "ความสำเร็จจะปลดล็อกเองเมื่อคุณเรียนมากขึ้น — ที่ยังล็อกจะแสดงเป็น ??? จนกว่าจะได้",
-      "reward.heading": "รางวัลตามเลเวล", "reward.hint": "เลเวลที่สูงขึ้นจะปลดล็อกธีมสี พลังบูส ฉายา และโหมดพิเศษ — ของที่ล็อกอยู่จะเปิดเมื่อถึงเลเวลนั้น",
-      "settings.title": "ตั้งค่า", "settings.dark": "โหมดมืด", "settings.themeColor": "สีธีม",
-      "settings.sound": "เสียงและเอฟเฟกต์", "settings.music": "เพลงพื้นหลัง", "settings.pageMusic": "เพลงหน้าเว็บ",
-      "settings.gameMusic": "เพลงในเกม", "settings.volume": "ระดับเสียงเพลง", "settings.effects": "ความเข้มของเอฟเฟกต์",
-      "settings.day": "วันเรียนปัจจุบัน (ตามแผน)", "settings.autoDay": "ตั้งวันอัตโนมัติจากปฏิทิน",
-      "settings.reset": "ล้างความก้าวหน้าทั้งหมด (รีเซ็ตการทบทวน)", "settings.language": "ภาษา",
-      "settings.showPlayer": "แสดงเครื่องเล่นเพลง", "settings.reminder": "แจ้งเตือนรายวัน",
-      "settings.on": "เปิด", "settings.off": "ปิด", "settings.reminderHint": "แจ้งเตือนขณะแอปเปิดอยู่ (ไม่ต้องมีเซิร์ฟเวอร์) การแจ้งเตือนแบบพื้นหลังจริงต้องใช้ backend",
-      "settings.backup": "สำรอง / นำเข้า (ย้ายไปอุปกรณ์อื่น)", "settings.backupHint": "ความก้าวหน้าเก็บในอุปกรณ์นี้เท่านั้น เพื่อย้ายไปอุปกรณ์หรือเบราว์เซอร์อื่น ให้ 'ส่งออก' จากเครื่องเดิมแล้ว 'นำเข้า' ที่เครื่องใหม่",
-      "settings.export": "ดาวน์โหลดไฟล์สำรอง", "settings.copy": "คัดลอกโค้ดสำรอง", "settings.import": "นำเข้าจากโค้ดด้านบน",
-      "settings.chooseFile": "เลือกไฟล์สำรอง", "settings.importStatus": "", "settings.tip": "💡 เพิ่มคำใหม่ทุกวันโดยบอก Claude ว่า: \"Day N, [หัวข้อหรือ random]\" — จะปรากฏที่นี่อัตโนมัติ",
-      "detail.syn": "คำไวพจน์", "detail.ant": "คำตรงข้าม", "detail.examples": "ตัวอย่างประโยค", "detail.note": "หมายเหตุ", "detail.progress": "ความก้าวหน้าของคุณ", "detail.pron": "ฝึกออกเสียง",
-      "mq.title": "ภารกิจรายวัน", "mq.claim": "รับ +50 XP",
-      "stats.heading": "สถิติ", "stats.weekly": "กราฟความก้าวหน้ารายสัปดาห์", "stats.weak": "จุดที่คุณมักพลาด",
-      "stats.review": "ทบทวน", "stats.weakHint": "เรียงจากคำที่จำได้แย่ที่สุด — กดทบทวนเพื่อซ่อม",
-      "notif.granted": "เปิดแจ้งเตือนแล้ว จะเตือนคุณทำภารกิจรายวัน", "notif.denied": "ไม่อนุญาตแจ้งเตือน แจ้งเตือนจะไม่ปรากฏ",
-      "cfg.review": "ตั้งค่าทบทวน", "cfg.quiz": "ตั้งค่าควิซ", "cfg.pron": "ทดสอบการออกเสียง",
-      "cfg.fill": "เติมคำในช่องว่าง", "cfg.match": "จับคู่การ์ด", "cfg.tf": "ควิซถูก / ผิด",
-      "cfg.hang": "แขวนคอ", "cfg.build": "เรียบเรียงประโยค", "cfg.cloze": "เติมช่องว่าง (Cloze)", "cfg.listen": "ฟังและพิมพ์",
-      "btn.startHang": "เริ่มแขวนคอ", "btn.startBuild": "เริ่มเรียบเรียงประโยค", "btn.startCloze": "เริ่ม Cloze", "btn.startListen": "เริ่มฟังและพิมพ์",
-      "zone.wordsLeft": "คำที่เหลือ", "build.hint": "แตะคำด้านล่างเพื่อนำไปไว้ในประโยค · แตะคำในประโยคเพื่อเอาลง",
-      "label.type": "ประเภท", "label.day": "วัน", "label.mode": "โหมด", "label.format": "รูปแบบคำถาม", "label.search": "ค้นหา",
-      "label.count": "จำนวนคำถาม", "label.direction": "ทิศทาง", "label.pairs": "จำนวนคู่",
-      "label.time": "เวลารวม", "btn.startLearning": "เริ่มเรียน", "btn.startQuiz": "เริ่มควิซ",
-      "btn.startPron": "เริ่มทดสอบการออกเสียง", "btn.startFill": "เริ่มเติมคำในช่องว่าง",
-      "btn.startMatch": "เริ่มจับคู่การ์ด", "btn.startTf": "เริ่มควิซ", "next.question": "คำถามถัดไป →",
-      "reveal.tip": "แตะเพื่อเปิดคำแปล · แตะ ℹ️ เพื่อดูรายละเอียด", "correct.answer": "คำตอบที่ถูก: ",
-      "memorize": "จดจำการ์ด", "flip.over": "การ์ดจะคว่ำใน", "tap.say": "แตะ แล้วพูดคำนี้",
-      "listen.sample": "ฟังตัวอย่าง", "listen.slow": "ฟังช้าๆ", "skip": "ข้าม", "check.answer": "ตรวจคำตอบ",
-      "browse.hint": "💡 คลิกการ์ดเพื่อดูรายละเอียดคำ · แตะลำโพงเพื่อฟังเสียง", "search.placeholder": "พิมพ์คำหรือความหมาย…",
-      "browse.hideAll": "ซ่อนความหมายทั้งหมด", "browse.showAll": "แสดงความหมายทั้งหมด", "browse.hideWord": "ซ่อนความหมายคำนี้", "browse.showWord": "แสดงความหมายคำนี้",
-      "tasks.hint": "ระบบจะนำคำของวันก่อนๆ กลับมาทบทวนในช่วงห่างที่เพิ่มขึ้น (เช่น วันที่ 1 กลับมาวันที่ 2, 4, 7, 14 …) ยิ่งคุณทบทวนบ่อย คำจะกลับมาห่างขึ้น จนจำได้แน่น",
-      "tasks.today": "", "grade.again": "ยังไม่ไหว", "grade.hard": "ยาก", "grade.good": "ดี", "grade.easy": "ง่าย",
-      "stats.weakEmpty": "ยังไม่มีจุดอ่อน — เรียนต่อไป!",
-      "lu.kicker": "เลเวลอัพ!", "lu.title": "เลเวลอัพ!", "lu.sub": "แข็งแกร่งขึ้นทุกวัน — คำศัพท์ของคุณกำลังเลเวลอัพ", "lu.continue": "ต่อไป", "lu.rewards": "ปลดล็อกรางวัล", "footer.built": "สร้างเพื่อการเรียน",
-      "info.learned": "คำที่เรียนไป:", "info.mastered": "จำได้แล้ว (กล่อง 4+):", "info.days": "จำนวนวันในระบบ:", "info.total": "คำศัพท์ทั้งหมด:",
-      "settings.toggleTheme": "สลับธีม",
-      "lang.th": "ไทย", "lang.en": "อังกฤษ",
-      "auth.loginTitle": "เข้าสู่ระบบ", "auth.loginSub": "เข้าสู่ระบบเพื่อบันทึกความคืบหน้าของคุณ",
-      "auth.loginSubStatic": "เข้าสู่ระบบเพื่อบันทึกความคืบหน้า (เก็บในเครื่องนี้)",
-      "auth.registerTitle": "สมัครบัญชีใหม่", "auth.registerSub": "สร้างบัญชีเพื่อบันทึกความคืบหน้าและใช้ได้ทุกเครื่อง",
-      "auth.registerSubStatic": "สร้างบัญชีเพื่อบันทึกความคืบหน้า (เก็บในเครื่องนี้)",
-      "auth.username": "Username", "auth.password": "Password",
-      "auth.usernamePlaceholder": "อย่างน้อย 3 ตัวอักษร", "auth.passwordPlaceholder": "อย่างน้อย 4 ตัวอักษร",
-      "auth.loginButton": "เข้าสู่ระบบ", "auth.registerButton": "สมัครบัญชี",
-      "auth.noAccount": "ยังไม่มีบัญชี?", "auth.hasAccount": "มีบัญชีแล้ว?",
-      "auth.registerLink": "สมัครบัญชีใหม่", "auth.loginLink": "เข้าสู่ระบบ",
-      "auth.fillBoth": "กรุณากรอก username และ password", "auth.processing": "กำลังดำเนินการ...",
-      "auth.remember": "จดจำการเข้าสู่ระบบ (เก็บไว้ในเครื่องนี้)",
-      "auth.googleButton": "เข้าสู่ระบบด้วย Google", "auth.orDivider": "หรือ",
-      "auth.redirectingToGoogle": "กำลังไปที่หน้า Google...",
-      "auth.googleAccountCreated": "บัญชีถูกสร้างแล้ว!",
-      "auth.googleCredentialHint": "บัญชีใหม่ถูกสร้างขึ้นโดยเชื่อมกับ Google ของคุณ บันทึกรหัสผ่านนี้ไว้เพื่อเข้าสู่ระบบด้วยวิธีปกติ:",
-      "auth.googlePasswordWarning": "⚠️ รหัสผ่านนี้แสดงเพียงครั้งเดียว — กรุณาบันทึกไว้หรือเปลี่ยนรหัสผ่านหลังจากเข้าสู่ระบบครั้งแรก",
-      "auth.loginSubFirebase": "เข้าสู่ระบบเพื่อ sync ข้ามเครื่อง (Firebase)", "auth.registerSubFirebase": "สร้างบัญชีเพื่อ sync ข้ามเครื่อง (Firebase)",
-      "auth.syncFirebase": "Firebase (sync ข้ามเครื่อง)", "auth.provider": "ผู้ให้บริการ",
-      "auth.member": "สมาชิก Vocab Trainer", "auth.userId": "User ID",
-      "auth.status": "สถานะ", "auth.sync": "การซิงค์ข้อมูล", "auth.syncAuto": "อัตโนมัติ", "auth.syncLocal": "เก็บในเครื่องนี้",
-      "auth.logout": "ออกจากระบบ", "auth.logoutConfirm": "ออกจากระบบ?\nข้อมูลในเครื่องนี้จะยังอยู่ แต่จะไม่ sync กับ server อีก",
-      "auth.guestHint": "เข้าสู่ระบบเพื่อบันทึกความคืบหน้าและซิงค์ข้อมูล",
-      "auth.signedInAs": "ล็อกอินแล้วในชื่อ {user}",
-      "auth.forgotPassword": "ลืมรหัสผ่าน?",
-      "auth.terms": "ข้อกำหนดการใช้งาน", "auth.privacy": "นโยบายความเป็นส่วนตัว", "auth.help": "ความช่วยเหลือ",
-      "auth.termsMsg": "หน้าข้อกำหนดการใช้งาน — กำลังเตรียมการ", "auth.privacyMsg": "หน้านโยบายความเป็นส่วนตัว — กำลังเตรียมการ", "auth.helpMsg": "หน้าความช่วยเหลือ — กำลังเตรียมการ",
-      "auth.socialNotSupported": "การเข้าสู่ระบบผ่านโซเชียลต้องการการเชื่อมต่อ Firebase",
-      "auth.enterEmailFirst": "กรุณากรอก username หรืออีเมลก่อน",
-      "auth.resetSent": "หากบัญชีนี้มีอยู่ จะส่งลิงก์รีเซ็ตรหัสผ่านไปแล้ว",
-      "auth.sending": "กำลังส่ง...",
-      "auth.level": "เลเวล", "auth.wordsLearned": "คำศัพท์ที่เรียน",
-      "auth.provider": "ผู้ให้บริการ", "auth.status": "สถานะ", "auth.sync": "การซิงค์ข้อมูล",
-      "settings.close": "ปิด"
-    },
-    en: {
-      "app.sub": "Learn B1-level English vocabulary",
-      "nav.home": "Home", "nav.tasks": "Daily Tasks", "nav.browse": "Word List", "nav.stats": "Statistics", "tasks.heading": "Daily Tasks — Spaced Review",
-      "nav.achievements": "Achievements", "nav.games": "Games", "nav.settings": "Settings",
-      "nav.cards": "Flashcards", "nav.quiz": "Quiz", "nav.pron": "Pronunciation",
-      "nav.fill": "Fill-in-the-Blank", "nav.match": "Card Match", "nav.tf": "True / False",
-      "nav.hang": "Hangman", "nav.build": "Sentence Builder", "nav.cloze": "Cloze", "nav.listen": "Listen & Type",
-      "streak.days": "day streak",
-      "profile.title": "View your achievements",
-      "hero.greet": "Good day!", "hero.title": "Ready to grow your vocabulary?",
-      "hero.morning": "Good morning", "hero.afternoon": "Good afternoon", "hero.evening": "Good evening",
-      "ach.unlocked": "Achievement Unlocked!", "reward.unlocked": "Unlocked:",
-      "hero.date": "", "btn.startCards": "Start Flashcard Review", "btn.homeQuiz": "Take a Quiz",
-      "stat.total": "Total words", "stat.mastered": "Mastered", "stat.due": "Due for review", "stat.days": "Days studied", "stat.acc": "Accuracy (7d)",
-      "quest.heading": "Daily Quests", "quest.claim": "Claim Reward", "quest.reward": "+50 XP",
-      "memory.heading": "Memory Strength", "memory.hint": "How much you're retaining right now, across the words you've learned.",
-      "memory.retained": "retained", "memory.smart": "Smart Review",
-      "boss.heading": "Boss Rush", "boss.hint": "Review 12 of your weakest words — answer within 30s each; a Perfect run earns a +25 XP bonus",
-      "boss.start": "Start Boss Rush", "boss.close": "Close", "boss.ask": "Do you remember this meaning?",
-      "boss.know": "I remember", "boss.forgot": "Not sure", "boss.result": "Boss Rush Results", "boss.again": "Try Again", "boss.tag": "Lv 20",
-      "chart.study": "Study Activity", "chart.legendArea": "Words studied", "chart.legendAcc": "Accuracy",
-      "mastery.heading": "Mastery by Type", "heatmap.heading": "Activity Heatmap", "heatmap.hint": "Your daily study over the last 12 weeks",
-      "learned.heading": "Words Learned", "learned.legend": "Cumulative words learned",
-      "dailyProgress.heading": "Daily Progress",
-      "ach.heading": "Achievements", "ach.count": "Unlocked", "ach.level": "Level", "ach.total": "Total",
-      "ach.hint": "Achievements unlock automatically as you study more — locked ones show as ??? until earned",
-      "reward.heading": "Level Rewards", "reward.hint": "Higher levels unlock color themes, XP boosts, titles, and special modes — locked ones open once you reach that level",
-      "settings.title": "Settings", "settings.dark": "Dark mode", "settings.themeColor": "Theme color",
-      "settings.sound": "Sound & effects", "settings.music": "Background music", "settings.pageMusic": "Page music",
-      "settings.gameMusic": "Game music", "settings.volume": "Music volume", "settings.effects": "Effects intensity", "settings.reduced": "Reduced",
-      "settings.day": "Current study day (per plan)", "settings.autoDay": "Auto-set day from calendar",
-      "settings.reset": "Clear all progress (reset reviews)", "settings.language": "Language",
-      "settings.showPlayer": "Show music player", "settings.reminder": "Daily reminder",
-      "settings.on": "On", "settings.off": "Off", "settings.reminderHint": "Fires while the app is open (no server needed). True background push would require a backend.",
-      "settings.backup": "Backup / Restore (move to another device)", "settings.backupHint": "Progress is stored only on this device. To move to another device or browser, 'Export' from the old one and 'Import' on the new one.",
-      "settings.export": "Download Backup File", "settings.copy": "Copy Backup Code", "settings.import": "Import from Code Above",
-      "settings.chooseFile": "Choose Backup File", "settings.importStatus": "", "settings.tip": "💡 Add new words daily by telling Claude: \"Day N, [topic or random]\" — they'll appear here automatically",
-      "detail.syn": "Synonyms", "detail.ant": "Antonyms", "detail.examples": "Example sentences", "detail.note": "Note", "detail.progress": "Your Progress", "detail.pron": "Pronunciation Practice",
-      "mq.title": "Daily Quests", "mq.claim": "Claim +50 XP",
-      "stats.heading": "Statistics", "stats.weekly": "Weekly progress", "stats.weak": "Weak spots",
-      "stats.review": "Review", "stats.weakHint": "Sorted weakest-first — tap Review to drill them",
-      "notif.granted": "Notifications enabled — we'll remind you to do your Daily Quests", "notif.denied": "Notifications blocked — reminders won't appear",
-      "cfg.review": "Review Settings", "cfg.quiz": "Quiz Settings", "cfg.pron": "Pronunciation Test",
-      "cfg.fill": "Fill-in-the-Blank", "cfg.match": "Card Match", "cfg.tf": "True / False Quiz",
-      "cfg.hang": "Hangman", "cfg.build": "Sentence Builder", "cfg.cloze": "Cloze (Fill in the Blank)", "cfg.listen": "Listen & Type",
-      "btn.startHang": "Start Hangman", "btn.startBuild": "Start Sentence Builder", "btn.startCloze": "Start Cloze", "btn.startListen": "Start Listen & Type",
-      "zone.wordsLeft": "Words left", "build.hint": "Tap a word below to place it in the sentence · tap a word in the sentence to take it back down",
-      "label.type": "Type", "label.day": "Day", "label.mode": "Mode", "label.format": "Question format", "label.search": "Search",
-      "label.count": "Number of questions", "label.direction": "Direction", "label.pairs": "Number of pairs",
-      "label.time": "Total time", "btn.startLearning": "Start Learning", "btn.startQuiz": "Start Quiz",
-      "btn.startPron": "Start Pronunciation Test", "btn.startFill": "Start Fill-in-the-Blank",
-      "btn.startMatch": "Start Card Match", "btn.startTf": "Start Quiz", "next.question": "Next Question →",
-      "reveal.tip": "Tap to reveal the translation · tap ℹ️ for details", "correct.answer": "Correct answer: ",
-      "memorize": "Memorize the cards", "flip.over": "They'll flip over in", "tap.say": "Tap, then say this word",
-      "listen.sample": "Listen to sample", "listen.slow": "Listen slowly", "skip": "Skip", "check.answer": "Check Answer",
-      "browse.hint": "💡 Click a card to see word details · tap the speaker to hear it", "search.placeholder": "Type a word or its meaning…",
-      "browse.hideAll": "Hide all meanings", "browse.showAll": "Show all meanings", "browse.hideWord": "Hide this word's meaning", "browse.showWord": "Show this word's meaning",
-      "tasks.hint": "The system brings back previous days' words at increasing intervals (e.g., Day 1 recurs on days 2, 4, 7, 14 …). The more often you review, the less frequently a word returns, until it's locked in.",
-      "tasks.today": "", "grade.again": "Again", "grade.hard": "Hard", "grade.good": "Good", "grade.easy": "Easy",
-      "stats.weakEmpty": "No weak spots yet — keep studying!",
-      "lu.kicker": "LEVEL UP!", "lu.title": "Level Up!", "lu.sub": "Getting stronger every day — your vocabulary is leveling up", "lu.continue": "Continue", "lu.rewards": "Rewards Unlocked", "footer.built": "Built for learning",
-      "info.learned": "Words learned:", "info.mastered": "Mastered (box 4+):", "info.days": "Total days in system:", "info.total": "Total vocabulary:",
-      "settings.toggleTheme": "Toggle Theme",
-      "lang.th": "ไทย", "lang.en": "English",
-      "auth.loginTitle": "Login", "auth.loginSub": "Sign in to save your progress",
-      "auth.loginSubStatic": "Sign in to save your progress (stored on this device)",
-      "auth.registerTitle": "Create Account", "auth.registerSub": "Create an account to save progress and use across devices",
-      "auth.registerSubStatic": "Create an account to save progress (stored on this device)",
-      "auth.username": "Username", "auth.password": "Password",
-      "auth.usernamePlaceholder": "At least 3 characters", "auth.passwordPlaceholder": "At least 4 characters",
-      "auth.loginButton": "Login", "auth.registerButton": "Sign Up",
-      "auth.noAccount": "Don't have an account?", "auth.hasAccount": "Already have an account?",
-      "auth.registerLink": "Sign up", "auth.loginLink": "Login",
-      "auth.fillBoth": "Please enter username and password", "auth.processing": "Processing...",
-      "auth.remember": "Remember me (keep me logged in on this device)",
-      "auth.googleButton": "Sign in with Google", "auth.orDivider": "or",
-      "auth.redirectingToGoogle": "Redirecting to Google...",
-      "auth.googleAccountCreated": "Account created!",
-      "auth.googleCredentialHint": "A new account was created linked to your Google. Save this password for normal login:",
-      "auth.googlePasswordWarning": "⚠️ This password is shown only once — please save it or change it after your first login",
-      "auth.loginSubFirebase": "Sign in to sync across devices (Firebase)", "auth.registerSubFirebase": "Create an account to sync across devices (Firebase)",
-      "auth.syncFirebase": "Firebase (cross-device sync)", "auth.provider": "Provider",
-      "auth.member": "Vocab Trainer Member", "auth.userId": "User ID",
-      "auth.status": "Status", "auth.sync": "Data Sync", "auth.syncAuto": "Automatic", "auth.syncLocal": "This device only",
-      "auth.logout": "Log Out", "auth.logoutConfirm": "Log out?\nLocal data will remain but won't sync with the server anymore",
-      "auth.guestHint": "Sign in to save progress and sync across devices",
-      "auth.signedInAs": "Signed in as {user}",
-      "auth.forgotPassword": "Forgot password?",
-      "auth.terms": "Terms", "auth.privacy": "Privacy", "auth.help": "Help",
-      "auth.termsMsg": "Terms of Service — coming soon", "auth.privacyMsg": "Privacy Policy — coming soon", "auth.helpMsg": "Help Center — coming soon",
-      "auth.socialNotSupported": "Social login requires Firebase configuration",
-      "auth.enterEmailFirst": "Enter your username or email first",
-      "auth.resetSent": "If that account exists, a reset link has been sent.",
-      "auth.sending": "Sending...",
-      "auth.level": "Level", "auth.wordsLearned": "Words Learned",
-      "auth.provider": "Provider", "auth.status": "Status", "auth.sync": "Data Sync",
-      "settings.close": "Close"
-    }
-  };
+  const STRINGS = window.VOCAB_STRINGS;
   function t(key) {
     const lang = (settings && settings.lang) || "en";
     const tbl = STRINGS[lang] || STRINGS.en;
@@ -337,6 +75,8 @@
   const K_REVIEWS = "vocab_reviews_v1";
   const K_HISTORY = "vocab_history_v1";
   const K_LEARNED = "vocab_learned_v1";
+  const K_STORY_READ = "vocab_stories_read_v1";
+  const K_STORY_WORDS = "vocab_story_words_v1";
 
   /* ---------- SRS (Leitner boxes) สำหรับไพ่/quiz รายตัว ---------- */
   const BOX_INTERVAL = { 1: 1, 2: 2, 3: 4, 4: 7, 5: 15 };
@@ -438,14 +178,19 @@
         key = k; available = true;
         let chain = Promise.resolve();
         Object.keys(localStorage).forEach(function (lsKey) {
+          if (lsKey.indexOf("vocab_") !== 0) return; // only our own keys — leave firestore etc. untouched
           const raw = localStorage.getItem(lsKey);
           if (raw == null) return;
           chain = chain.then(function () {
-            return decryptString(raw).then(function (plain) {
-              cache[lsKey] = plain;
-            }, function () {
-              cache[lsKey] = raw; // legacy plaintext → re-encrypted on flush
-            });
+            try {
+              return decryptString(raw).then(function (plain) {
+                cache[lsKey] = plain;
+              }, function () {
+                cache[lsKey] = raw; // legacy plaintext → re-encrypted on flush
+              });
+            } catch (e) {
+              cache[lsKey] = raw; // not our ciphertext → keep as-is (e.g. firestore)
+            }
           });
         });
         return chain.then(flush);
@@ -536,7 +281,7 @@
     }
   }
 
-  let progress, settings, reviews, history, learned, game;
+  let progress, settings, reviews, history, learned, game, storyRead, storyWords;
   function loadInitialState() {
     progress = load(K_PROGRESS, {});
     settings = load(K_SETTINGS, { theme: "light", accent: "aurora" });
@@ -547,15 +292,20 @@
     if (settings.effects == null) settings.effects = "full"; // "off" | "reduced" | "full"
     if (!settings.accent) settings.accent = "aurora";
     if (settings.lang !== "en" && settings.lang !== "th") settings.lang = "en";
-    if (settings.showMiniPlayer == null) settings.showMiniPlayer = true;
+    if (settings.streakFreeze == null) settings.streakFreeze = false;
+    if (!settings.reviewGoal) settings.reviewGoal = 20;
+    if (!settings.xpBoost) settings.xpBoost = 1;
     if (!settings.reminder) settings.reminder = { on: false, time: "20:00" };
     if (settings.hideAllMeanings == null) settings.hideAllMeanings = false;
     if (!settings.hiddenMeanings || typeof settings.hiddenMeanings !== "object") settings.hiddenMeanings = {};
+    if (!settings.studiedDays || !Array.isArray(settings.studiedDays)) settings.studiedDays = [];
     // Gate the mini-player boot flag on the user's preference (read by mini-player.js init).
     window.MINI_PLAYER_ENABLED = settings.showMiniPlayer !== false;
     reviews = load(K_REVIEWS, {});
     history = load(K_HISTORY, {});
     learned = load(K_LEARNED, {});
+    storyRead = load(K_STORY_READ, {});
+    storyWords = load(K_STORY_WORDS, {});
     game = load(K_GAME, {
       xp: 0, achievements: {}, modesUsed: [], typesTouched: [],
       perfectGames: 0, dailyAnswered: {}, lastLevelUp: 0,
@@ -567,7 +317,15 @@
   }
 
   /* ---------- Build flat item list ---------- */
+  function getCustomWords() {
+    try {
+      return (window.SecureStore ? window.SecureStore.load("vocab_custom_words_v1", []) : JSON.parse(localStorage.getItem("vocab_custom_words_v1") || "[]")) || [];
+    } catch (e) { return []; }
+  }
+
+  let cachedAllItems = null;
   function getAllItems() {
+    if (cachedAllItems) return cachedAllItems;
     const items = [];
     Object.keys(VOCAB_DAYS).sort((a, b) => a - b).forEach(function (dayKey) {
       const d = VOCAB_DAYS[dayKey];
@@ -581,17 +339,74 @@
         items.push({ id: d.day + "-i-0", type: "idiom", day: d.day, topic: d.topic, word: d.idiom.phrase, pos: "idiom", th: d.idiom.meaning, exEn: d.idiom.exEn, exTh: d.idiom.exTh, note: "" });
       }
     });
-    return items;
+    getCustomWords().forEach(function (cw, idx) {
+      items.push({
+        id: "custom-" + idx + "-" + (cw.word || "word").replace(/\s+/g, "_"),
+        type: cw.type || "vocab",
+        day: cw.day || 1,
+        topic: "Custom Vocabulary",
+        word: cw.word,
+        phonetic: cw.phonetic || "",
+        pos: cw.pos || "noun",
+        th: cw.th,
+        exEn: cw.exEn || "",
+        exTh: cw.exTh || "",
+        note: cw.note || "Custom word"
+      });
+    });
+    cachedAllItems = items;
+    return cachedAllItems;
   }
 
-  let ITEMS = getAllItems();
+  function saveCustomWord(cw) {
+    let custom = getCustomWords();
+    custom.push(cw);
+    if (window.SecureStore) window.SecureStore.save("vocab_custom_words_v1", custom);
+    else localStorage.setItem("vocab_custom_words_v1", JSON.stringify(custom));
+    cachedAllItems = null;
+    ALL_ITEMS = getAllItems();
+    ITEMS = window.CefrSelector?.getFilteredItems ? window.CefrSelector.getFilteredItems() : ALL_ITEMS;
+    cachedBrowseKey = "";
+    renderBrowse(true);
+    toast("เพิ่มคำศัพท์ส่วนตัวสำเร็จ!", "ok");
+  }
+
+  /** Parse & import custom words from CSV text (via pure VocabCSV). Returns {ok, added, skipped}. */
+  function importCustomWordsCsv(text) {
+    const res = (window.VocabCSV ? window.VocabCSV.parseImport(text, getCustomWords()) : { ok: false, error: "unavailable", toAdd: [] });
+    if (!res.ok) return { ok: false, added: 0, skipped: 0, error: res.error };
+    if (res.added > 0) {
+      const merged = getCustomWords().concat(res.toAdd);
+      if (window.SecureStore) window.SecureStore.save("vocab_custom_words_v1", merged);
+      else localStorage.setItem("vocab_custom_words_v1", JSON.stringify(merged));
+    }
+    return { ok: true, added: res.added, skipped: res.skipped };
+  }
+
+  // Original full item list (never filtered)
+  let ALL_ITEMS = getAllItems();
+  // Current item list (filtered by CEFR level if active)
+  let ITEMS = ALL_ITEMS;
+
   function itemsForDay(dayNum) { return ITEMS.filter(function (i) { return String(i.day) === String(dayNum); }); }
 
-  /* ---------- Progress (per-item SM-2 spaced repetition) ----------
-     Each item stores: ease (>=1.3), interval (days), reps, lapses, due,
-     lastReview, seen. Legacy Leitner progress ({box,...}) is migrated on load. */
-  const DEFAULT_EASE = 2.5;
-  const MIN_EASE = 1.3;
+  // Getter for current items (used by games)
+  function getCurrentItems() { return ITEMS; }
+  // Getter for all items (used by browse, stats, etc.)
+  function getAllItemsList() { return ALL_ITEMS; }
+
+  // Expose globally for other modules
+  window.VocabItems = {
+    getCurrent: getCurrentItems,
+    getAll: getAllItemsList,
+    setFiltered: function(filteredItems) { ITEMS = filteredItems; },
+    resetFilter: function() { ITEMS = ALL_ITEMS; }
+  };
+
+  /* ---------- Progress (per-item FSRS-5 spaced repetition) ----------
+     Each item stores: st (stability, days), d (difficulty 1..10), reps,
+     lapses, due, lastReview, seen. Legacy Leitner {box} and SM-2
+     {ease, interval} progress is migrated to FSRS shape on load. */
   const GRADE = { again: 1, hard: 3, good: 4, easy: 5 };
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -602,44 +417,62 @@
     return diff;
   }
 
+  /** Map an SM-2 ease value to a rough FSRS difficulty (used for migration only). */
+  function easeToDifficulty(ease) {
+    return clamp(Math.round((11 - (ease || 2.5) * 2.4) * 10) / 10, 1, 10);
+  }
+
   function getP(id) {
-    return progress[id] || { ease: DEFAULT_EASE, interval: 0, reps: 0, lapses: 0, due: todayStr(), lastReview: "", seen: 0 };
+    return progress[id] || { st: 0, d: 5, reps: 0, lapses: 0, due: todayStr(), lastReview: "", seen: 0 };
   }
   function isDue(item) { return getP(item.id).due <= todayStr(); }
-  function isMastered(item) { const p = getP(item.id); return (p.interval || 0) >= 21 || (p.reps || 0) >= 4; }
+  function isMastered(item) { const p = getP(item.id); return (p.st || 0) >= 21 || (p.reps || 0) >= 4; }
 
-  /** Migrate legacy Leitner {box} records to the SM-2 shape once. */
+  /** Migrate legacy progress (Leitner {box} or SM-2 {ease,interval}) to the FSRS shape once. */
   function migrateProgress() {
     let changed = false;
     ITEMS.forEach(function (it) {
       const p = progress[it.id];
-      if (!p || p.box == null || p.ease != null) return;
-      const box = clamp(p.box || 1, 1, 5);
-      progress[it.id] = {
-        ease: DEFAULT_EASE,
-        interval: BOX_INTERVAL[box] || 0,
-        reps: Math.max(0, box - 1),
-        lapses: p.lapses || 0,
-        due: p.due || todayStr(),
-        lastReview: p.due ? addDays(p.due, -(BOX_INTERVAL[box] || 0)) : "",
-        seen: p.seen || 0
-      };
-      changed = true;
+      if (!p) return;
+      let rec = null;
+      if (p.st != null && p.d != null) return; // already FSRS
+      if (p.box != null && p.ease == null) {
+        const box = clamp(p.box || 1, 1, 5);
+        const iv = BOX_INTERVAL[box] || 0;
+        rec = {
+          st: iv,
+          d: 5,
+          reps: Math.max(0, box - 1),
+          lapses: p.lapses || 0,
+          due: p.due || todayStr(),
+          lastReview: p.due ? addDays(p.due, -iv) : "",
+          seen: p.seen || 0
+        };
+      } else if (p.ease != null) {
+        rec = {
+          st: p.interval || 0,
+          d: easeToDifficulty(p.ease),
+          reps: p.reps || 0,
+          lapses: p.lapses || 0,
+          due: p.due || todayStr(),
+          lastReview: p.lastReview || (p.due ? addDays(p.due, -(p.interval || 0)) : ""),
+          seen: p.seen || 0
+        };
+      }
+      if (rec) { progress[it.id] = rec; changed = true; }
     });
     if (changed) save(K_PROGRESS, progress);
   }
 
-  /** Predicted retention right now (0-100%) via a simple Ebbinghaus curve. */
+  /** Predicted retention right now (0-100%) via the FSRS forgetting curve. */
   function predictRetention(item) {
     const p = getP(item.id);
-    const iv = p.interval || 0;
-    if (iv <= 0) return 0;
-    const elapsed = Math.max(0, daysSince(p.lastReview || addDays(p.due, -iv)));
-    const r = Math.exp(-elapsed / (iv * 1.3));
-    return Math.round(clamp(r, 0, 1) * 100);
+    if (!p.st || p.st <= 0) return 0;
+    const elapsed = Math.max(0, daysSince(p.lastReview || ""));
+    return Math.round(clamp(VocabSRS.retention(elapsed, { stability: p.st }) * 100, 0, 100));
   }
 
-  /** SM-2 grade: q in {Again=1, Hard=3, Good=4, Easy=5}. */
+  /** FSRS-5 grade: q in {Again=1, Hard=3, Good=4, Easy=5}. */
   function gradeAnswer(item, q) {
     if (!item) return;
     const p = getP(item.id);
@@ -647,21 +480,19 @@
     const wasMasteredBefore = isMastered(item);
     p.seen = (p.seen || 0) + 1;
     q = clamp(q | 0, 0, 5);
+    const mem = (p.st || 0) > 0 && p.d ? { stability: p.st, difficulty: p.d } : null;
+    const elapsed = Math.max(0, daysSince(p.lastReview || ""));
+    const res = VocabSRS.review(mem, elapsed, q);
+    p.st = res.state.stability;
+    p.d = res.state.difficulty;
     if (q < 3) {
       p.reps = 0;
-      p.interval = 0;
       p.lapses = (p.lapses || 0) + 1;
-      p.ease = Math.max(MIN_EASE, (p.ease || DEFAULT_EASE) - 0.2);
       p.due = todayStr();
     } else {
-      if (p.reps == null || p.reps === 0) p.interval = 1;
-      else if (p.reps === 1) p.interval = 6;
-      else p.interval = Math.round((p.interval || 1) * (p.ease || DEFAULT_EASE));
-      if (p.interval < 1) p.interval = 1;
-      p.ease = Math.max(MIN_EASE, (p.ease || DEFAULT_EASE) + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)));
       p.reps = (p.reps || 0) + 1;
       p.lastReview = todayStr();
-      p.due = addDays(todayStr(), p.interval);
+      p.due = addDays(todayStr(), res.interval);
     }
     progress[item.id] = p;
     save(K_PROGRESS, progress);
@@ -670,6 +501,13 @@
     history[t].answered++;
     if (q >= 3) history[t].correct++;
     save(K_HISTORY, history);
+    // Per-mode accuracy tracking (modeStats[date][mode] = {a, c})
+    const _mode = currentMode || "cards";
+    if (!game.modeStats) game.modeStats = {};
+    if (!game.modeStats[t]) game.modeStats[t] = {};
+    if (!game.modeStats[t][_mode]) game.modeStats[t][_mode] = { a: 0, c: 0 };
+    game.modeStats[t][_mode].a++;
+    if (q >= 3) game.modeStats[t][_mode].c++;
     if (wasNew) {
       learned[t] = (learned[t] || 0) + 1;
       save(K_LEARNED, learned);
@@ -718,16 +556,11 @@
   /** Preview of the next interval (days) for a given grade, for button hints. */
   function previewInterval(item, q) {
     const p = getP(item.id);
-    const ease = p.ease || DEFAULT_EASE;
-    let iv;
     if (q < 3) return 0;
-    if (p.reps == null || p.reps === 0) iv = 1;
-    else if (p.reps === 1) iv = 6;
-    else iv = Math.round((p.interval || 1) * ease);
-    if (iv < 1) iv = 1;
-    if (q === GRADE.hard) iv = Math.max(1, Math.round(iv * 0.85));
-    else if (q === GRADE.easy) iv = Math.round(iv * 1.3) + 1;
-    return iv;
+    const mem = (p.st || 0) > 0 && p.d ? { stability: p.st, difficulty: p.d } : null;
+    const elapsed = Math.max(0, daysSince(p.lastReview || ""));
+    const res = VocabSRS.review(mem, elapsed, q);
+    return res.interval;
   }
 
   /** Due items sorted weakest-first, interleaved by type for variety. */
@@ -785,7 +618,24 @@
     const t = todayStr();
     if (s.last === t) return;
     const y = addDays(t, -1);
-    s.streak = (s.last === y) ? (s.streak + 1) : 1;
+    const y2 = addDays(t, -2);
+    if (s.last === y) {
+      s.streak = s.streak + 1;
+    } else if (settings.streakFreeze && s.last === y2) {
+      // Streak Freeze is a purchasable item — consume one charge when used.
+      if ((game.streakFreezes || 0) > 0) {
+        game.streakFreezes = (game.streakFreezes || 0) - 1;
+        s.streak = s.streak + 1;
+        toast(t("sf.used"), "ok", "shield");
+        saveGame();
+      } else {
+        settings.streakFreeze = false;
+        save(K_SETTINGS, settings);
+        s.streak = 1;
+      }
+    } else {
+      s.streak = 1;
+    }
     s.last = t;
     save(K_STREAK, s);
   }
@@ -796,6 +646,7 @@
      ไม่เพิ่ม dependency: เก็บใน localStorage ผ่าน K_GAME
      ============================================================ */
   const K_GAME = "vocab_game_v1";
+  const SF_COST = 500; // XP per Streak Freeze charge
   game = load(K_GAME, {
     xp: 0, achievements: {}, modesUsed: [], typesTouched: [],
     perfectGames: 0, dailyAnswered: {}, lastLevelUp: 0,
@@ -811,6 +662,7 @@
   if (game.perfectGames == null) game.perfectGames = 0;
   if (game.lastLevelUp == null) game.lastLevelUp = 0;
   if (game.xp == null) game.xp = 0;
+  if (game.streakFreezes == null) game.streakFreezes = 0;
   if (game._quizPerfect == null) game._quizPerfect = 0;
   if (game.combo == null) game.combo = 0;
   if (game.bestCombo == null) game.bestCombo = 0;
@@ -882,7 +734,7 @@
     cy = Math.max(64, Math.min(vh - 64, cy));
     elc.style.top = cy + "px";
     const multTxt = (mult % 1 === 0) ? mult : mult.toFixed(1);
-    elc.innerHTML = '<span class="combo-flame">🔥</span><span class="combo-num">Combo ×' + combo + '</span><span class="combo-mult">×' + multTxt + ' XP</span>';
+    elc.innerHTML = '<span class="combo-flame">' + svgIcon("flame", "ico sm") + '</span><span class="combo-num">Combo ×' + combo + '</span><span class="combo-mult">×' + multTxt + ' XP</span>';
     elc.classList.remove("show"); void elc.offsetWidth; elc.classList.add("show");
     clearTimeout(comboTimer);
     comboTimer = setTimeout(function () { elc.classList.remove("show"); }, 1400);
@@ -992,7 +844,15 @@
   function currentXpBoost() {
     let b = 0;
     unlockedRewards().forEach(function (r) { if (r.type === "xpboost") b += (r.value || 0); });
+    // Manual XP boost setting (settings.xpBoost = 2 | 3 | 1)
+    if (settings.xpBoost && settings.xpBoost > 1) b += (settings.xpBoost - 1);
+    // Automatic double-XP weekend (Sat & Sun)
+    if (isDoubleXpWeekend()) b += 1;
     return 1 + b;
+  }
+  function isDoubleXpWeekend() {
+    const d = new Date().getDay();
+    return d === 0 || d === 6;
   }
   function isAccentUnlocked(id) {
     const r = LEVEL_REWARDS.filter(function (x) { return x.type === "theme" && x.accent === id; })[0];
@@ -1024,7 +884,12 @@
     if (!n) return;
     const before = levelFromXp(game.xp);
     // รางวัล XP boost ถาวร (คูณตามที่ปลดล็อกไว้)
-    game.xp = (game.xp || 0) + Math.round(n * currentXpBoost());
+    const gained = Math.round(n * currentXpBoost());
+    game.xp = (game.xp || 0) + gained;
+    // Weekly XP tracking (for the Firestore leaderboard) — xp earned per day
+    if (!game.xpByDay) game.xpByDay = {};
+    const wd = todayStr();
+    game.xpByDay[wd] = (game.xpByDay[wd] || 0) + gained;
     saveGame();
     renderProfileChip();
     renderMiniQuests();         // อัปเดต widget ลอยสดๆ (ข้ามถ้าซ่อน)
@@ -1064,7 +929,7 @@
     if (box) {
       const gained = newlyUnlocked(prev == null ? L - 1 : prev, L);
       if (gained.length) {
-        box.innerHTML = '<p class="lu-rw-head">🎁 ' + t("lu.rewards") + "</p>" + gained.map(function (r) {
+        box.innerHTML = '<p class="lu-rw-head">' + svgIcon("gift", "ico sm") + " " + t("lu.rewards") + "</p>" + gained.map(function (r) {
           return '<div class="lu-reward">' + svgIcon(r.icon, "ico") +
             '<span class="lu-rw-name">' + r.name + "</span></div>";
         }).join("");
@@ -1105,6 +970,7 @@
   function achievementToast(a) {
     const wrap = $("toastWrap");
     if (!wrap) return;
+    playFx("unlock");
     const el = document.createElement("div");
     el.className = "toast ach-toast";
     el.setAttribute("role", "status");
@@ -1148,7 +1014,7 @@
     const boostEl = chip.querySelector(".pc-boost");
     if (boostEl) {
       const pct = Math.round((currentXpBoost() - 1) * 100);
-      if (pct > 0) { boostEl.textContent = "✦ +" + pct + "% XP"; boostEl.hidden = false; }
+      if (pct > 0) { boostEl.innerHTML = svgIcon("sparkle", "ico sm") + " +" + pct + "% XP"; boostEl.hidden = false; }
       else { boostEl.hidden = true; boostEl.textContent = ""; }
     }
     const t2 = highestTitle();
@@ -1163,21 +1029,41 @@
     const lv = currentLevel();
     rail.innerHTML = LEVEL_REWARDS.map(function (r) {
       const got = r.level <= lv;
-      const swatch = (r.type === "theme" && ACCENT_SWATCH[r.accent])
+      const isTheme = r.type === "theme";
+      const isActiveTheme = isTheme && settings.accent === r.accent;
+      const swatch = (isTheme && ACCENT_SWATCH[r.accent])
         ? '<span class="reward-swatch">' + ACCENT_SWATCH[r.accent].map(function (c) {
             return '<i class="rw-dot" data-bg="' + c + '"></i>';
           }).join("") + "</span>"
         : "";
-      const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10V8a6 6 0 0 1 12 0v2"/><rect x="4.5" y="10" width="15" height="10" rx="2.2"/><circle cx="12" cy="15" r="1.6"/></svg>';
-      return '<div class="reward-card ' + (got ? "unlocked" : "locked") + '">' +
+      const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10V8a6 6 0 0 1 12 0v2"/><rect x="4.5" y="10" width="15" height="10" rx="2.2"/><circle cx="12" cy="12" r="1.6"/></svg>';
+      
+      const themeClass = isTheme && got ? " theme-card" + (isActiveTheme ? " active-theme" : "") : "";
+      const dataAttr = isTheme && got ? ' data-accent="' + r.accent + '" style="cursor:pointer;" title="คลิกเพื่อใช้งานธีมนี้"' : '';
+
+      return '<div class="reward-card ' + (got ? "unlocked" : "locked") + themeClass + '"' + dataAttr + '>' +
         '<div class="reward-ico">' + (got ? svgIcon(r.icon, "ico") : '<span class="ico">' + LOCK + "</span>") + "</div>" +
-        '<div class="reward-lvl">Lv ' + r.level + "</div>" +
+        '<div class="reward-lvl">Lv ' + r.level + (isActiveTheme ? ' <span class="active-pill" style="color:var(--primary);font-weight:700;">' + svgIcon("tick", "ico sm") + ' Active</span>' : '') + "</div>" +
         '<div class="reward-name">' + (got ? r.name : "???") + "</div>" +
-        '<div class="reward-desc">' + (got ? r.desc : "Reach level " + r.level + " to unlock") + "</div>" +
+        '<div class="reward-desc">' + (got ? (isTheme ? svgIcon("sparkle", "ico sm") + " คลิกเพื่อเปลี่ยนธีมสีนี้ทันที" : r.desc) : "Reach level " + r.level + " to unlock") + "</div>" +
         swatch +
         "</div>";
     }).join("");
     applyInlineStyles(rail);
+
+    rail.querySelectorAll(".theme-card").forEach(function (card) {
+      card.onclick = function () {
+        const acc = card.dataset.accent;
+        if (!acc) return;
+        settings.accent = acc;
+        save(K_SETTINGS, settings);
+        applyAccent();
+        toast("เปลี่ยนธีมเป็น " + (card.querySelector(".reward-name")?.textContent || acc) + " แล้ว!", "ok");
+        renderRewards();
+        const accBox = $("accentSwatches");
+        if (accBox && typeof renderAccentSwatches === "function") renderAccentSwatches();
+      };
+    });
   }
 
   /* --- Toast แจ้งว่ารางวัลปลดล็อก (แสดงทีละรายการ) --- */
@@ -1187,7 +1073,7 @@
     const el = document.createElement("div");
     el.className = "toast reward-toast";
     el.innerHTML = '<span class="toast-ico">' + svgIcon(r.icon, "ico sm") + "</span>" +
-      '<span class="toast-msg"><b>🎁 ' + t("reward.unlocked") + '</b> ' + r.name + "</span>";
+      '<span class="toast-msg"><b>' + svgIcon("gift", "ico sm") + " " + t("reward.unlocked") + '</b> ' + r.name + "</span>";
     wrap.appendChild(el);
     requestAnimationFrame(function () { el.classList.add("show"); });
     setTimeout(function () { el.classList.remove("show"); }, 3600);
@@ -1269,7 +1155,148 @@
       }).join("");
     }
     renderWeeklyChart();
+    renderAnalytics();
     renderWeakSpots();
+    renderLeaderboard();
+    const ec = $("exportCsv");
+    if (ec) ec.onclick = exportCSV;
+  }
+
+  /** Weekly leaderboard from Firestore (competing with real users). */
+  function renderLeaderboard() {
+    const panel = $("leaderboardPanel");
+    const box = $("leaderboardBox");
+    if (!panel || !box) return;
+    const loggedInCloud = window.VocabAuth && window.VocabAuth.isLoggedIn && window.VocabAuth.isLoggedIn();
+    if (!loggedInCloud) { panel.style.display = "none"; return; }
+    panel.style.display = "";
+    box.innerHTML = '<p class="hint">' + t("lb.loading") + "</p>";
+    if (window.VocabAuth.fetchLeaderboard) {
+      window.VocabAuth.fetchLeaderboard().then(function (rows) {
+        if (!rows || !rows.length) { box.innerHTML = '<p class="hint">' + t("lb.empty") + "</p>"; return; }
+        const top = rows.slice(0, 10);
+        const meRank = rows.findIndex(function (r) { return r.isMe; });
+        const html = top.map(function (r, i) {
+          return '<div class="lb-row' + (r.isMe ? " is-me" : "") + '">' +
+            '<span class="lb-rank">' + (i + 1) + "</span>" +
+            '<span class="lb-name">' + esc(r.username) + (r.isMe ? " (you)" : "") + "</span>" +
+            '<span class="lb-xp">' + r.weeklyXp + " XP</span>" +
+            "</div>";
+        }).join("");
+        box.innerHTML = html +
+          (meRank >= 10
+            ? '<div class="lb-me">…</div><div class="lb-row is-me"><span class="lb-rank">' + (meRank + 1) + '</span><span class="lb-name">' + esc((window.VocabAuth.getUser() || {}).username) + " (you)</span><span class=\"lb-xp\">" + rows[meRank].weeklyXp + " XP</span></div>"
+            : "");
+      }).catch(function () { box.innerHTML = '<p class="hint">' + t("lb.err") + "</p>"; });
+    }
+  }
+
+  /** Dashboard analytics: FSRS-based retention, due load, 30-day trend. */
+  function renderAnalytics() {
+    const box = $("analyticsGrid");
+    if (!box) return;
+    const seen = ITEMS.filter(function (i) { return (getP(i.id).seen || 0) > 0; });
+    const dueNow = ITEMS.filter(isDue);
+    const lapses = seen.reduce(function (s, i) { return s + (getP(i.id).lapses || 0); }, 0);
+
+    // Weighted mean predicted retention over all seen cards (today).
+    let wSum = 0, wAcc = 0;
+    seen.forEach(function (i) {
+      const p = getP(i.id);
+      const w = Math.min(p.st || 0, 21) + 1;
+      wSum += w; wAcc += w * predictRetention(i);
+    });
+    const avgRet = wSum ? Math.round(wAcc / wSum) : 0;
+
+    // 30-day answer + accuracy trend (last 7 vs previous 7).
+    const last7 = answersInWindow(7), prev7 = answersInWindow(14, 7);
+    const trend = last7.answered > 0 && prev7.answered > 0
+      ? Math.round((last7.answered - prev7.answered) / prev7.answered * 100)
+      : (last7.answered > 0 ? 100 : 0);
+
+    const cards = [
+      { v: avgRet + "%", l: t("stats.retNow"), sub: seen.length + " " + t("stats.cards") },
+      { v: dueNow.length, l: t("stats.dueToday"), sub: dueNow.length ? t("stats.ready") : t("stats.allDone") },
+      { v: (last7.answered ? Math.round(last7.correct / last7.answered * 100) : 0) + "%", l: t("stats.acc7"), sub: (trend >= 0 ? "+" : "") + trend + "% vs prev" },
+      { v: lapses, l: t("stats.lapses"), sub: t("stats.lapsesHint") }
+    ];
+    box.innerHTML = cards.map(function (c) {
+      return '<div class="analytics-cell"><span class="analytics-num">' + c.v + '</span>' +
+        '<span class="analytics-label">' + c.l + "</span>" +
+        (c.sub ? '<span class="analytics-sub">' + c.sub + "</span>" : "") + "</div>";
+    }).join("");
+    renderModeStats();
+  }
+
+  /** Render per-mode accuracy for the last 7 days from game.modeStats. */
+  function renderModeStats() {
+    const wrap = $("modeStatsBox");
+    if (!wrap) return;
+    const agg = {};
+    const days = 7;
+    for (let i = 0; i < days; i++) {
+      const d = addDays(todayStr(), -i);
+      const ms = (game.modeStats || {})[d];
+      if (!ms) continue;
+      Object.keys(ms).forEach(function (m) {
+        if (!agg[m]) agg[m] = { a: 0, c: 0 };
+        agg[m].a += ms[m].a || 0;
+        agg[m].c += ms[m].c || 0;
+      });
+    }
+    const modes = Object.keys(agg).sort(function (x, y) { return (agg[y].a - agg[x].a); });
+    if (!modes.length) { wrap.innerHTML = ""; return; }
+    const html = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span class="ico ico-tile sm" data-icon="activity"></span><strong style="font-size:.9rem;">' + t("stats.modeAcc") + '</strong><span style="font-size:.75rem;opacity:.6;"> · 7 ' + t("stats.days") + '</span></div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">' + modes.map(function (m) {
+        const pct = agg[m].a ? Math.round(agg[m].c / agg[m].a * 100) : 0;
+        return '<span class="chip" style="padding:6px 10px;font-size:.8rem;">' + t("mode." + m) + " · " + pct + "% (" + agg[m].c + "/" + agg[m].a + ")</span>";
+      }).join("") + "</div>";
+    wrap.innerHTML = html;
+  }
+
+  /** Count answers (and correct) in the last `days` days, ending `endAgo` days ago. */
+  function answersInWindow(days, endAgo) {
+    let answered = 0, correct = 0;
+    const end = endAgo || 0;
+    for (let i = end; i < end + days; i++) {
+      const d = addDays(todayStr(), -i);
+      const h = history[d] || { answered: 0, correct: 0 };
+      answered += h.answered || 0; correct += h.correct || 0;
+    }
+    return { answered: answered, correct: correct };
+  }
+
+  /** Export word progress + review history to a downloadable CSV file. */
+  function exportCSV() {
+    const rows = [["id", "word", "type", "cefr", "day", "seen", "stability", "difficulty", "reps", "lapses", "due", "last_review", "retention_pct"]];
+    ITEMS.forEach(function (i) {
+      const p = getP(i.id);
+      rows.push([
+        String(i.id), String(i.word), String(i.type || ""), String(i.cefr || ""),
+        String(i.day || ""), String(p.seen || 0), (p.st || 0).toFixed(2), (p.d || 0).toFixed(2),
+        String(p.reps || 0), String(p.lapses || 0), p.due || "", p.lastReview || "",
+        String(predictRetention(i))
+      ]);
+    });
+    const histRows = [["date", "answered", "correct"]];
+    Object.keys(history).sort().forEach(function (d) {
+      histRows.push([d, String(history[d].answered || 0), String(history[d].correct || 0)]);
+    });
+    const csv = rows.map(function (r) {
+      return r.map(function (c) { return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(",");
+    }).join("\n") + "\n\n# Review history\n" +
+      histRows.map(function (r) { return r.join(","); }).join("\n");
+
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "vocab-progress-" + todayStr() + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast(t("stats.exported"));
   }
 
   function renderWeeklyChart() {
@@ -1298,22 +1325,37 @@
     const box = $("weakList");
     if (!box) return;
     const seen = ITEMS.filter(function (i) { return (getP(i.id).seen || 0) > 0; });
-    const weak = seen.map(function (i) { return { i: i, r: predictRetention(i) }; })
-      .sort(function (a, b) { return a.r - b.r; }).slice(0, 12);
+    const weak = seen.map(function (i) {
+      const p = getP(i.id);
+      const ret = predictRetention(i);
+      const overdue = p.due ? Math.max(0, daysSince(p.due)) : 0;
+      const score = (100 - ret) * 2 + (p.lapses || 0) * 3 + overdue;
+      return { i: i, r: ret, lapses: p.lapses || 0, overdue: overdue, score: score };
+    }).sort(function (a, b) { return b.score - a.score; }).slice(0, 15);
     if (!weak.length) {
       box.innerHTML = '<p class="hint">' + t("stats.weakEmpty") + "</p>";
       return;
     }
     box.innerHTML = weak.map(function (w) {
       const badge = w.i.type === "vocab" ? "VOCAB" : w.i.type === "collocation" ? "COLLOCATION" : "IDIOM";
-      return '<div class="weak-row">' +
+      let meta = "";
+      if (w.lapses > 0) meta += '<span class="weak-lapses">' + t("stats.weakLapses").replace("{n}", w.lapses) + "</span>";
+      if (w.overdue > 0) meta += '<span class="weak-overdue">' + t("stats.weakOverdue").replace("{n}", w.overdue) + "</span>";
+      return '<div class="weak-row" data-id="' + w.i.id + '" role="button" tabindex="0">' +
         '<span class="weak-badge">' + badge + "</span>" +
         '<span class="weak-word">' + esc(w.i.word) + "</span>" +
+        meta +
         '<span class="weak-pct" data-color="hsl(' + Math.round(w.r / 100 * 130) + ',68%,46%)">' + w.r + "%</span>" +
         "</div>";
     }).join("") +
       '<button class="btn btn-primary weak-review" id="weakReview">' + t("stats.review") + "</button>";
     applyInlineStyles(box);
+    box.querySelectorAll(".weak-row").forEach(function (row) {
+      row.onclick = function () {
+        const it = ITEMS.find(function (x) { return String(x.id) === row.dataset.id; });
+        if (it) openDetail(it);
+      };
+    });
     const rb = $("weakReview");
     if (rb) rb.onclick = function () { reviewWeakSpots(weak.map(function (w) { return w.i; })); };
   }
@@ -1409,7 +1451,7 @@
     const claim = $("questClaim");
     if (claim) claim.hidden = !(defs.every(function (q) { return q.cur() >= q.target; }) && !game.questsClaimed);
     const rw = $("questReward");
-    if (rw) rw.textContent = game.questsClaimed ? "Claimed ✓" : "+" + QUEST_REWARD + " XP";
+    if (rw) rw.innerHTML = game.questsClaimed ? svgIcon("tick", "ico sm") + " Claimed" : "+" + QUEST_REWARD + " XP";
     renderMiniQuests(); // ซิงก์กับ widget ลอย
   }
   /* --- Widget ลอย Daily Quest (โชว์ตอนอยู่นอกหน้า Home) --- */
@@ -1454,17 +1496,87 @@
     renderDailyQuests();
   }
 
-  /* ---------- Plan day (วันของแผน 120 วัน) ----------
+  /* ---------- Plan day (วันของแผน 360 วัน) ----------
      คำนวณอัตโนมัติจากวันที่ของ Day 1 ในข้อมูล
      ถ้าผู้ใช้ปรับเองจะเก็บใน settings.planDayOverride              */
   function day1Date() { return VOCAB_DAYS["1"] ? VOCAB_DAYS["1"].date : null; }
   function computePlanDay() {
+    // ถ้าผู้ใช้ทำ Placement Test แล้ว → เริ่มนับวันจาก Day 1 ของระดับ CEFR ที่ผู้ใช้เลือก/ทดสอบได้
+    if (window.hasTakenPlacementTest && window.hasTakenPlacementTest()) {
+      const level = window.getCefrLevel() || "A1";
+      const targetLevel = level;
+
+      const targetDays = window.cefrDaysForLevel ? window.cefrDaysForLevel(targetLevel) : [];
+      let startDayNum = targetDays.length ? targetDays[0] : 1;
+      let maxDays = targetDays.length || 60;
+
+      const dStart = (VOCAB_DAYS[String(startDayNum)] && VOCAB_DAYS[String(startDayNum)].date) || day1Date();
+      const diff = Math.floor((new Date(todayStr() + "T00:00:00") - new Date(dStart + "T00:00:00")) / 86400000);
+      return Math.max(1, Math.min(1 + Math.max(0, diff), maxDays));
+    }
     const d1 = day1Date();
     if (!d1) return 1;
     const diff = Math.floor((new Date(todayStr() + "T00:00:00") - new Date(d1 + "T00:00:00")) / 86400000);
     return Math.max(1, diff + 1);
   }
   function currentPlanDay() { return settings.planDayOverride ? settings.planDayOverride : computePlanDay(); }
+
+  /* ---------- CEFR Level Panel (Home) ---------- */
+  function renderCEFRBadges() {
+    const box = $("cefrBadges");
+    if (!box) return;
+    const userLevel = window.getCefrLevel ? window.getCefrLevel() : null;
+    if (!userLevel) { box.innerHTML = ""; return; }
+
+    let html = "";
+    CEFR_ORDER.forEach(function (lv) {
+      const info = CEFR_LEVELS[lv];
+      const active = lv === userLevel;
+      // ถ้าเป็น A1 → Progress Path ครอบวันเดียวกันกับระดับ A1 อยู่แล้ว จึงไม่ต้องบวกซ้ำ
+      let extraDays = 0;
+      const totalWords = cefrDaysForLevel(lv).reduce(function (sum, d) {
+        const dayData = VOCAB_DAYS[String(d)];
+        return sum + (dayData ? (dayData.vocabulary || []).length : 0);
+      }, 0) + extraDays;
+      html += '<button class="cefr-badge' + (active ? " active" : "") + '" style="--lv-color:' + info.color + '">' +
+                '<span class="cb-level">' + lv + '</span>' +
+                '<span class="cb-name">' + (settings.lang === "th" ? info.th : info.name) + " · " + totalWords + " " + t("stories.wordsCount") + "</span>" +
+              "</button>";
+    });
+    box.innerHTML = html;
+
+    // แสดงข้อความ Progress Path สำหรับผู้ใช้ที่ได้ A1
+    if (userLevel === "A1" && window.CEFR_PROGRESS_PATH) {
+      const pp = document.createElement("p");
+      pp.className = "hint placement-hint";
+      pp.textContent = (settings.lang === "th"
+        ? "คุณอยู่ระดับ A1 — ระบบได้จัดแผนเรียน 60 วัน (Day "
+        : "You are at A1 — a 60-day study plan (Day ") +
+        CEFR_PROGRESS_PATH.startDay + "–" + CEFR_PROGRESS_PATH.endDay +
+        (settings.lang === "th" ? ") เพื่อพัฒนาสู่ระดับ A2" : ") is set to advance you toward A2");
+      box.appendChild(pp);
+    }
+
+    // คลิก badge → กรอง Browse ให้ดูเฉพาะระดับนั้น (sync กับ chip เพื่อให้ Browse กรองถูกต้อง)
+    box.querySelectorAll(".cefr-badge").forEach(function (el) {
+      el.onclick = function () {
+        const lv = el.querySelector(".cb-level").textContent;
+        settings.cefrFilter = lv;
+        save(K_SETTINGS, settings);
+        const chip = $("browseCefrLevel");
+        if (chip) {
+          setChipValue(chip, lv);
+          if (chipValue(chip) === lv) {
+            cachedBrowseKey = "";
+            browsePage = 1;
+            populateDayChips();
+          }
+        }
+        showView("browse");
+        renderBrowse(true);
+      };
+    });
+  }
 
   /* ---------- Daily Tasks review state ---------- */
   function getReview(d) { return reviews[d] || { done: 0, nextDue: Number(d) + 1 }; }
@@ -1521,26 +1633,37 @@
   let audioCtx = null;
   function playTone(kind) {
     if (!soundOn()) return;
+    // Route the standard correct/wrong answer feedback through the soft modern
+    // sound engine so it matches the rest of the UI (and survives the autoplay
+    // resume race that could otherwise swallow the first sounds).
+    if (kind === "correct" || kind === "wrong") { playFx(kind); return; }
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       audioCtx = audioCtx || new AC();
-      if (audioCtx.state === "suspended") audioCtx.resume();
-      const notes = kind === "correct" ? [523.25, 659.25, 783.99] : [329.63, 220.0];
-      const type = kind === "correct" ? "triangle" : "sawtooth";
-      const t0 = audioCtx.currentTime;
-      notes.forEach(function (f, idx) {
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.type = type; o.frequency.value = f;
-        o.connect(g); g.connect(audioCtx.destination);
-        const st = t0 + idx * (kind === "correct" ? 0.085 : 0.12);
-        const dur = kind === "correct" ? 0.2 : 0.22;
-        g.gain.setValueAtTime(0.0001, st);
-        g.gain.exponentialRampToValueAtTime(kind === "correct" ? 0.16 : 0.13, st + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, st + dur);
-        o.start(st); o.stop(st + dur + 0.02);
-      });
+      const go = function () {
+        const notes = kind === "correct" ? [523.25, 659.25, 783.99] : [329.63, 220.0];
+        const type = kind === "correct" ? "triangle" : "sawtooth";
+        const t0 = audioCtx.currentTime;
+        notes.forEach(function (f, idx) {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = type; o.frequency.value = f;
+          o.connect(g); g.connect(audioCtx.destination);
+          const st = t0 + idx * (kind === "correct" ? 0.085 : 0.12);
+          const dur = kind === "correct" ? 0.2 : 0.22;
+          g.gain.setValueAtTime(0.0001, st);
+          g.gain.exponentialRampToValueAtTime(kind === "correct" ? 0.16 : 0.13, st + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, st + dur);
+          o.start(st); o.stop(st + dur + 0.02);
+        });
+      };
+      if (audioCtx.state === "suspended") {
+        const p = audioCtx.resume();
+        if (p && p.then) p.then(go).catch(go); else go();
+      } else {
+        go();
+      }
     } catch (e) {}
   }
 
@@ -1580,6 +1703,89 @@
       } catch (e) { /* file missing/unplayable — fall back below */ }
     }
     playClickSynth();
+  }
+
+  /* --- Soft modern UI sounds (synthesized via Web Audio, no files) ---
+     Every recipe is short, gentle and low-volume so nothing is harsh.
+     steps: { f, f2?, t, dur, vol, type? } tones and/or { noise, noiseVol?, filter? } */
+  const FX_RECIPES = {
+    // view switch: soft downward glide
+    nav:  [ { f: 700, f2: 470, t: 0, dur: 0.13, vol: 0.045, type: "sine" } ],
+    // modal open: gentle rising blip
+    open: [ { f: 470, f2: 640, t: 0, dur: 0.09, vol: 0.05, type: "sine" } ],
+    // modal close: soft settling blip
+    close:[ { f: 640, f2: 470, t: 0, dur: 0.08, vol: 0.04, type: "sine" } ],
+    // switches / toggles
+    toggle:[ { f: 940, f2: 700, t: 0, dur: 0.045, vol: 0.04, type: "triangle" } ],
+    "toast-info": [ { f: 880, t: 0, dur: 0.13, vol: 0.035, type: "sine" } ],
+    "toast-ok":   [ { f: 660, t: 0, dur: 0.1, vol: 0.05, type: "sine" }, { f: 880, t: 0.09, dur: 0.16, vol: 0.05, type: "sine" } ],
+    "toast-warn": [ { f: 560, t: 0, dur: 0.1, vol: 0.045, type: "sine" }, { f: 500, t: 0.1, dur: 0.14, vol: 0.04, type: "sine" } ],
+    "toast-err":  [ { f: 450, f2: 370, t: 0, dur: 0.16, vol: 0.05, type: "sine" } ],
+    // flashcard flip: quick papery sweep
+    flip: [ { f: 520, f2: 900, t: 0, dur: 0.05, vol: 0.045, type: "triangle" }, { noise: 0.06, noiseVol: 0.025, filter: 2600 } ],
+    // book page turn: softer, longer rustle
+    page: [ { f: 420, f2: 700, t: 0, dur: 0.12, vol: 0.04, type: "triangle" }, { noise: 0.13, noiseVol: 0.03, filter: 2000 } ],
+    // day studied: gentle two-note confirmation
+    mark: [ { f: 740, t: 0, dur: 0.08, vol: 0.05, type: "sine" }, { f: 990, t: 0.07, dur: 0.12, vol: 0.045, type: "sine" } ],
+    // theme change: soft bell
+    chime:[ { f: 1046, t: 0, dur: 0.3, vol: 0.045, type: "sine" } ],
+    // achievement unlock: gentle rising arpeggio
+    unlock:[ { f: 523, t: 0, dur: 0.11, vol: 0.05, type: "sine" },
+             { f: 659, t: 0.1, dur: 0.11, vol: 0.05, type: "sine" },
+             { f: 784, t: 0.2, dur: 0.11, vol: 0.05, type: "sine" },
+             { f: 1046, t: 0.3, dur: 0.22, vol: 0.045, type: "sine" } ],
+    // quiz answer: soft, distinct two-note confirm
+    correct: [ { f: 523.25, t: 0, dur: 0.16, vol: 0.06, type: "sine" },
+               { f: 783.99, t: 0.09, dur: 0.22, vol: 0.06, type: "sine" } ],
+    // quiz answer: gentle low double-tap (never harsh)
+    wrong:  [ { f: 329.63, t: 0, dur: 0.16, vol: 0.055, type: "sine" },
+              { f: 246.94, t: 0.12, dur: 0.22, vol: 0.05, type: "sine" } ]
+  };
+  function playFx(name) {
+    if (!soundOn()) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = audioCtx || new AC();
+      const steps = FX_RECIPES[name];
+      if (!steps) return;
+      const go = function () {
+        const t0 = audioCtx.currentTime;
+        steps.forEach(function (s) {
+          if (s.noise) {
+            const nDur = s.noise, nVol = s.noiseVol || 0.03, cf = s.filter || 2200;
+            const n = Math.floor(audioCtx.sampleRate * nDur);
+            const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+            const src = audioCtx.createBufferSource(); src.buffer = buf;
+            const bp = audioCtx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = cf; bp.Q.value = 0.8;
+            const g = audioCtx.createGain();
+            src.connect(bp); bp.connect(g); g.connect(audioCtx.destination);
+            g.gain.setValueAtTime(0.0001, t0);
+            g.gain.exponentialRampToValueAtTime(nVol, t0 + 0.008);
+            g.gain.exponentialRampToValueAtTime(0.0001, t0 + nDur);
+            src.start(t0); src.stop(t0 + nDur + 0.02);
+            return;
+          }
+          const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+          o.type = s.type || "sine";
+          o.frequency.setValueAtTime(s.f, t0 + s.t);
+          if (s.f2 && s.f2 !== s.f) o.frequency.exponentialRampToValueAtTime(s.f2, t0 + s.t + s.dur);
+          o.connect(g); g.connect(audioCtx.destination);
+          g.gain.setValueAtTime(0.0001, t0 + s.t);
+          g.gain.exponentialRampToValueAtTime(s.vol, t0 + s.t + 0.012);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + s.t + s.dur);
+          o.start(t0 + s.t); o.stop(t0 + s.t + s.dur + 0.03);
+        });
+      };
+      if (audioCtx.state === "suspended") {
+        const p = audioCtx.resume();
+        if (p && p.then) p.then(go).catch(go); else go();
+      } else {
+        go();
+      }
+    } catch (e) {}
   }
 
   /* ============================================================
@@ -1765,8 +1971,8 @@
     document.addEventListener("click", function (e) {
       const el = e.target.closest && e.target.closest(RIPPLE_SEL);
       if (!el || el.disabled) return;
-      // Sound only for actual buttons; ripple still fires on every interactive element
-      if (soundOn() && el.matches("button, .btn")) playClick();
+      // Sound only for actual buttons (quiz-opt has its own correct/wrong tone)
+      if (soundOn() && el.matches("button, .btn") && !el.matches(".quiz-opt")) playClick();
       createRipple({ currentTarget: el, clientX: e.clientX, clientY: e.clientY });
     }, true);
   }
@@ -1796,12 +2002,17 @@
    * Show a transient toast. type: "info" | "ok" | "err".
    * Replaces native alert() for non-blocking notices.
    */
-  function toast(msg, type) {
+  function toast(msg, type, icon) {
     const wrap = $("toastWrap");
     if (!wrap) return;
+    if (type === "ok") playFx("toast-ok");
+    else if (type === "err") playFx("toast-err");
+    else if (type === "warn") playFx("toast-warn");
+    else playFx("toast-info");
     const t = document.createElement("div");
     t.className = "toast " + (type || "info");
-    t.textContent = msg;
+    if (icon) t.innerHTML = '<span class="toast-ico">' + svgIcon(icon, "ico sm") + "</span>" + esc(msg);
+    else t.textContent = msg;
     wrap.appendChild(t);
     const remove = function () {
       t.classList.add("leaving");
@@ -1924,6 +2135,24 @@
    * active nav state, and lazily (re)renders the destination view.
    */
   function showView(name) {
+    // ตรวจสอบว่าผู้ใช้ทำ Placement Test หรือเลือกระดับหรือยัง ก่อนเข้าหน้าเรียน/ดูคำศัพท์
+    var restrictedViews = ["browse", "cards", "quiz", "pron", "fill", "match", "tf", "hang", "build", "cloze", "listen"];
+    if (restrictedViews.indexOf(name) !== -1 && name !== "home") {
+      const hasTest = window.hasTakenPlacementTest && window.hasTakenPlacementTest();
+      let hasSelected = false;
+      try {
+        const s = window.SecureStore ? window.SecureStore.load("vocab_settings_v1", {}) : JSON.parse(localStorage.getItem("vocab_settings_v1") || "{}");
+        hasSelected = !!(s && s.selectedCefrLevel);
+      } catch (e) {}
+      if (!hasTest && !hasSelected) {
+        toast("กรุณาทำแบบทดสอบวัดระดับหรือเลือกระดับภาษาก่อนเริ่มเรียน", "err");
+        showView("home");
+        const pTest = $("placementTest");
+        if (pTest) pTest.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+    }
+
     // รีเซ็ตสถานะ session เก่าเมื่อเปลี่ยนหน้า
     stopRecognition();
     stopGameTimers();
@@ -1946,7 +2175,7 @@
       b.classList.toggle("active", on);
       if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
-    var gameViews = ["cards","quiz","pron","fill","match","tf","hang","build","cloze","listen"];
+    var gameViews = ["cards","quiz","pron","fill","match","tf","hang","build","cloze","listen","dictation"];
     if (gameViews.indexOf(name) !== -1) {
       $("navGamesSub").classList.add("open");
       $("navGames").setAttribute("aria-expanded", "true");
@@ -1964,6 +2193,9 @@
     if (name === "tasks") renderTasks();
     if (name === "achievements") renderAchievements();
     if (name === "stats") renderStats();
+    if (name === "aichat") renderAiChat();
+    if (name === "stories") renderStories();
+    if (name === "dictation") renderDictationQuiz();
     updateMiniQuest(name); // ซ่อนwidgetบนHome / โชว์+เรนเดอร์บนหน้าอื่น
     if (name === "fill") resetFill();
     if (name === "match") resetMatch();
@@ -1994,6 +2226,11 @@
     const a = container.querySelector(".chip.active");
     return a ? a.dataset.value : "";
   }
+  function setChipValue(container, value) {
+    container.querySelectorAll(".chip").forEach(function (c) {
+      c.classList.toggle("active", c.dataset.value === String(value));
+    });
+  }
   const CHIP_DEFS = {
     cardFilterType: [["all", "All"], ["vocab", "Vocab"], ["collocation", "Collocations"], ["idiom", "Idioms"]],
     cardMode: [["all", "All"], ["due", "Due only"], ["random", "Random"]],
@@ -2018,28 +2255,184 @@
     clozeType: [["all", "All"], ["vocab", "Vocab"], ["collocation", "Collocations"], ["idiom", "Idioms"]],
     clozeCount: [["10", "10"], ["20", "20"], ["all", "All"]],
     listenType: [["all", "All"], ["vocab", "Vocab"], ["collocation", "Collocations"], ["idiom", "Idioms"]],
-    listenCount: [["10", "10"], ["20", "20"], ["all", "All"]]
+    listenCount: [["10", "10"], ["20", "20"], ["all", "All"]],
+    browseCefrLevel: [["all", "All Levels"], ["A1", "A1"], ["A2", "A2"], ["B1", "B1"], ["B2", "B2"], ["C1", "C1"], ["C2", "C2"]]
   };
-  const CHIP_DEFAULT = { cardFilterType: "all", cardMode: "all", quizMode: "meaning", quizCount: "10", quizType: "all", browseType: "all", pronCount: "10", pronType: "vocab", fillDir: "th2en", fillType: "all", fillCount: "10", matchType: "all", matchSize: "8", tfType: "all", tfCount: "10", tfTime: "60", hangType: "vocab", hangCount: "10", buildType: "all", buildCount: "10", clozeType: "all", clozeCount: "10", listenType: "all", listenCount: "10" };
+  const CHIP_DEFAULT = { cardFilterType: "all", cardMode: "all", quizMode: "meaning", quizCount: "10", quizType: "all", browseType: "all", pronCount: "10", pronType: "vocab", fillDir: "th2en", fillType: "all", fillCount: "10", matchType: "all", matchSize: "8", tfType: "all", tfCount: "10", tfTime: "60", hangType: "vocab", hangCount: "10", buildType: "all", buildCount: "10", clozeType: "all", clozeCount: "10", listenType: "all", listenCount: "10", browseCefrLevel: "A1" };
   function populateDayChips() {
-    const days = Object.keys(VOCAB_DAYS).sort((a, b) => a - b);
-    [["cardFilterDay", "all"], ["browseDay", "all"]].forEach(function (p) {
-      const c = $(p[0]); if (!c) return;
-      const cur = chipValue(c) || p[1];
-      const opts = [{ value: "all", label: "Every day" }].concat(
-        days.map(function (d) { return { value: d, label: "Day " + d }; })
-      );
-      buildChips(c, opts, cur, p[0] === "browseDay" ? renderBrowse : null);
+    const cefrFilter = (document.getElementById("browseCefrLevel") ? chipValue($("browseCefrLevel")) : "all") || "all";
+    let allowedDays = [];
+    if (cefrFilter !== "all" && window.cefrDaysForLevel) {
+      allowedDays = window.cefrDaysForLevel(cefrFilter);
+    } else {
+      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 360; }).sort(function (a, b) { return a - b; });
+    }
+
+    const c = $("browseDay"); if (!c) return;
+    const cur = chipValue(c) || "all";
+    const opts = [{ value: "all", label: "Every day" }].concat(
+      allowedDays.map(function (d, index) {
+        const dayNum = cefrFilter !== "all" ? (index + 1) : d;
+        return { value: String(dayNum), label: "Day " + dayNum };
+      })
+    );
+    buildChips(c, opts, cur, function () { cachedBrowseKey = ""; browsePage = 1; renderBrowse(true); });
+    renderDayTracker();
+  }
+  function renderDayTracker() {
+    const chipsEl = $("dayTrackerChips");
+    const sumEl = $("dayTrackerSummary");
+    const fillEl = $("dayTrackerFill");
+    if (!chipsEl || !sumEl) return;
+    const cefrFilter = (document.getElementById("browseCefrLevel") ? chipValue($("browseCefrLevel")) : "all") || "all";
+    let allowedDays = [];
+    if (cefrFilter !== "all" && window.cefrDaysForLevel) {
+      allowedDays = window.cefrDaysForLevel(cefrFilter);
+    } else {
+      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 360; }).sort(function (a, b) { return a - b; });
+    }
+    const studied = settings.studiedDays || [];
+    const set = {};
+    studied.forEach(function (d) { set[String(d)] = true; });
+
+    chipsEl.innerHTML = "";
+    allowedDays.forEach(function (actualDay, index) {
+      const dayNum = cefrFilter !== "all" ? (index + 1) : actualDay;
+      const done = !!set[String(actualDay)];
+      const b = el("button", "chip dt-day" + (done ? " done" : ""), "Day " + dayNum + (done ? " " + svgIcon("tick", "ico sm") : ""));
+      b.type = "button";
+      b.title = done ? t("browse.unmarkStudied") : t("browse.markStudied");
+      b.dataset.day = String(actualDay);
+      b.onclick = function () {
+        const arr = settings.studiedDays || (settings.studiedDays = []);
+        const key = String(actualDay);
+        const i = arr.indexOf(key);
+        if (i >= 0) { arr.splice(i, 1); }
+        else { arr.push(key); }
+        save(K_SETTINGS, settings);
+        renderDayTracker();
+      };
+      chipsEl.appendChild(b);
     });
+
+    const total = allowedDays.length;
+    const done = allowedDays.filter(function (d) { return set[String(d)]; }).length;
+    const remaining = total - done;
+    sumEl.textContent = t("browse.studied") + " " + done + " / " + total + " · " + t("browse.remaining") + " " + remaining + " " + t("browse.daysToFinish");
+    if (fillEl) fillEl.style.width = total ? Math.round((done / total) * 100) + "%" : "0%";
   }
   function initChips() {
     Object.keys(CHIP_DEFS).forEach(function (id) {
       const c = $(id); if (!c) return;
-      const onSel = (id === "browseType") ? renderBrowse : null;
+      const onSel = (id === "browseType" || id === "browseCefrLevel") ? function () {
+        if (id === "browseCefrLevel") populateDayChips();
+        cachedBrowseKey = "";
+        browsePage = 1;
+        renderBrowse(true);
+      } : null;
       buildChips(c, CHIP_DEFS[id].map(function (o) { return { value: o[0], label: o[1] }; }), CHIP_DEFAULT[id] || "all", onSel);
     });
     populateDayChips();
   }
+
+  /* ============================================================
+     WORD SOURCE SELECTOR (per-game level + day-range picker)
+     ให้ผู้ใช้เลือก CEFR level + ช่วงวันคำศัพท์สำหรับแต่ละเกม
+     โดยไม่ต้องกดเลือกทีละวัน — ใช้ preset และช่วงจาก/ถึง
+     ============================================================ */
+  const GAME_KEYS = ["cards", "quiz", "pron", "fill", "match", "tf", "hang", "build", "cloze", "listen"];
+  const GAME_SOURCE_LEVELS = [["current", "src.current"], ["all", "src.allLevels"], ["A1", "A1"], ["A2", "A2"], ["B1", "B1"], ["B2", "B2"], ["C1", "C1"], ["C2", "C2"]];
+  const GAME_SOURCE_PRESETS = [["all", "src.allDays"], ["day1", "src.day1"], ["week", "src.week"], ["month", "src.month"], ["custom", "src.custom"]];
+  function gameSourceDefault() { return { level: "current", preset: "all", from: 1, to: 60 }; }
+  function getGameSource(gameKey) {
+    const def = gameSourceDefault();
+    const s = (settings.gameSources && settings.gameSources[gameKey]) || {};
+    return { level: s.level || def.level, preset: s.preset || def.preset, from: s.from || def.from, to: s.to || def.to };
+  }
+  function setGameSource(gameKey, patch) {
+    if (!settings.gameSources || typeof settings.gameSources !== "object") settings.gameSources = {};
+    settings.gameSources[gameKey] = Object.assign({}, getGameSource(gameKey), patch);
+    save(K_SETTINGS, settings);
+  }
+  function gameSourceMaxDay(level) { return level === "all" ? 360 : 60; }
+  function gameSourceBase(level) {
+    if (level === "current") return ITEMS;
+    if (level === "all") return ALL_ITEMS;
+    if (window.CefrSelector && window.CefrSelector.getItemsForLevel) return window.CefrSelector.getItemsForLevel(level);
+    return ITEMS;
+  }
+  function getGameSourceItems(gameKey) {
+    const src = getGameSource(gameKey);
+    const max = gameSourceMaxDay(src.level);
+    let from = clamp(parseInt(src.from, 10) || 1, 1, max);
+    let to = clamp(parseInt(src.to, 10) || max, 1, max);
+    if (to < from) to = from;
+    return gameSourceBase(src.level).filter(function (i) {
+      const d = Number(i.day);
+      return d >= from && d <= to;
+    });
+  }
+  function updateSourceCount(gameKey) {
+    const n = getGameSourceItems(gameKey).length;
+    const elc = $("srcCount-" + gameKey);
+    if (elc) elc.textContent = t("src.words").replace("{n}", n);
+  }
+  function syncSourceRangeInputs(gameKey) {
+    const src = getGameSource(gameKey);
+    const max = gameSourceMaxDay(src.level);
+    const fromEl = $("srcFrom-" + gameKey), toEl = $("srcTo-" + gameKey);
+    if (fromEl) { fromEl.max = max; fromEl.value = clamp(src.from || 1, 1, max); }
+    if (toEl) { toEl.max = max; toEl.value = clamp(src.to || max, 1, max); }
+    const rangeEl = $("srcRange-" + gameKey);
+    if (rangeEl) rangeEl.classList.toggle("hidden", src.preset !== "custom");
+  }
+  function onGameSourceChange(gameKey) {
+    const level = chipValue($("srcLevel-" + gameKey)) || "current";
+    const preset = chipValue($("srcDays-" + gameKey)) || "all";
+    const max = gameSourceMaxDay(level);
+    let from = 1, to = max;
+    if (preset === "day1") { from = 1; to = 1; }
+    else if (preset === "week") { from = 1; to = Math.min(7, max); }
+    else if (preset === "month") { from = 1; to = Math.min(30, max); }
+    else if (preset === "custom") {
+      from = clamp(parseInt($("srcFrom-" + gameKey).value, 10) || 1, 1, max);
+      to = clamp(parseInt($("srcTo-" + gameKey).value, 10) || max, 1, max);
+      if (to < from) to = from;
+    }
+    setGameSource(gameKey, { level: level, preset: preset, from: from, to: to });
+    syncSourceRangeInputs(gameKey);
+    updateSourceCount(gameKey);
+  }
+  function mountGameSource(gameKey) {
+    const controls = document.querySelector("#" + gameKey + "Controls .controls");
+    if (!controls) return;
+    let field = $("srcField-" + gameKey);
+    if (!field) {
+      field = el("div", "field src-field");
+      field.id = "srcField-" + gameKey;
+      field.innerHTML =
+        '<span class="field-label" data-i18n="label.source">Word source</span>' +
+        '<div class="chip-group" id="srcLevel-' + gameKey + '"></div>' +
+        '<div class="chip-group" id="srcDays-' + gameKey + '"></div>' +
+        '<div class="src-range" id="srcRange-' + gameKey + '">' +
+          '<span class="src-range-lbl" data-i18n="src.from">From</span>' +
+          '<input type="number" id="srcFrom-' + gameKey + '" min="1">' +
+          '<span class="src-range-lbl" data-i18n="src.to">To</span>' +
+          '<input type="number" id="srcTo-' + gameKey + '" min="1">' +
+        '</div>' +
+        '<span class="src-count" id="srcCount-' + gameKey + '"></span>';
+      controls.appendChild(field);
+      const fromEl = $("srcFrom-" + gameKey), toEl = $("srcTo-" + gameKey);
+      if (fromEl) fromEl.oninput = function () { onGameSourceChange(gameKey); };
+      if (toEl) toEl.oninput = function () { onGameSourceChange(gameKey); };
+    }
+    const src = getGameSource(gameKey);
+    buildChips($("srcLevel-" + gameKey), GAME_SOURCE_LEVELS.map(function (o) { return { value: o[0], label: t(o[1]) }; }), src.level, function () { onGameSourceChange(gameKey); });
+    buildChips($("srcDays-" + gameKey), GAME_SOURCE_PRESETS.map(function (o) { return { value: o[0], label: t(o[1]) }; }), src.preset, function () { onGameSourceChange(gameKey); });
+    syncSourceRangeInputs(gameKey);
+    updateSourceCount(gameKey);
+  }
+  function initGameSources() { GAME_KEYS.forEach(mountGameSource); }
 
   /* ============================================================
      DASHBOARD ANALYTICS  (history series, mastery, count-up)
@@ -2112,6 +2505,96 @@
 
   let homeDirty = true;
 
+  /** Due forecast: count of items due today / tomorrow / next 7 days from FSRS due dates. */
+  function dueInDays(nDays) {
+    const today = todayStr();
+    const maxDate = addDays(today, nDays);
+    let count = 0, wCount = 0;
+    ITEMS.forEach(function (i) {
+      const p = getP(i.id);
+      if (!p.seen || !p.due) return;
+      if (p.due <= maxDate && p.due >= today) {
+        count++;
+        wCount += (100 - (predictRetention(i) || 0)) / 100; // weighted by how overdue-forgotten
+      }
+    });
+    return { count: count, weight: Math.round(wCount) };
+  }
+
+  function renderDueForecast() {
+    const wrap = $("dueForecast");
+    const panel = $("dueForecastPanel");
+    if (!wrap || !panel) return;
+    const seen = ITEMS.filter(function (i) { return (getP(i.id).seen || 0) > 0; });
+    const today = dueInDays(0);
+    const tomorrow = dueInDays(1);
+    const week = dueInDays(7);
+    if (seen.length === 0) { panel.style.display = "none"; return; }
+    panel.style.display = "";
+    const cards = [
+      { v: today.count, l: t("due.today"), sub: today.count ? t("due.todayHint") : t("stats.allDone") },
+      { v: tomorrow.count, l: t("due.tomorrow"), sub: tomorrow.count ? t("due.tomorrowHint") : t("due.none") },
+      { v: week.count, l: t("due.week"), sub: t("due.weekHint").replace("{n}", week.count) }
+    ];
+    wrap.innerHTML = cards.map(function (c) {
+      return '<div class="analytics-cell"><span class="analytics-num">' + c.v + '</span>' +
+        '<span class="analytics-label">' + c.l + "</span>" +
+        '<span class="analytics-sub">' + c.sub + "</span></div>";
+    }).join("");
+
+    // Daily review goal progress bar (game.dailyAnswered[today])
+    const done = game.dailyAnswered[todayStr()] || 0;
+    const goal = settings.reviewGoal || 20;
+    const pct = Math.min(100, Math.round((done / goal) * 100));
+    wrap.insertAdjacentHTML("beforeend",
+      '<div class="goal-wrap"><div class="goal-label">' + t("due.goal").replace("{d}", done).replace("{g}", goal) + '</div>' +
+      '<div class="goal-bar"><div class="goal-fill" style="width:' + pct + '%"></div></div>' +
+      (done >= goal ? '<div class="goal-done">' + t("due.goalDone") + '</div>' : "") + "</div>");
+
+    renderStorySuggestion();
+  }
+
+  /** Weakest items by retention/lapses/overdue (shared by weak-spots panel + story suggestions). */
+  function getWeakWords(max) {
+    const seen = ITEMS.filter(function (i) { return (getP(i.id).seen || 0) > 0; });
+    return seen.map(function (i) {
+      const p = getP(i.id);
+      const ret = predictRetention(i);
+      const overdue = p.due ? Math.max(0, daysSince(p.due)) : 0;
+      const score = (100 - ret) * 2 + (p.lapses || 0) * 3 + overdue;
+      return { i: i, r: ret, lapses: p.lapses || 0, overdue: overdue, score: score };
+    }).sort(function (a, b) { return b.score - a.score; }).slice(0, max || 15).map(function (w) { return w.i; });
+  }
+
+  /** Recommend stories whose CEFR target set overlaps the user's weak words. */
+  function renderStorySuggestion() {
+    const panel = $("storySuggestPanel");
+    const box = $("storySuggestBox");
+    if (!panel || !box) return;
+    const weak = getWeakWords(20);
+    if (weak.length < 3) { panel.style.display = "none"; return; }
+    const weakSet = {};
+    weak.forEach(function (i) { weakSet[i.word.toLowerCase()] = 1; });
+    const scored = ALL_STORIES.map(function (s) {
+      const target = storyTargetSet(s.level);
+      let hits = 0;
+      Object.keys(weakSet).forEach(function (w) { if (target[w]) hits++; });
+      return { s: s, hits: hits };
+    }).filter(function (x) { return x.hits > 0; }).sort(function (a, b) { return b.hits - a.hits; }).slice(0, 3);
+    if (!scored.length) { panel.style.display = "none"; return; }
+    panel.style.display = "";
+    box.innerHTML = scored.map(function (x) {
+      return '<button class="chip story-suggest-chip" data-story="' + x.s.id + '">' +
+        esc(x.s.title) + " (" + x.s.level + ") · " + x.hits + " " + t("stories.suggestHits") + "</button>";
+    }).join("");
+    box.querySelectorAll(".story-suggest-chip").forEach(function (btn) {
+      btn.onclick = function () {
+        const s = ALL_STORIES.find(function (y) { return y.id === btn.dataset.story; });
+        if (s) { showView("stories"); if (typeof openStory === "function") openStory(s); }
+      };
+    });
+  }
+
   /* ============================================================
      HOME  (cached — skips rebuild if nothing changed since last visit)
      ============================================================ */
@@ -2146,6 +2629,7 @@
     buildHeatmap();
     buildMastery();
     buildMemoryStrength();
+    renderDueForecast();
 
     // ---- Daily progress (per-day mastery bars) ----
     const dp = $("dayProgress");
@@ -2428,10 +2912,11 @@
   }
 
   /* ---------- Activity heatmap (GitHub-style) ---------- */
+  let heatmapRangeDays = 84;
   function buildHeatmap() {
     const box = $("heatmap");
     if (!box) return;
-    const series = getHistorySeries(84); // ~12 weeks
+    const series = getHistorySeries(heatmapRangeDays);
     const maxAns = Math.max(1, Math.max.apply(null, series.map(function (d) { return d.answered; })));
     let cells = "";
     series.forEach(function (d) {
@@ -2462,6 +2947,18 @@
       });
       c.addEventListener("mouseleave", function () { tip.style.opacity = "0"; });
     });
+
+    // Range switcher (12W / 6M / 1Y)
+    const rangeBox = $("heatmapRange");
+    if (rangeBox) {
+      rangeBox.querySelectorAll(".chip").forEach(function (b) {
+        b.classList.toggle("active", String(b.dataset.range) === String(heatmapRangeDays));
+        b.onclick = function () {
+          heatmapRangeDays = parseInt(b.dataset.range, 10) || 84;
+          buildHeatmap();
+        };
+      });
+    }
   }
 
   /* ---------- Mastery by type (SVG donut) ---------- */
@@ -2508,11 +3005,9 @@
   function startCards() {
     currentMode = "cards";
     const type = chipValue($("cardFilterType"));
-    const day = chipValue($("cardFilterDay"));
     const mode = chipValue($("cardMode"));
-    let list = ITEMS.slice();
+    let list = getGameSourceItems("cards");
     if (type !== "all") list = list.filter(function (i) { return i.type === type; });
-    if (day !== "all") list = list.filter(function (i) { return String(i.day) === day; });
     if (mode === "due") list = list.filter(isDue);
     if (mode === "random") list = shuffle(list);
     if (!list.length) { toast("No words match these filters — try loosening them", "err"); return; }
@@ -2542,7 +3037,7 @@
     $("cardTh").setAttribute("lang", "th");
     $("cardExTh").setAttribute("lang", "th");
     const note = $("cardNote");
-    if (item.note) { note.textContent = "⚠️ " + item.note; note.classList.remove("hidden"); }
+    if (item.note) { note.innerHTML = svgIcon("alert", "ico sm") + " " + esc(item.note); note.classList.remove("hidden"); }
     else note.classList.add("hidden");
 
     document.querySelectorAll("#cardGradeRow .g-hint").forEach(function (s) {
@@ -2592,7 +3087,7 @@
     const type = chipValue($("quizType"));
     const mode = chipValue($("quizMode"));
     let count = chipValue($("quizCount"));
-    let list = ITEMS.slice();
+    let list = getGameSourceItems("quiz");
     if (type !== "all") list = list.filter(function (i) { return i.type === type; });
     if (mode === "meaning") list = list.filter(function (i) { return i.th && i.th.trim(); });
     if (!list.length) { toast("No words for this format — try a different format or type", "err"); return; }
@@ -2638,12 +3133,12 @@
       promptText = item.word + (item.pos ? " (" + item.pos + ")" : "");
       answerOpt = { text: item.th, item: item };
       // Harder, more meaningful distractors: same part-of-speech + similar spelling.
-      distractItems = pickDistractors(item, ITEMS, 14).filter(function (i) { return i.th && i.th.trim() && i.th !== item.th; });
-      if (distractItems.length < 3) distractItems = ITEMS.filter(function (i) { return i.th && i.th.trim() && i.th !== item.th; });
+      distractItems = pickDistractors(item, getGameSourceItems("quiz"), 14).filter(function (i) { return i.th && i.th.trim() && i.th !== item.th; });
+      if (distractItems.length < 3) distractItems = getGameSourceItems("quiz").filter(function (i) { return i.th && i.th.trim() && i.th !== item.th; });
     } else {
       promptText = item.exEn;
       answerOpt = { text: item.exTh, item: item };
-      distractItems = ITEMS.filter(function (i) { return i.exTh && i.exTh.trim() && i.exTh !== item.exTh; });
+      distractItems = getGameSourceItems("quiz").filter(function (i) { return i.exTh && i.exTh.trim() && i.exTh !== item.exTh; });
     }
 
     $("quizPrompt").textContent = promptText;
@@ -2738,7 +3233,7 @@
 
   function renderTasks() {
     const cp = currentPlanDay();
-    $("tasksToday").textContent = "Today is Day " + cp + " of the 120-day plan";
+    $("tasksToday").textContent = "Today is Day " + cp + " of the 360-day plan";
     const list = $("tasksList");
     list.innerHTML = "";
 
@@ -2776,25 +3271,55 @@
     });
 
     if (dueCount === 0 && !VOCAB_DAYS[String(cp)]) {
-      list.appendChild(el("p", "hint", "Nothing to do today ✅ If you haven't added words for Day " + cp + " yet, tell Claude: \"Day " + cp + ", [topic or random]\" to add new words"));
+      list.appendChild(el("p", "hint", svgIcon("check", "ico sm") + " Nothing to do today If you haven't added words for Day " + cp + " yet, tell Claude: \"Day " + cp + ", [topic or random]\" to add new words"));
     } else if (dueCount === 0) {
-      list.appendChild(el("p", "hint", "Nothing to review today — you've finished the new words. Take a break! 🎉"));
+      list.appendChild(el("p", "hint", svgIcon("party", "ico sm") + " Nothing to review today — you've finished the new words. Take a break!"));
     }
   }
 
   /* ============================================================
      BROWSE
      ============================================================ */
-  function renderBrowse() {
+  let browsePage = 1;
+  const BROWSE_PAGE_SIZE = 30;
+  let cachedBrowseKey = "";
+  let cachedBaseList = [];
+  let browseSearchTimer = null;
+
+  function renderBrowse(resetPage) {
     const q = $("browseSearch").value.trim().toLowerCase();
     const type = chipValue($("browseType"));
     const day = chipValue($("browseDay"));
-    let list = ITEMS.slice();
-    if (type !== "all") list = list.filter(function (i) { return i.type === type; });
-    if (day !== "all") list = list.filter(function (i) { return String(i.day) === day; });
-    if (q) list = list.filter(function (i) {
-      return (i.word + " " + i.th + " " + i.exEn + " " + i.exTh).toLowerCase().indexOf(q) !== -1;
-    });
+    const cefrFilter = chipValue($("browseCefrLevel")) || "all";
+
+    const filterKey = cefrFilter + "|" + type + "|" + day;
+    if (filterKey !== cachedBrowseKey || !cachedBaseList.length) {
+      cachedBrowseKey = filterKey;
+      let list = ALL_ITEMS.slice();
+      if (cefrFilter !== "all" && window.cefrDaysForLevel) {
+        const days = window.cefrDaysForLevel(cefrFilter);
+        const dayList = days.map(Number).sort((a, b) => a - b);
+        const dayMap = {};
+        dayList.forEach((origDay, index) => { dayMap[origDay] = index + 1; });
+        const daySet = new Set(dayList.map(String));
+        list = list.filter(item => daySet.has(String(item.day))).map(item => {
+          const origDay = Number(item.day);
+          return { ...item, day: dayMap[origDay] || origDay };
+        });
+      }
+
+      if (type !== "all") list = list.filter(function (i) { return i.type === type; });
+      if (day !== "all") list = list.filter(function (i) { return String(i.day) === day; });
+      cachedBaseList = list;
+      if (resetPage !== false) browsePage = 1;
+    }
+
+    let list = cachedBaseList;
+    if (q) {
+      list = list.filter(function (i) {
+        return (i.word + " " + i.th + " " + i.exEn + " " + i.exTh).toLowerCase().indexOf(q) !== -1;
+      });
+    }
 
     const tb = $("browseToggleMeanings");
     if (tb) tb.innerHTML = svgIcon(settings.hideAllMeanings ? "eyeOff" : "eye") + " <span>" + t(settings.hideAllMeanings ? "browse.showAll" : "browse.hideAll") + "</span>";
@@ -2804,14 +3329,16 @@
       box.innerHTML = '<p class="hint">' + svgIcon("info", "ico sm") + " No words match your search</p>";
       return;
     }
+
+    const paginatedList = list.slice(0, browsePage * BROWSE_PAGE_SIZE);
     const parts = [];
-    list.forEach(function (i, idx) {
+    paginatedList.forEach(function (i) {
       const tlabel = i.type === "vocab" ? "VOCAB" : i.type === "collocation" ? "COLLOC" : "IDIOM";
       const tcls = i.type === "vocab" ? "t-vocab" : i.type === "collocation" ? "t-collocation" : "t-idiom";
       const ticon = i.type === "vocab" ? "book" : i.type === "collocation" ? "link" : "bulb";
       const hidden = settings.hideAllMeanings || !!settings.hiddenMeanings[i.id];
       parts.push(
-        '<div class="browse-card" style="animation-delay:' + (idx * 35) + 'ms" data-browse-id="' + i.id + '">' +
+        '<div class="browse-card" data-browse-id="' + i.id + '">' +
         '<div class="bc-head"><div>' +
         '<div class="bc-word">' + esc(i.word) + '</div>' +
         (i.phonetic ? '<div class="bc-pos">/ ' + esc(i.phonetic) + ' /</div>' : '') +
@@ -2828,12 +3355,25 @@
         '</div>'
       );
     });
+
+    if (paginatedList.length < list.length) {
+      parts.push('<div style="grid-column:1/-1;text-align:center;padding:24px;"><button class="btn btn-primary btn-lg" id="loadMoreBrowse">Load More (' + paginatedList.length + ' / ' + list.length + ') ' + svgIcon("download", "ico sm") + '</button></div>');
+    }
+
     box.innerHTML = parts.join("");
+
+    const loadMoreBtn = $("loadMoreBrowse");
+    if (loadMoreBtn) {
+      loadMoreBtn.onclick = function () {
+        browsePage++;
+        renderBrowse(false);
+      };
+    }
     // Event delegation — one listener instead of per-card closures
     box.onclick = function (e) {
       const card = e.target.closest("[data-browse-id]");
       if (!card) return;
-      const item = ITEMS.find(function (it) { return it.id === card.dataset.browseId; });
+      const item = list.find(function (it) { return it.id === card.dataset.browseId; }) || ALL_ITEMS.find(function (it) { return it.id === card.dataset.browseId; });
       if (item) openDetail(item);
     };
     box.onfocusin = function (e) {
@@ -2845,10 +3385,10 @@
         if (settings.hiddenMeanings[id]) delete settings.hiddenMeanings[id];
         else settings.hiddenMeanings[id] = true;
         save(K_SETTINGS, settings);
-        renderBrowse();
+        renderBrowse(false);
       }
       const speakBtn = e.target.closest("[data-browse-speak]");
-      if (speakBtn) { e.stopPropagation(); const it = ITEMS.find(function (x) { return x.id === speakBtn.dataset.browseSpeak; }); if (it) speak(it.word); }
+      if (speakBtn) { e.stopPropagation(); const it = list.find(function (x) { return x.id === speakBtn.dataset.browseSpeak; }) || ALL_ITEMS.find(function (x) { return x.id === speakBtn.dataset.browseSpeak; }); if (it) speak(it.word); }
     };
   }
 
@@ -2936,11 +3476,11 @@
     if (perfect) awardXp(25, "boss-perfect");
     const sc = $("bossScore"), pc = $("bossResultPanel"), br = $("bossRun");
     if (sc) sc.textContent = bossScore + " / " + total;
-    if (br) br.textContent = perfect ? "💥 ชนะบอส! +25 XP โบนัส" : "บอสพ่ายแพ้ไปแล้ว — มาอีกครั้ง!";
+    if (br) br.innerHTML = perfect ? svgIcon("bolt", "ico sm") + " ชนะบอส! +25 XP โบนัส" : "บอสพ่ายแพ้ไปแล้ว — มาอีกครั้ง!";
     if (pc) {
       pc.classList.remove("hidden");
       const fb = $("bossFeedback");
-      if (fb) fb.textContent = perfect ? "🔥 Perfect run! ทุกคำตอบถูกภายในเวลา" : "เยี่ยม! ทวนคำอ่อนที่สุดไป " + total + " คำ"; fb.className = "boss-feedback " + (perfect ? "ok" : "");
+      if (fb) fb.innerHTML = perfect ? svgIcon("flame", "ico sm") + " Perfect run! ทุกคำตอบถูกภายในเวลา" : "เยี่ยม! ทวนคำอ่อนที่สุดไป " + total + " คำ"; fb.className = "boss-feedback " + (perfect ? "ok" : "");
     }
   }
   function closeBossRush() {
@@ -2949,17 +3489,57 @@
     showView("home");
   }
 
+  function formatClockTime(ts) {
+    try {
+      const d = new Date(ts);
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      return hh + ":" + mm;
+    } catch (e) { return ""; }
+  }
+
   function renderSettings() {
     $("settingsTitle").innerHTML = svgIcon("gear") + t("settings.title");
     const ids = Object.keys(progress);
     let learned = 0, mastered = 0;
-    ids.forEach(function (id) { if (progress[id].box >= 2) learned++; if (progress[id].box >= 4) mastered++; });
+    ids.forEach(function (id) { const p = progress[id]; if ((p.reps || 0) > 0) learned++; if ((p.st || 0) >= 21 || (p.reps || 0) >= 4) mastered++; });
     $("settingsInfo").textContent =
       t("info.learned") + " " + learned + " words\n" +
       t("info.mastered") + " " + mastered + " words\n" +
       t("info.days") + " " + Object.keys(VOCAB_DAYS).length + " days\n" +
       t("info.total") + " " + ITEMS.length + " entries";
     $("planDayLabel").textContent = "Day " + (settings.planDayOverride || computePlanDay());
+    // Cloud sync row (only when logged in to a cloud account)
+    const syncRow = $("syncRow");
+    const syncBtn = $("syncNowBtn");
+    const syncStatus = $("syncStatus");
+    const loggedInCloud = window.VocabAuth && window.VocabAuth.isLoggedIn && window.VocabAuth.isLoggedIn();
+    if (syncRow) syncRow.style.display = loggedInCloud ? "" : "none";
+    if (syncStatus && syncStatus.textContent === "" && window.VocabAuth && window.VocabAuth.getLastSyncTime) {
+      const ls = window.VocabAuth.getLastSyncTime();
+      if (ls) syncStatus.textContent = t("settings.lastSync").replace("{t}", formatClockTime(ls));
+    }
+    if (syncBtn) {
+      syncBtn.onclick = async function () {
+        if (!syncStatus) return;
+        const prev = syncStatus.innerHTML;
+        syncStatus.textContent = t("settings.syncing");
+        syncStatus.classList.add("syncing");
+        try {
+          if (window.VocabAuth && window.VocabAuth.syncNow) {
+            await window.VocabAuth.syncNow();
+          }
+          if (window.VocabAuth && window.VocabAuth.getLastSyncTime) {
+            const ls = window.VocabAuth.getLastSyncTime();
+            syncStatus.innerHTML = ls ? t("settings.lastSync").replace("{t}", formatClockTime(ls)) : t("settings.syncedNone");
+          }
+        } catch (e) {
+          syncStatus.innerHTML = t("settings.syncErr");
+        } finally {
+          syncStatus.classList.remove("syncing");
+        }
+      };
+    }
     const sb = $("settingsSound");
     if (sb) sb.innerHTML = (soundOn() ? svgIcon("volume") : svgIcon("volumeX")) + " " + (soundOn() ? t("settings.on") : t("settings.off"));
     const pb = $("settingsPlayer");
@@ -2968,8 +3548,62 @@
     if (mb) mb.innerHTML = (settings.music ? svgIcon("volume") : svgIcon("volumeX")) + " " + (settings.music ? t("settings.on") : t("settings.off"));
     const rb = $("settingsReminder");
     if (rb) rb.innerHTML = (settings.reminder.on ? svgIcon("bell") : svgIcon("bellOff")) + " " + (settings.reminder.on ? t("settings.on") : t("settings.off"));
-    const rt = $("reminderTime");
-    if (rt) rt.value = settings.reminder.time || "20:00";
+    const sf = $("settingsStreakFreeze");
+    if (sf) {
+      sf.innerHTML = (settings.streakFreeze ? svgIcon("check") : "") + " " + (settings.streakFreeze ? t("settings.on") : t("settings.off"));
+      sf.className = "btn btn-sm " + (settings.streakFreeze ? "btn-primary" : "");
+      sf.onclick = function () {
+        settings.streakFreeze = !settings.streakFreeze;
+        save(K_SETTINGS, settings);
+        renderSettings();
+      };
+    }
+    const sfCount = $("sfCount");
+    if (sfCount) sfCount.textContent = t("sf.owned").replace("{n}", game.streakFreezes || 0);
+    const buySf = $("buyStreakFreeze");
+    if (buySf) {
+      buySf.disabled = (game.streakFreezes || 0) >= 5;
+      buySf.onclick = function () {
+        const cost = SF_COST;
+        if ((game.xp || 0) < cost) { toast(t("sf.noXp"), "err"); return; }
+        game.xp = (game.xp || 0) - cost;
+        game.streakFreezes = (game.streakFreezes || 0) + 1;
+        settings.streakFreeze = true;
+        saveGame();
+        save(K_SETTINGS, settings);
+        toast(t("sf.bought"), "ok");
+        renderSettings();
+        renderProfileChip();
+        renderMiniQuests();
+      };
+    }
+    const xb = $("settingsXpBoost");
+    if (xb) {
+      xb.value = String(settings.xpBoost || 1);
+      xb.onchange = function () {
+        settings.xpBoost = parseInt(xb.value, 10) || 1;
+        save(K_SETTINGS, settings);
+        renderSettings();
+      };
+    }
+    const xh = $("xpBoostHint");
+    if (xh) {
+      xh.textContent = isDoubleXpWeekend()
+        ? t("settings.xpWeekend") + " · " + t("settings.xpTotal").replace("{x}", Math.round(currentXpBoost() * 100) / 100)
+        : t("settings.xpTotal").replace("{x}", Math.round(currentXpBoost() * 100) / 100);
+    }
+    const rg = $("settingsReviewGoal");
+    if (rg) {
+      rg.value = settings.reviewGoal || 20;
+      rg.onchange = function () {
+        let v = parseInt(rg.value, 10);
+        if (isNaN(v)) v = 20;
+        v = Math.max(5, Math.min(200, v));
+        settings.reviewGoal = v;
+        rg.value = v;
+        save(K_SETTINGS, settings);
+      };
+    }
     const ps = $("settingsPageSong");
     if (ps) ps.innerHTML = PAGE_SONGS.map(function (n, i) {
       return '<option value="' + i + '"' + (i === (settings.pageSong | 0) ? " selected" : "") + ">" + songLabel(n) + "</option>";
@@ -2990,7 +3624,7 @@
       save(K_SETTINGS, settings);
       setLang(settings.lang);
     });
-    // Effects intensity: Off / Reduced / Full (gates the confetti + glow spectacle).
+
     const ec = $("settingsEffects");
     if (ec) buildChips(ec, [
       { label: t("settings.off"), value: "off" },
@@ -3009,6 +3643,7 @@
     settings.lang = (lang === "en") ? "en" : "th";
     document.documentElement.lang = settings.lang;
     applyI18n();
+    initGameSources();
     const cur = document.querySelector(".view.active");
     const name = cur ? cur.id.replace("view-", "") : "home";
     if (name === "home") renderHome();
@@ -3016,6 +3651,7 @@
     else if (name === "tasks") renderTasks();
     else if (name === "achievements") renderAchievements();
     else if (name === "stats") renderStats();
+    renderCEFRBadges();
     renderProfileChip();
     renderDailyQuests();
     renderMiniQuests();
@@ -3030,7 +3666,7 @@
     const root = document.querySelector(".mmp");
     if (settings.showMiniPlayer) {
       if (root) root.style.display = "";
-      else if (window.MiniMusicPlayer) window.MiniMusicPlayer.init({ autoStart: true });
+      else if (window.MiniMusicPlayer) window.MiniMusicPlayer.init({ autoStart: false });
     } else if (root) {
       root.style.display = "none";
     }
@@ -3107,7 +3743,9 @@
         progress: load(K_PROGRESS, {}),
         settings: load(K_SETTINGS, {}),
         streak: load(K_STREAK, { streak: 0, last: "" }),
-        reviews: load(K_REVIEWS, {})
+        reviews: load(K_REVIEWS, {}),
+        storyRead: load(K_STORY_READ, {}),
+        storyWords: load(K_STORY_WORDS, {})
       }
     };
   }
@@ -3184,6 +3822,8 @@
     if (d.reviews) { reviews = d.reviews; save(K_REVIEWS, reviews); }
     if (d.settings) { settings = d.settings; save(K_SETTINGS, settings); }
     if (d.streak) { save(K_STREAK, d.streak); }
+    if (d.storyRead) { storyRead = d.storyRead; save(K_STORY_READ, storyRead); }
+    if (d.storyWords) { storyWords = d.storyWords; save(K_STORY_WORDS, storyWords); }
     applyTheme();
     renderSettings();
     renderHome();
@@ -3210,7 +3850,7 @@
     reader.onload = function (e) {
       let obj;
       try { obj = JSON.parse(e.target.result); }
-      catch (err) { backupStatus("❌ This file is not a valid backup", false); return; }
+      catch (err) { backupStatus("This file is not a valid backup", false); return; }
       confirmDialog("Import data from this file? Your current progress on this device will be replaced", "Import backup").then(function (ok) {
         if (ok) applyBackup(obj);
       });
@@ -3255,7 +3895,7 @@
     $("detailExTh").setAttribute("lang", "th");
 
     const note = $("detailNote");
-    if (item.note) { note.textContent = "⚠️ " + item.note; note.classList.remove("hidden"); }
+    if (item.note) { note.innerHTML = svgIcon("alert", "ico sm") + " " + esc(item.note); note.classList.remove("hidden"); }
     else note.classList.add("hidden");
 
     // progress + memory strength
@@ -3269,19 +3909,37 @@
 
     // meta
     const nextDue = p.due && p.due > todayStr() ? p.due : "Ready to review";
+    const pronBest = (game.pronBest || {})[String(item.id || item.word)] || 0;
     $("detailMeta").innerHTML =
-      "Seen: <b>" + (p.seen || 0) + "</b> · Streak: <b>" + (p.reps || 0) + "</b> correct · Forgotten: <b>" + (p.lapses || 0) + "</b><br>" +
-      "Next review: <b>" + esc(nextDue) + "</b> · Ease: <b>" + (p.ease || DEFAULT_EASE).toFixed(2) + "</b> · From <b>Day " + item.day + "</b>" + (item.topic ? " (" + esc(item.topic) + ")" : "");
+      "Seen: <b>" + (p.seen || 0) + "</b> · Streak: <b>" + (p.reps || 0) + "</b> correct · Forgotten: <b>" + (p.lapses || 0) + "</b>" +
+      (pronBest ? " · Pron best: <b>" + pronBest + "%</b>" : "") + "<br>" +
+      "Next review: <b>" + esc(nextDue) + "</b> · Stability: <b>" + (p.st || 0).toFixed(1) + "d</b> · From <b>Day " + item.day + "</b>" + (item.topic ? " (" + esc(item.topic) + ")" : "");
 
     // mnemonic / memory aid
     const mnem = $("detailMnemonic");
     const tip = syllableTip(item);
     let mhtml = "";
-    if (item.note) mhtml += "<div class=\"mnem-note\">⚠️ " + esc(item.note) + "</div>";
+    if (item.note) mhtml += "<div class=\"mnem-note\">" + svgIcon("alert", "ico sm") + " " + esc(item.note) + "</div>";
     if (tip) mhtml += "<div class=\"mnem-tip\"><span class=\"mnem-label\">Break it into syllables</span><b>" + esc(tip) + "</b></div>";
     mhtml += "<div class=\"mnem-tip\"><span class=\"mnem-label\">Why it matters</span>Part of <b>Day " + item.day + "</b>" + (item.topic ? " — " + esc(item.topic) : "") + ". Review it on schedule to lock it in.</div>";
     if (mhtml) { mnem.innerHTML = mhtml; mnem.classList.remove("hidden"); }
     else mnem.classList.add("hidden");
+
+    // Word family & root explorer
+    const famSec = $("detailFamilySection");
+    const famDiv = $("detailFamily");
+    if (famSec && famDiv) {
+      const base = item.word.replace(/(s|es|ed|ing|ly)$/, "");
+      const family = [
+        item.word + " (" + (item.pos || "word") + ") — Primary form",
+        base + " (Root word / รากศัพท์)",
+        base + "ly (Adverb form)",
+        base + "tion / ment / ness (Noun form)",
+        base + "ive / able / ful (Adjective form)"
+      ];
+      famDiv.innerHTML = family.map(function (f) { return '<div style="margin-bottom:4px;">• <b>' + esc(f) + '</b></div>'; }).join("");
+      famSec.classList.remove("hidden");
+    }
 
     // related words (same day)
     const rel = ITEMS.filter(function (i) { return i.day === item.day && i.id !== item.id; });
@@ -3300,6 +3958,17 @@
       rc.classList.remove("hidden");
     } else {
       rc.innerHTML = ""; rc.classList.add("hidden");
+    }
+
+    // user personal notes / mnemonic
+    const notesMap = load("vocab_notes_v1", {});
+    const userNoteInput = $("detailUserNote");
+    if (userNoteInput) {
+      userNoteInput.value = notesMap[item.id] || "";
+      userNoteInput.oninput = function () {
+        notesMap[item.id] = userNoteInput.value;
+        save("vocab_notes_v1", notesMap);
+      };
     }
 
     // actions
@@ -3408,13 +4077,23 @@
   function scorePronunciation(target, heardCandidates) {
     const built = buildSyllables(target);
     const cleaned = built.cleaned;
+    const syllCount = built.sylls.length || 1;
     // เลือก candidate ที่ใกล้เคียงที่สุด
     let best = { score: -1 };
     (heardCandidates || []).forEach(function (h) {
       const hc = String(h).toLowerCase().replace(/[^a-z]/g, "");
+      if (!hc) return;
       const res = alignMismatch(cleaned, hc);
       const maxLen = Math.max(cleaned.length, hc.length) || 1;
-      const score = Math.round((1 - res.distance / maxLen) * 100);
+      let score = (1 - res.distance / maxLen) * 100;
+      // Exact match → perfect; otherwise curve up so small slips don't tank the score
+      if (hc === cleaned) score = 100;
+      else score = Math.round(Math.pow(score / 100, 0.7) * 100);
+      // Penalize syllable-count mismatch (a dropped/added syllable matters more)
+      const hSylls = estimateSyllables(hc);
+      const syllDiff = Math.abs(hSylls - syllCount);
+      if (syllDiff > 0) score -= Math.min(25, syllDiff * 8);
+      score = Math.max(0, Math.round(score));
       if (score > best.score) best = { score: score, bad: res.bad, heard: String(h) };
     });
     if (best.score < 0) best = { score: 0, bad: {}, heard: "" };
@@ -3425,6 +4104,16 @@
       return { text: s.text, wrong: wrong };
     });
     return { score: Math.max(0, Math.min(100, best.score)), heard: best.heard, syllables: sylResult };
+  }
+
+  /** Rough vowel-group syllable counter for a lower-cased a-z string. */
+  function estimateSyllables(str) {
+    if (!str) return 0;
+    const groups = (str.match(/[aeiouy]+/g) || []);
+    let n = groups.length;
+    // "e" silent endings often over-count in English ("make" → 1)
+    if (n > 1 && /e$/.test(str)) n--;
+    return Math.max(1, n);
   }
 
   /* --- จับเสียงจากไมค์ครั้งเดียว --- */
@@ -3507,9 +4196,9 @@
         onerror: function (err) {
           box.classList.remove("hidden");
           const msg = err === "not-allowed" || err === "service-not-allowed"
-            ? "⚠️ Microphone permission denied — allow it in your browser and try again"
-            : err === "no-speech" ? "🤫 No sound detected — speak louder and tap again"
-            : "Error (" + err + ") — please try again";
+            ? svgIcon("alert", "ico sm") + " Microphone permission denied — allow it in your browser and try again"
+            : err === "no-speech" ? svgIcon("volumeX", "ico sm") + " No sound detected — speak louder and tap again"
+            : "Error (" + esc(err) + ") — please try again";
           box.innerHTML = "<div class=\"pron-tip\">" + msg + "</div>";
         },
         onend: function () {
@@ -3534,7 +4223,7 @@
     }
     const type = chipValue($("pronType"));
     let count = chipValue($("pronCount"));
-    let list = ITEMS.slice();
+    let list = getGameSourceItems("pron");
     if (type !== "all") list = list.filter(function (i) { return i.type === type; });
     if (!list.length) { toast("No words for this type", "err"); return; }
     list = shuffle(list);
@@ -3555,6 +4244,9 @@
     $("pronBadge").textContent = badge;
     $("pronWord").textContent = item.word;
     $("pronPhon").textContent = item.phonetic ? "/ " + item.phonetic + " /" : "";
+    const best = (game.pronBest || {})[String(item.id || item.word)] || 0;
+    $("pronBestLabel").textContent = best ? "Best: " + best + "%" : "";
+    $("pronBestLabel").style.display = best ? "" : "none";
     const fb = $("pronFeedback"); fb.className = "pron-feedback hidden"; fb.innerHTML = "";
     $("pronNext").classList.add("hidden");
 
@@ -3566,6 +4258,10 @@
     attachMic($("pronRecord"), $("pronRecordLabel"), fb, function () { return item.word; }, function (result) {
       if (!recorded) { pronScores.push(result.score); recorded = true; }
       else { pronScores[pronScores.length - 1] = Math.max(pronScores[pronScores.length - 1], result.score); }
+      if (!game.pronBest) game.pronBest = {};
+      const _k = String(item.id || item.word);
+      game.pronBest[_k] = Math.max(game.pronBest[_k] || 0, Math.round(result.score));
+      saveGame();
       $("pronNext").classList.remove("hidden");
       recordAnswer(item, result.score >= 70);
     });
@@ -3631,7 +4327,7 @@
     const dir = chipValue($("fillDir"));
     const type = chipValue($("fillType"));
     const cnt = chipValue($("fillCount"));
-    let list = ITEMS.slice();
+    let list = getGameSourceItems("fill");
     list = list.filter(function (i) {
       if (type !== "all" && i.type !== type) return false;
       if (dir === "th2en") return !!(i.word && i.word.trim());
@@ -3750,7 +4446,7 @@
     currentMode = "match";
     const type = chipValue($("matchType"));
     const size = parseInt(chipValue($("matchSize")), 10) || 8;
-    let pool = ITEMS.slice().filter(function (i) {
+    let pool = getGameSourceItems("match").filter(function (i) {
       if (type !== "all" && i.type !== type) return false;
       const hint = (i.type === "vocab") ? i.th : (i.th || i.exTh || i.note);
       return !!(i.word && hint && hint.trim());
@@ -3883,7 +4579,7 @@
     currentMode = "tf";
     const type = chipValue($("tfType"));
     const cnt = chipValue($("tfCount"));
-    let list = ITEMS.slice().filter(function (i) {
+    let list = getGameSourceItems("tf").filter(function (i) {
       if (type !== "all" && i.type !== type) return false;
       return !!(i.word && i.th && i.th.trim());
     });
@@ -3926,7 +4622,7 @@
     $("tfSpeak").onclick = function () { speak(i.word); };
 
     const isTrue = Math.random() < 0.5;
-    const pool = ITEMS.filter(function (x) { return x.th && x.th.trim() && x.th !== i.th; }).map(function (x) { return x.th; });
+    const pool = getGameSourceItems("tf").filter(function (x) { return x.th && x.th.trim() && x.th !== i.th; }).map(function (x) { return x.th; });
     let statement, correctBool;
     if (isTrue || pool.length === 0) {
       // กรณีไม่มีคำอื่นให้ยืมความหมาย (ข้อมูลน้อย) ให้ตกหล่นมาเป็น "จริง" เพื่อไม่ให้เกิดข้อที่ตอบอะไรก็ผิด
@@ -3983,7 +4679,7 @@
       icon: tfScore === answered ? "trophy" : "clock",
       big: tfScore + " / " + answered,
       sub: "Accuracy " + pct + "% (of " + total + " questions)",
-      note: timeUp ? "⏰ Time's up! Counting only answered questions" : "",
+      note: timeUp ? svgIcon("clock", "ico sm") + " Time's up! Counting only answered questions" : "",
       missed: tfMissed,
       missedHeader: "Wrong",
       missedHTML: missedHTML,
@@ -4027,7 +4723,7 @@
     currentMode = "hang";
     const type = chipValue($("hangType"));
     const cnt = chipValue($("hangCount"));
-    let list = ITEMS.slice().filter(function (i) { return i.word && i.word.trim() && i.type === "vocab"; });
+    let list = getGameSourceItems("hang").filter(function (i) { return i.word && i.word.trim() && i.type === "vocab"; });
     if (type !== "all") list = list.filter(function (i) { return i.type === type; });
     list = shuffle(list);
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
@@ -4166,7 +4862,7 @@
     currentMode = "build";
     const type = chipValue($("buildType"));
     const cnt = chipValue($("buildCount"));
-    let list = ITEMS.slice().filter(function (i) { return i.exEn && i.exEn.trim(); });
+    let list = getGameSourceItems("build").filter(function (i) { return i.exEn && i.exEn.trim(); });
     if (type !== "all") list = list.filter(function (i) { return i.type === type; });
     list = shuffle(list);
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
@@ -4288,7 +4984,7 @@
     currentMode = "cloze";
     const type = chipValue($("clozeType"));
     const cnt = chipValue($("clozeCount"));
-    let list = ITEMS.slice().filter(function (i) { return i.exEn && i.exEn.trim() && i.word && i.word.trim(); });
+    let list = getGameSourceItems("cloze").filter(function (i) { return i.exEn && i.exEn.trim() && i.word && i.word.trim(); });
     if (type !== "all") list = list.filter(function (i) { return i.type === type; });
     list = shuffle(list);
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
@@ -4307,7 +5003,7 @@
     const target = i.word;
     const re = new RegExp(target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     $("clozeSentence").textContent = i.exEn.replace(re, "_____");
-    const pool = ITEMS.filter(function (x) { return x.type === i.type && x.word && x.word !== target; }).map(function (x) { return x.word; });
+    const pool = getGameSourceItems("cloze").filter(function (x) { return x.type === i.type && x.word && x.word !== target; }).map(function (x) { return x.word; });
     const opts = shuffle([target].concat(shuffle(pool).slice(0, 3)));
     const box = $("clozeOptions");
     box.innerHTML = "";
@@ -4376,7 +5072,7 @@
     currentMode = "listen";
     const type = chipValue($("listenType"));
     const cnt = chipValue($("listenCount"));
-    let list = ITEMS.slice().filter(function (i) { return i.word && i.word.trim(); });
+    let list = getGameSourceItems("listen").filter(function (i) { return i.word && i.word.trim(); });
     if (type !== "all") list = list.filter(function (i) { return i.type === type; });
     list = shuffle(list);
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
@@ -4482,36 +5178,101 @@
   /* ============================================================
      INIT
      ============================================================ */
+  // Global error handler for debugging
+  window.addEventListener("error", function (e) {
+    console.error("[Global Error]", e.message, "at", e.filename, ":", e.lineno, ":", e.colno);
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    console.error("[Unhandled Rejection]", e.reason);
+  });
+
   async function init() {
-    await SecureStore.ready;
-    loadInitialState();
-    applyTheme();
+    try {
+      await SecureStore.ready;
+    } catch (e) {
+      console.warn("[init] SecureStore.ready failed:", e);
+    }
+    try {
+      loadInitialState();
+    } catch (e) {
+      console.error("[init] loadInitialState failed:", e);
+    }
+    // Initialize CEFR level system (must be after loadInitialState so VOCAB_DAYS and ITEMS exist)
+    try {
+      if (window.CefrSelector && window.CefrSelector.initCefrSystem) {
+        window.CefrSelector.initCefrSystem();
+      }
+    } catch (e) {
+      console.error("[init] CefrSelector.initCefrSystem failed:", e);
+    }
+    try { applyTheme(); } catch (e) { console.error("[init] applyTheme failed:", e); }
     // Inject inline SVG icons into every [data-icon] placeholder
-    document.querySelectorAll("[data-icon]").forEach(function (node) {
-      node.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[node.dataset.icon] || "") + "</svg>";
-    });
-    applyI18n();
+    try {
+      document.querySelectorAll("[data-icon]").forEach(function (node) {
+        node.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[node.dataset.icon] || "") + "</svg>";
+      });
+    } catch (e) { console.error("[init] SVG injection failed:", e); }
+    try { applyI18n(); } catch (e) { console.error("[init] applyI18n failed:", e); }
     // อัปเดตปุ่ม login ใน sidebar ด้วยภาษาที่ถูกต้อง (หลัง settings ถูก init แล้ว)
     if (window.VocabAuth && window.VocabAuth.updateSidebarAuthBtn) {
-      try { window.VocabAuth.updateSidebarAuthBtn(); } catch (e) {}
+      try { window.VocabAuth.updateSidebarAuthBtn(); } catch (e) { console.error("[init] updateSidebarAuthBtn failed:", e); }
     }
-    initChips();
+    try { initChips(); } catch (e) { console.error("[init] initChips failed:", e); }
+    try { initGameSources(); } catch (e) { console.error("[init] initGameSources failed:", e); }
+    try { applyI18n(); } catch (e) { console.error("[init] applyI18n (after game sources) failed:", e); }
     // Defer heavy rendering (charts, heatmap, mastery donut, memory gauge,
     // daily progress bars) to the next animation frame so the browser can
     // paint the initial UI (icons, text, layout) first — this makes the
     // page feel instantly responsive instead of blocking on renderHome().
     requestAnimationFrame(function () {
-      renderHome();
-      renderProfileChip(); // sidebar profile chip (เลเวล / rank / XP)
-      applyRewards();      // โชว์ธีมสี/accent + ฉายา ตามเลเวลที่มี
-      renderRewards();     // แถวรางวัลตามเลเวลในหน้า Achievements
-      updateBossRushBtn(); // โชว์ปุ่ม Boss Rush ถาปลดล็อก (L20)
-      renderSettings();
-      initInteractionFX();
+      try { renderHome(); } catch (e) { console.error("[init] renderHome failed:", e); }
+      try { renderProfileChip(); } catch (e) { console.error("[init] renderProfileChip failed:", e); }
+      try { applyRewards(); } catch (e) { console.error("[init] applyRewards failed:", e); }
+      try { renderRewards(); } catch (e) { console.error("[init] renderRewards failed:", e); }
+      try { updateBossRushBtn(); } catch (e) { console.error("[init] updateBossRushBtn failed:", e); }
+      try { renderSettings(); } catch (e) { console.error("[init] renderSettings failed:", e); }
+      try { initInteractionFX(); } catch (e) { console.error("[init] initInteractionFX failed:", e); }
+      // Placement Test (เฉพาะผู้ใช้ใหม่ที่ยังไม่เคยทำ)
+      try {
+        if (window.VocabPlacement && window.VocabPlacement.init) {
+          window.VocabPlacement.init();
+        }
+      } catch (e) { console.error("[init] VocabPlacement.init failed:", e); }
+      // CEFR Level Panel (แสดงระดับของผู้ใช้บนหน้า Home)
+      try { renderCEFRBadges(); } catch (e) { console.error("[init] renderCEFRBadges failed:", e); }
       // Music is owned by the mini-player overlay (mini-player.js). It calls
       // window.VocabMusic.pause() on init, so we skip the built-in looping
       // player to avoid two tracks playing at once.
-      if (!window.MINI_PLAYER_ENABLED) initMusic();
+      try {
+        if (!window.MINI_PLAYER_ENABLED) initMusic();
+      } catch (e) { console.error("[init] initMusic failed:", e); }
+    });
+
+    // Cloud sync completed (pull from Firebase on login/app-open or manual Sync Now).
+    // Reload in-memory state so the fresh cloud data is reflected without a page reload.
+    window.addEventListener("vocab:synced", function () {
+      if (currentMode) return; // mid-session — skip reload, next save will push merged state
+      try {
+        loadInitialState();
+        cachedAllItems = null;
+        ALL_ITEMS = getAllItems();
+        ITEMS = window.CefrSelector?.getFilteredItems ? window.CefrSelector.getFilteredItems() : ALL_ITEMS;
+        cachedBrowseKey = "";
+        if (window.CefrSelector && window.CefrSelector.initCefrSystem) window.CefrSelector.initCefrSystem();
+        applyTheme();
+        applyI18n();
+        renderHome();
+        renderProfileChip();
+        applyRewards();
+        renderRewards();
+        updateBossRushBtn();
+        renderSettings();
+        renderCEFRBadges();
+        if (window.VocabAuth && window.VocabAuth.updateSidebarAuthBtn) window.VocabAuth.updateSidebarAuthBtn();
+        console.log("[app] vocab:synced — state reloaded");
+      } catch (e) {
+        console.error("[app] reload after sync failed:", e);
+      }
     });
 
     document.querySelectorAll(".nav-btn").forEach(function (b) {
@@ -4523,7 +5284,22 @@
       this.setAttribute("aria-expanded", open ? "true" : "false");
     };
     document.querySelectorAll(".nav-sub-btn").forEach(function (b) {
-      b.onclick = function () { showView(b.dataset.view); };
+      b.onclick = function () {
+        showView(b.dataset.view);
+        const sub = $("navGamesSub");
+        if (sub) sub.classList.remove("open");
+        const ng = $("navGames");
+        if (ng) ng.setAttribute("aria-expanded", "false");
+      };
+    });
+
+    document.addEventListener("click", function (e) {
+      const sub = $("navGamesSub");
+      const ng = $("navGames");
+      if (sub && sub.classList.contains("open") && !sub.contains(e.target) && !ng.contains(e.target)) {
+        sub.classList.remove("open");
+        if (ng) ng.setAttribute("aria-expanded", "false");
+      }
     });
     const pc = $("profileChip");
     if (pc) pc.onclick = function () { showView("achievements"); };
@@ -4660,12 +5436,93 @@
     $("listenSkip").onclick = skipListen;
     $("listenInput").addEventListener("keydown", function (e) { if (e.key === "Enter") checkListen(); });
 
-    $("browseSearch").oninput = renderBrowse;
+    $("browseSearch").oninput = function () {
+      if (browseSearchTimer) clearTimeout(browseSearchTimer);
+      browseSearchTimer = setTimeout(function () {
+        browsePage = 1;
+        renderBrowse(false);
+      }, 150);
+    };
     $("browseToggleMeanings").onclick = function () {
       settings.hideAllMeanings = !settings.hideAllMeanings;
       save(K_SETTINGS, settings);
-      renderBrowse();
+      renderBrowse(false);
     };
+
+    $("openCustomWordModal")?.addEventListener("click", function () {
+      const modal = $("customWordModal");
+      if (!modal) return;
+      modal.removeAttribute("aria-hidden");
+      modal.classList.add("open", "show");
+      modal.querySelectorAll("[data-icon]").forEach(function (n) {
+        n.innerHTML = svgIcon(n.dataset.icon);
+      });
+      $("cwWord")?.focus();
+    });
+    $("cwClose")?.addEventListener("click", function () {
+      const modal = $("customWordModal");
+      if (modal) {
+        modal.classList.remove("open", "show");
+        modal.setAttribute("aria-hidden", "true");
+      }
+    });
+    $("cwImportCsv")?.addEventListener("click", function () {
+      const zone = $("cwCsvZone");
+      if (zone) zone.hidden = !zone.hidden;
+    });
+    $("cwCsvFile")?.addEventListener("change", function () {
+      const file = $("cwCsvFile").files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const result = importCustomWordsCsv(evt.target.result);
+        const status = $("cwCsvStatus");
+        if (status) {
+          status.textContent = result.ok
+            ? t("cw.importOk").replace("{n}", result.added).replace("{d}", result.skipped)
+            : t("cw.importErr").replace("{msg}", result.error || "");
+          status.style.color = result.ok ? "var(--good)" : "var(--bad)";
+        }
+        if (result.ok && result.added > 0) {
+          cachedAllItems = null;
+          ALL_ITEMS = getAllItems();
+          ITEMS = window.CefrSelector?.getFilteredItems ? window.CefrSelector.getFilteredItems() : ALL_ITEMS;
+          cachedBrowseKey = "";
+          renderBrowse(true);
+        }
+      };
+      reader.readAsText(file);
+    });
+    $("cwCancel")?.addEventListener("click", function () {
+      const modal = $("customWordModal");
+      if (modal) {
+        modal.classList.remove("open", "show");
+        modal.setAttribute("aria-hidden", "true");
+      }
+    });
+    $("cwSave")?.addEventListener("click", function () {
+      const word = $("cwWord").value.trim();
+      const type = $("cwType").value;
+      const pos = $("cwPos").value.trim();
+      const th = $("cwTh").value.trim();
+      const exEn = $("cwExEn").value.trim();
+      const exTh = $("cwExTh").value.trim();
+      if (!word || !th) {
+        toast("กรุณากรอกคำศัพท์และความหมาย", "err");
+        return;
+      }
+      saveCustomWord({ word, type, pos, th, exEn, exTh, day: 1 });
+      $("cwWord").value = "";
+      $("cwPos").value = "";
+      $("cwTh").value = "";
+      $("cwExEn").value = "";
+      $("cwExTh").value = "";
+      const modal = $("customWordModal");
+      if (modal) {
+        modal.classList.remove("open", "show");
+        modal.setAttribute("aria-hidden", "true");
+      }
+    });
 
     // Plan-day override controls
     function tasksActive() { return $("view-tasks").classList.contains("active"); }
@@ -4692,6 +5549,23 @@
         toast("Reset complete", "ok");
       }
     });
+    };
+
+    // --- Clear All Data — wipes every vocab_ key from localStorage ---
+    $("clearAllData").onclick = function () {
+      confirmDialog(svgIcon("alert", "ico sm") + " This will delete ALL your data: progress, settings, streak, achievements, and all preferences. The app will be like it was just opened for the first time. Are you sure?", "Clear All Data").then(function (ok) {
+        if (ok) {
+          Object.keys(localStorage).forEach(function (k) {
+            if (k.indexOf("vocab_") === 0) localStorage.removeItem(k);
+          });
+          // Also clear SecureStore (IndexedDB) if available
+          if (window.SecureStore && window.SecureStore.clear) {
+            try { window.SecureStore.clear(); } catch (e) {}
+          }
+          toast("All data cleared — reload to start fresh", "ok");
+          setTimeout(function () { location.reload(); }, 1200);
+        }
+      });
     };
 
     // Warn if opened from file:// (mic permission won't persist)
@@ -4733,8 +5607,8 @@
       }
     } catch (e) {}
 
-    // Register the service worker for offline use + installability.
-    if ("serviceWorker" in navigator) {
+    // Register the service worker for offline use + installability (skip on file://).
+    if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
       window.addEventListener("load", function () {
         navigator.serviceWorker.register("service-worker.js").then(function (reg) {
           if (!reg) return;
@@ -4853,7 +5727,2346 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 
+  /* ============================================================
+     GRADED READERS & STORIES (300 Articles across A1–C2, 50 per level)
+     ============================================================ */
+  function generateAllStories() {
+    const levels = ["A1", "A2", "B1", "B2", "C1", "C2"];
+    const levelTopics = {
+      "A1": [
+        "A Sunny Morning", "My Little Dog", "Breakfast with Family", "Going to the Park", "My Best Friend",
+        "My School Bag", "The Red Apple", "A Walk in the Rain", "My Bedroom", "Helping Mother",
+        "My Father's Car", "A Glass of Water", "Playing with Toys", "The Green Tree", "A Happy Cat",
+        "My New Shoes", "Reading a Book", "Writing My Name", "Listening to Music", "The Blue Sky",
+        "A Warm Blanket", "Drinking Fresh Milk", "Eating Sweet Fruit", "The Small Bird", "Running in the Yard",
+        "Opening the Door", "Cleaning the Table", "Wearing a Coat", "The Yellow Flower", "A Cute Rabbit",
+        "Looking at Pictures", "Sleeping at Night", "Waking Up Early", "Washing Hands", "Brushing Teeth",
+        "Eating Dinner", "Watching the Stars", "Holding an Umbrella", "Walking Home", "A Good Day",
+        "My Toy Train", "Drawing a House", "Singing a Song", "Sitting on the Chair", "Eating Rice",
+        "Drinking Orange Juice", "A Big Ball", "My Smiling Face", "Saying Hello", "Going to Sleep"
+      ],
+      "A2": [
+        "Visiting the Library", "Going to the City", "A Trip to the Park", "Shopping for Groceries", "Meeting an Old Friend",
+        "A Busy Afternoon", "Cooking Dinner Together", "A Visit to the Doctor", "Learning English Online", "Listening to the Radio",
+        "A Weekend in the Country", "Buying a New Phone", "Planning a Summer Vacation", "Taking the City Bus", "Waiting for the Train",
+        "A Sunny Beach Day", "Visiting a Local Museum", "An Exciting Football Match", "My Favorite Hobby", "Trying a New Restaurant",
+        "A Wonderful Birthday Party", "Making a Chocolate Cake", "A Quiet Rainy Sunday", "Cleaning the Whole House", "Gardening in Spring",
+        "A Long Walk in the Woods", "Watching a Comedy Movie", "Writing an Email to a Friend", "Helping a Kind Neighbor", "Finding Lost Keys",
+        "Looking at Old Photographs", "Choosing a Birthday Gift", "An Unexpected Phone Call", "A Delicious Lunch", "Reading the Daily Newspaper",
+        "Checking the Weather Forecast", "Planting Colorful Flowers", "Painting a Watercolor Picture", "Singing at a Concert", "Dancing at a Wedding",
+        "Visiting Grandparents", "A Trip to the Local Zoo", "Seeing Wild Animals", "Crossing the Stone Bridge", "A Boat on the River",
+        "Climbing the Green Hill", "A Cold Winter Morning", "Enjoying the Spring Breeze", "An Autumn Evening", "Looking Forward to Tomorrow"
+      ],
+      "B1": [
+        "Pursuing Career Goals", "The Importance of Continuous Learning", "Balancing Work and Life", "Overcoming Personal Challenges", "The Benefits of Traveling",
+        "Adapting to New Environments", "Healthy Eating Habits", "The Role of Technology in Education", "Effective Time Management", "Building Meaningful Relationships",
+        "Managing Stress in Daily Life", "The Value of Financial Literacy", "Exploring New Creative Hobbies", "The Impact of Social Media on Youth", "Community Volunteer Work",
+        "Understanding Different Cultural Norms", "The Art of Public Speaking", "Setting Achievable Life Targets", "The Significance of Teamwork", "Coping with Unexpected Uncertainty",
+        "The Benefits of Regular Physical Exercise", "Mindfulness and Mental Health", "The Future of Remote Working", "Discovering Local History", "The Power of Positive Thinking",
+        "Conserving Natural Resources", "Learning a Second Language", "The Influence of Music on Mood", "Creative Problem Solving Strategies", "The Experience of Moving Abroad",
+        "Navigating Career Transitions", "The Art of Negotiation", "Designing a Sustainable Daily Routine", "The Joy of Reading Novels", "Overcoming the Fear of Failure",
+        "The Value of Constructive Feedback", "Cultivating Daily Gratitude", "The Ethics of Modern Consumerism", "Exploring Culinary Arts", "The Science of Quality Sleep",
+        "Understanding Economic Trends", "The Evolution of Digital Communication", "Embracing Lifelong Curiosity", "The Importance of Civic Duty", "Balancing Ambition and Contentment",
+        "The Benefits of Journaling", "Adapting to Industry Changes", "The Significance of Professional Mentorship", "Building Personal Resilience", "Reflecting on Meaningful Life Lessons"
+      ],
+      "B2": [
+        "Navigating Modern Technological Disruptions", "The Complexities of Globalization", "Analyzing Economic Indicators", "Psychological Dimensions of Motivation", "Environmental Sustainability Initiatives",
+        "The Evolution of Higher Education", "Media Literacy in the Digital Age", "Urban Planning and Smart Cities", "Cultural Preservation vs. Modernization", "The Economics of Renewable Energy",
+        "Cross-Cultural Communication Strategies", "Corporate Social Responsibility", "The Psychology of Decision Making", "Advancements in Biotechnology", "The Impact of Artificial Intelligence",
+        "Public Policy and Social Welfare", "The Philosophy of Existentialism", "Globalization of Financial Markets", "The Sociology of Consumer Behavior", "Innovations in Public Transport",
+        "The Ethics of Genetic Engineering", "Demographic Shifts and Aging Societies", "The Role of Journalism in Democracy", "Behavioral Economics Insights", "The Future of Space Exploration",
+        "Biodiversity Conservation Efforts", "The Architecture of Modern Workplaces", "Global Supply Chain Vulnerabilities", "The Art of Strategic Management", "Intellectual Property in the Digital Era",
+        "The Psychology of Creativity", "Renewable Energy Transition Challenges", "The Impact of Automation on Labor", "Diplomacy in the 21st Century", "The Sociology of Work and Leisure",
+        "Advancements in Medical Diagnostics", "The Economics of Healthcare Systems", "Cultural Identity in a Multicultural World", "The Dynamics of Innovation Clusters", "Cybersecurity and Privacy Rights",
+        "The Philosophy of Science", "Macroeconomic Monetary Policies", "Urbanization and Quality of Life", "The Science of Climate Modeling", "Corporate Governance and Ethics",
+        "The Evolution of Consumer Preferences", "Philanthropy and Social Impact", "The Globalization of Higher Learning", "Cognitive Biases in Leadership", "Strategic Foresight and Long-term Planning"
+      ],
+      "C1": [
+        "Epistemological Foundations of Knowledge", "Socio-Economic Paradigms of Late Capitalism", "Technological Singularity and Human Agency", "Neurocognitive Correlates of Aesthetic Experience", "Planetary Boundaries and Anthropocene Realities",
+        "Geopolitical Realignments in Multipolar Orders", "Hermeneutic Approaches to Literary Criticism", "Bioethical Dilemmas in Synthetic Biology", "Institutional Economics and Market Failures", "Quantum Computing and Cryptographic Security",
+        "Phenomenological Perspectives on Consciousness", "Comparative Analysis of Governance Models", "Epistemic Injustice in Institutional Frameworks", "Evolutionary Dynamics of Complex Systems", "Aesthetics of the Contemporary Avant-Garde",
+        "Transnational Migration and Citizenship", "Computational Social Science Methodologies", "Theoretically Grounded Pedagogical Reforms", "Sociological Implications of Algorithmic Bias", "Macro-Prudential Regulation of Financial Stability",
+        "Ecological Economics and Degrowth Models", "Philosophy of Mind and Artificial Sentience", "Critical Discourse Analysis of Political Rhetoric", "Urban Resilience in the Face of Climate Shocks", "Epistemology of Scientific Discovery",
+        "Structural Determinants of Global Health", "The Semiotics of Visual Culture", "Behavioral Insights in Public Administration", "Ontological Status of Virtual Realities", "Transdisciplinary Approaches to Sustainability",
+        "Comparative Constitutional Law Dynamics", "The Political Economy of Global Trade", "Neuroaesthetics and Creative Cognition", "Ethics of Autonomous Weapon Systems", "Social Stratification in Digital Economies",
+        "The Philosophy of Language and Meaning", "Climatology and Policy Interventions", "Institutional Resilience and Crises", "The Sociology of Knowledge Production", "Historical Materialism in the 21st Century",
+        "Complex Adaptive Systems in Biology", "The Ethics of Intergenerational Justice", "Epistemic Authority in Expert Systems", "Aesthetic Theory in Postmodernity", "Spatial Analysis of Economic Disparities",
+        "The Philosophy of Technology and Alienation", "Comparative Political Economy Analysis", "Transnational Governance Mechanisms", "Hermeneutics of Legal Interpretation", "Futures Studies and Anticipatory Governance"
+      ],
+      "C2": [
+        "Ontological Inquiries into Ultimate Reality", "Metatheoretical Synthesis of Social Sciences", "Esoteric Epistemologies in the Post-Truth Era", "Deconstructive Readings of Canonical Texts", "Cosmological Paradigms and Multiverse Theories",
+        "Transcendental Phenomenology of Intersubjectivity", "Dialectical Materialism and Historical Teleology", "Advanced Topological Data Analysis in Cognition", "Post-Humanist Critiques of Subjectivity", "Axiological Foundations of Global Ethics",
+        "Hermeneutic Circles in Psychoanalytic Theory", "Non-Linear Dynamics in Societal Collapse", "Epistemic Relativism and Scientific Realism", "Ontological Turn in Contemporary Anthropology", "Semiotics of Transcendent Discourse",
+        "Biopolitical Control in Surveillance Societies", "Philosophy of Mathematics and Formal Systems", "Phenomenology of Temporal Experience", "Critical Theory and Late Capitalist Critique", "Metaphysics of Presence in Contemporary Thought",
+        "Comparative Epistemology of Eastern and Western Traditions", "Structuralism and Post-Structuralist Ruptures", "Ontology of Virtual and Augmented Realities", "Aesthetics of the Sublime in Modern Art", "Hermeneutics of Suspicion in Social Inquiry",
+        "Epistemological Implications of Quantum Entanglement", "Socio-Legal Dimensions of Global Justice", "Transcendental Idealism and Modern Logic", "The Architecture of Abstract Thought Systems", "Philosophy of History and Eschatological Visions",
+        "Phenomenological Sociology of Everyday Life", "Ontological Security in Geopolitical Discourses", "Metatheory of Complex Adaptive Organizations", "Epistemic Warrant and Justified True Belief", "Deconstruction of Binary Oppositions in Discourse",
+        "Advanced Hermeneutics of Sacred Texts", "Sociological Imagination in Macro-Historical Analysis", "Philosophy of Science and Paradigm Shifts", "Ontological Commitments in Formal Ontology", "Critical Realism and Social Stratification",
+        "Epistemological Critiques of Positivism", "Phenomenology of Embodied Cognition", "Metaphysics of Causality in Modern Physics", "Dialectics of Enlightenment in the Digital Age", "Transcendental Pragmatics of Discourse Ethics",
+        "Ontological Foundations of Artificial General Intelligence", "Hermeneutic Horizon in Cross-Cultural Translation", "Epistemic Virtues in Scientific Inquiry", "Structural Homologies in Myth and Science", "The Ultimate Synthesis of Human Knowledge"
+      ]
+    };
+
+    const stories = [];
+    levels.forEach(function (lvl) {
+      const topics = levelTopics[lvl] || [];
+      topics.forEach(function (topic, idx) {
+        const sId = "story-" + lvl.toLowerCase() + "-" + (idx + 1);
+        stories.push({
+          id: sId,
+          level: lvl,
+          title: topic,
+          text: getArticleText(lvl, topic, idx + 1),
+          thText: getArticleThai(lvl, topic, idx + 1)
+        });
+      });
+    });
+    return stories;
+  }
+
+  function getArticleText(lvl, topic, n) {
+    if (lvl === "A1") {
+      return "This is a short story about " + topic.toLowerCase() + ". Every day, we learn new things and practice English vocabulary. The sun shines brightly, and people are happy. We read books, talk with friends, and enjoy our simple daily life. Learning English is wonderful and helps us grow every single day.";
+    } else if (lvl === "A2") {
+      return "Today we explore the fascinating theme of " + topic.toLowerCase() + ". Life presents various opportunities to discover new places, meet interesting people, and gain valuable experiences. Through consistent practice and curiosity, we build confidence, improve our skills, and prepare for exciting adventures ahead.";
+    } else if (lvl === "B1") {
+      return "When considering " + topic.toLowerCase() + ", individuals often encounter diverse perspectives and challenges. Balancing personal ambition with daily responsibilities requires dedication, strategic planning, and continuous self-reflection. By embracing new opportunities and maintaining a positive mindset, we achieve meaningful progress and personal fulfillment.";
+    } else if (lvl === "B2") {
+      return "The complexities surrounding " + topic.toLowerCase() + " demand rigorous analysis and comprehensive understanding. Modern society navigates rapid transformations across technological, economic, and cultural domains. Stakeholders must evaluate systemic impacts, foster collaborative innovations, and implement sustainable strategies to address contemporary challenges effectively.";
+    } else if (lvl === "C1") {
+      return "An in-depth examination of " + topic.toLowerCase() + " reveals profound epistemological and structural dynamics. Contemporary paradigms necessitate critical discourse, sophisticated methodological frameworks, and nuanced interdisciplinary inquiry. Intellectual rigor and foresight remain paramount in addressing multifaceted global phenomena and institutional evolution.";
+    } else {
+      return "Rigorous ontological and metatheoretical inquiry into " + topic.toLowerCase() + " unveils intricate webs of conceptual presuppositions. Transcendental reflection and deconstructive analysis challenge foundational dogmas, compelling a radical reconfiguration of theoretical paradigms, intersubjective realities, and the limits of human cognition.";
+    }
+  }
+
+  function getArticleThai(lvl, topic, n) {
+    if (lvl === "A1") {
+      return "นี่คือเรื่องสั้นเกี่ยวกับ " + topic + " ทุกๆ วันเราเรียนรู้สิ่งใหม่และฝึกฝนคำศัพท์ภาษาอังกฤษ พระอาทิตย์ส่องแสงสว่างสดใสและผู้คนมีความสุข เราอ่านหนังสือ พูดคุยกับเพื่อน และมีความสุขกับชีวิตประจำวันอันเรียบง่าย การเรียนภาษาอังกฤษเป็นเรื่องที่ยอดเยี่ยมและช่วยให้เราเติบโตขึ้นทุกวัน";
+    } else if (lvl === "A2") {
+      return "วันนี้เราสำรวจหัวข้อที่น่าสนใจเกี่ยวกับ " + topic + " ชีวิตมอบโอกาสต่างๆ มากมายในการค้นพบสถานที่ใหม่ๆ พบปะผู้คนที่น่าสนใจ และได้รับประสบการณ์ที่มีค่า ผ่านการฝึกฝนอย่างสม่ำเสมอและความอยากรู้อยากเห็น เราสร้างความมั่นใจ พัฒนาทักษะ และเตรียมพร้อมสำหรับการผจญภัยที่น่าตื่นเต้นข้างหน้า";
+    } else if (lvl === "B1") {
+      return "เมื่อพิจารณาถึง " + topic + " บุคคลมักพบกับมุมมองและความท้าทายที่หลากหลาย การสร้างความสมดุลระหว่างความทะเยอทะยานส่วนตัวและความรับผิดชอบประจำวันต้องอาศัยความทุ่มเท การวางแผนเชิงกลยุทธ์ และการไตร่ตรองตนเองอย่างต่อเนื่อง การเปิดรับโอกาสใหม่ๆ และการรักษาทัศนคติเชิงบวกช่วยให้เราบรรลุความก้าวหน้าที่มีความหมายและความสมบูรณ์ในชีวิต";
+    } else if (lvl === "B2") {
+      return "ความซับซ้อนที่อยู่รอบ " + topic + " เรียกร้องการวิเคราะห์อย่างเข้มงวดและความเข้าใจที่ครอบคลุม สังคมสมัยใหม่นำทางผ่านการเปลี่ยนแปลงอย่างรวดเร็วในด้านเทคโนโลยี เศรษฐกิจ และวัฒนธรรม ผู้มีส่วนเกี่ยวข้องต้องประเมินผลกระทบเชิงระบบ ส่งเสริมการนวัตกรรมร่วมกัน และดำเนินกลยุทธ์ที่ยั่งยืนเพื่อรับมือกับความท้าทายร่วมสมัยอย่างมีประสิทธิภาพ";
+    } else if (lvl === "C1") {
+      return "การตรวจสอบเชิงลึกเกี่ยวกับ " + topic + " เผยให้เห็นถึงพลวัตทางญาณวิทยาและโครงสร้างเชิงลึก กระบวนการร่วมสมัยเรียกร้องการอภิปรายเชิงวิพากษ์ กรอบระเบียบวิธีที่ซับซ้อน และการสอบถามข้ามสาขาวิชา ความเข้มงวดทางปัญญาและการมองการณ์ไกลยังคงมีความสำคัญสูงสุดในการจัดการกับปรากฏการณ์ระดับโลกและวิวัฒนาการของสถาบัน";
+    } else {
+      return "การสอบถามเชิงอภิปรัชญาและเมทาทฤษฎีเกี่ยวกับ " + topic + " เผยให้เห็นเครือข่ายที่ซับซ้อนของข้อสมมติฐานเชิงแนวคิด การสะท้อนกลับเชิงอภิปรัชญาและการวิเคราะห์แบบรื้อสร้างท้าทายหลักคำสอนที่ตั้งไว้ บังคับให้ต้องมีการกำหนดค่าใหม่ทางทฤษฎี ความเป็นจริงระหว่างอัตวิสัย และขีดจำกัดของการรับรู้ของมนุษย์";
+    }
+  }
+
+  const COMMON_TH_DICT = {
+    "this": { th: "นี้ / นี่", pos: "pronoun", phonetic: "ðɪs" },
+    "is": { th: "คือ / เป็น / อยู่", pos: "verb", phonetic: "ɪz" },
+    "a": { th: "หนึ่ง / อัน / ตัว", pos: "determiner", phonetic: "ə" },
+    "short": { th: "สั้น / ต่ำ", pos: "adjective", phonetic: "ʃɔːrt" },
+    "story": { th: "เรื่องเล่า / นิทาน", pos: "noun", phonetic: "ˈstɔːri" },
+    "about": { th: "เกี่ยวกับ", pos: "preposition", phonetic: "əˈbaʊt" },
+    "every": { th: "ทุกๆ", pos: "adjective", phonetic: "ˈevri" },
+    "day": { th: "วัน", pos: "noun", phonetic: "deɪ" },
+    "we": { th: "พวกเรา", pos: "pronoun", phonetic: "wiː" },
+    "learn": { th: "เรียนรู้", pos: "verb", phonetic: "lɜːrn" },
+    "new": { th: "ใหม่", pos: "adjective", phonetic: "nuː" },
+    "things": { th: "สิ่งของ / เรื่องราว", pos: "noun", phonetic: "θɪŋz" },
+    "practice": { th: "ฝึกฝน", pos: "verb/noun", phonetic: "ˈpræktɪs" },
+    "english": { th: "ภาษาอังกฤษ", pos: "noun", phonetic: "ˈɪŋɡlɪʃ" },
+    "vocabulary": { th: "คำศัพท์", pos: "noun", phonetic: "vəˈkæbjuleri" },
+    "the": { th: "(คำนำหน้านามชี้เฉพาะ)", pos: "article", phonetic: "ðiː" },
+    "sun": { th: "ดวงอาทิตย์", pos: "noun", phonetic: "sʌn" },
+    "shines": { th: "ส่องแสง", pos: "verb", phonetic: "ʃaɪnz" },
+    "brightly": { th: "อย่างสว่างสดใส", pos: "adverb", phonetic: "ˈbraɪtli" },
+    "and": { th: "และ", pos: "conjunction", phonetic: "ænd" },
+    "people": { th: "ผู้คน", pos: "noun", phonetic: "ˈpiːpl" },
+    "are": { th: "คือ / เป็น / อยู่", pos: "verb", phonetic: "ɑːr" },
+    "happy": { th: "มีความสุข", pos: "adjective", phonetic: "ˈhæpi" },
+    "read": { th: "อ่าน", pos: "verb", phonetic: "riːd" },
+    "books": { th: "หนังสือ", pos: "noun", phonetic: "bʊks" },
+    "talk": { th: "พูดคุย", pos: "verb", phonetic: "tɔːk" },
+    "with": { th: "กับ", pos: "preposition", phonetic: "wɪð" },
+    "friends": { th: "เพื่อน", pos: "noun", phonetic: "frendz" },
+    "enjoy": { th: "เพลิดเพลิน", pos: "verb", phonetic: "ɪnˈdʒɔɪ" },
+    "our": { th: "ของพวกเรา", pos: "pronoun", phonetic: "ˈaʊər" },
+    "simple": { th: "เรียบง่าย", pos: "adjective", phonetic: "ˈsɪmpl" },
+    "daily": { th: "ประจำวัน", pos: "adjective", phonetic: "ˈdeɪli" },
+    "life": { th: "ชีวิต", pos: "noun", phonetic: "laɪf" },
+    "learning": { th: "การเรียนรู้", pos: "noun", phonetic: "ˈlɜːrnɪŋ" },
+    "wonderful": { th: "ยอดเยี่ยม", pos: "adjective", phonetic: "ˈwʌndərfʊl" },
+    "helps": { th: "ช่วยเหลือ", pos: "verb", phonetic: "helps" },
+    "us": { th: "พวกเรา (กรรม)", pos: "pronoun", phonetic: "ʌs" },
+    "grow": { th: "เติบโต", pos: "verb", phonetic: "ɡroʊ" },
+    "single": { th: "เดี่ยว / แต่ละ", pos: "adjective", phonetic: "ˈsɪŋɡl" },
+    "today": { th: "วันนี้", pos: "noun/adverb", phonetic: "təˈdeɪ" },
+    "explore": { th: "สำรวจ", pos: "verb", phonetic: "ɪkˈsplɔːr" },
+    "fascinating": { th: "น่าหลงใหล", pos: "adjective", phonetic: "ˈfæsɪneɪtɪŋ" },
+    "theme": { th: "หัวข้อ / ธีม", pos: "noun", phonetic: "θiːm" },
+    "presents": { th: "นำเสนอ", pos: "verb", phonetic: "prɪˈzents" },
+    "various": { th: "หลากหลาย", pos: "adjective", phonetic: "ˈveriəs" },
+    "opportunities": { th: "โอกาส", pos: "noun", phonetic: "ˌɑːpərˈtuːnətiz" },
+    "discover": { th: "ค้นพบ", pos: "verb", phonetic: "dɪˈskʌvər" },
+    "places": { th: "สถานที่", pos: "noun", phonetic: "ˈpleɪsɪz" },
+    "meet": { th: "พบปะ", pos: "verb", phonetic: "miːt" },
+    "interesting": { th: "น่าสนใจ", pos: "adjective", phonetic: "ˈɪntrəstɪŋ" },
+    "gain": { th: "ได้รับ", pos: "verb", phonetic: "ɡeɪn" },
+    "valuable": { th: "มีค่า", pos: "adjective", phonetic: "ˈvæljuəbl" },
+    "experiences": { th: "ประสบการณ์", pos: "noun", phonetic: "ɪkˈspɪriənsɪz" },
+    "through": { th: "ผ่าน", pos: "preposition", phonetic: "θruː" },
+    "consistent": { th: "สม่ำเสมอ", pos: "adjective", phonetic: "kənˈsɪstənt" },
+    "curiosity": { th: "ความอยากรู้อยากเห็น", pos: "noun", phonetic: "ˌkjʊriˈɑːsəti" },
+    "build": { th: "สร้าง", pos: "verb", phonetic: "bɪld" },
+    "confidence": { th: "ความมั่นใจ", pos: "noun", phonetic: "ˈkɑːnfɪdəns" },
+    "improve": { th: "พัฒนา", pos: "verb", phonetic: "ɪmˈpruːv" },
+    "skills": { th: "ทักษะ", pos: "noun", phonetic: "skɪlz" },
+    "prepare": { th: "เตรียมตัว", pos: "verb", phonetic: "prɪˈper" },
+    "exciting": { th: "น่าตื่นเต้น", pos: "adjective", phonetic: "ɪkˈsaɪtɪŋ" },
+    "adventures": { th: "การผจญภัย", pos: "noun", phonetic: "ədˈventʃərz" },
+    "ahead": { th: "ข้างหน้า", pos: "adverb", phonetic: "əˈhed" },
+    "when": { th: "เมื่อ", pos: "conjunction", phonetic: "wen" },
+    "considering": { th: "การพิจารณา", pos: "preposition", phonetic: "kənˈsɪdərɪŋ" },
+    "individuals": { th: "บุคคล", pos: "noun", phonetic: "ˌɪndɪˈvɪdʒuəlz" },
+    "often": { th: "บ่อยครั้ง", pos: "adverb", phonetic: "ˈɔːfn" },
+    "encounter": { th: "เผชิญหน้า", pos: "verb", phonetic: "ɪnˈkaʊntər" },
+    "diverse": { th: "หลากหลาย", pos: "adjective", phonetic: "daɪˈvɜːrs" },
+    "perspectives": { th: "มุมมอง", pos: "noun", phonetic: "pərˈspektɪvz" },
+    "challenges": { th: "ความท้าทาย", pos: "noun", phonetic: "ˈtʃælɪndʒɪz" },
+    "balancing": { th: "การสร้างความสมดุล", pos: "noun", phonetic: "ˈbælənsɪŋ" },
+    "personal": { th: "ส่วนตัว", pos: "adjective", phonetic: "ˈpɜːrsənl" },
+    "ambition": { th: "ความทะเยอทะยาน", pos: "noun", phonetic: "æmˈbɪʃn" },
+    "responsibilities": { th: "ความรับผิดชอบ", pos: "noun", phonetic: "rɪˌspɑːnsəˈbɪlətiz" },
+    "requires": { th: "ต้องการ", pos: "verb", phonetic: "rɪˈkwaɪərz" },
+    "dedication": { th: "ความทุ่มเท", pos: "noun", phonetic: "ˌdedɪˈkeɪʃn" },
+    "strategic": { th: "เชิงกลยุทธ์", pos: "adjective", phonetic: "strəˈtiːdʒɪk" },
+    "planning": { th: "การวางแผน", pos: "noun", phonetic: "ˈplænɪŋ" },
+    "continuous": { th: "อย่างต่อเนื่อง", pos: "adjective", phonetic: "kənˈtɪnjuəs" },
+    "self-reflection": { th: "การไตร่ตรองตนเอง", pos: "noun", phonetic: "ˌself rɪˈflekʃn" },
+    "embracing": { th: "การเปิดรับ", pos: "verb", phonetic: "ɪmˈbreɪsɪŋ" },
+    "maintaining": { th: "การรักษา", pos: "verb", phonetic: "meɪnˈteɪnɪŋ" },
+    "positive": { th: "เชิงบวก", pos: "adjective", phonetic: "ˈpɑːzətɪv" },
+    "mindset": { th: "กรอบความคิด", pos: "noun", phonetic: "ˈmaɪndset" },
+    "achieve": { th: "บรรลุ", pos: "verb", phonetic: "əˈtʃiːv" },
+    "meaningful": { th: "มีความหมาย", pos: "adjective", phonetic: "ˈmiːnɪŋfʊl" },
+    "progress": { th: "ความก้าวหน้า", pos: "noun", phonetic: "ˈprɑːɡres" },
+    "fulfillment": { th: "ความสมบูรณ์ในชีวิต", pos: "noun", phonetic: "fʊlˈfɪlmənt" },
+    "complexities": { th: "ความซับซ้อน", pos: "noun", phonetic: "kəmˈpleksətiz" },
+    "surrounding": { th: "รอบๆ", pos: "adjective", phonetic: "səˈraʊndɪŋ" },
+    "demand": { th: "เรียกร้อง", pos: "verb/noun", phonetic: "dɪˈmænd" },
+    "rigorous": { th: "อย่างเข้มงวด", pos: "adjective", phonetic: "ˈrɪɡərəs" },
+    "analysis": { th: "การวิเคราะห์", pos: "noun", phonetic: "əˈnæləsɪs" },
+    "comprehensive": { th: "ครอบคลุม", pos: "adjective", phonetic: "ˌkɑːmprɪˈhensɪv" },
+    "understanding": { th: "ความเข้าใจ", pos: "noun", phonetic: "ˌʌndərˈstændɪŋ" },
+    "modern": { th: "สมัยใหม่", pos: "adjective", phonetic: "ˈmɑːdərn" },
+    "society": { th: "สังคม", pos: "noun", phonetic: "səˈsaɪəti" },
+    "navigates": { th: "นำทาง", pos: "verb", phonetic: "ˈnævɪɡeɪts" },
+    "rapid": { th: "รวดเร็ว", pos: "adjective", phonetic: "ˈræpɪd" },
+    "transformations": { th: "การเปลี่ยนแปลง", pos: "noun", phonetic: "ˌtrænsfərˈmeɪʃnz" },
+    "across": { th: "ข้าม / ทั่ว", pos: "preposition", phonetic: "əˈkrɔːs" },
+    "technological": { th: "เชิงเทคโนโลยี", pos: "adjective", phonetic: "ˌteknəˈlɑːdʒɪkl" },
+    "economic": { th: "ทางเศรษฐกิจ", pos: "adjective", phonetic: "ˌiːkəˈnɑːmɪk" },
+    "cultural": { th: "ทางวัฒนธรรม", pos: "adjective", phonetic: "ˈkʌltʃərəl" },
+    "domains": { th: "โดเมน / ด้าน", pos: "noun", phonetic: "doʊˈmeɪnz" },
+    "stakeholders": { th: "ผู้มีส่วนเกี่ยวข้อง", pos: "noun", phonetic: "ˈsteɪkhoʊldərz" },
+    "must": { th: "ต้อง", pos: "verb", phonetic: "mʌst" },
+    "evaluate": { th: "ประเมิน", pos: "verb", phonetic: "ɪˈvæljueɪt" },
+    "systemic": { th: "เชิงระบบ", pos: "adjective", phonetic: "sɪˈstemɪk" },
+    "impacts": { th: "ผลกระทบ", pos: "noun", phonetic: "ˈɪmpækts" },
+    "foster": { th: "ส่งเสริม", pos: "verb", phonetic: "ˈfɑːstər" },
+    "collaborative": { th: "แบบร่วมมือ", pos: "adjective", phonetic: "kəˈlæbərətɪv" },
+    "innovations": { th: "นวัตกรรม", pos: "noun", phonetic: "ˌɪnəˈveɪʃnz" },
+    "implement": { th: "ดำเนินการ", pos: "verb", phonetic: "ˈɪmplɪment" },
+    "sustainable": { th: "ยั่งยืน", pos: "adjective", phonetic: "səˈsteɪnəbl" },
+    "strategies": { th: "กลยุทธ์", pos: "noun", phonetic: "ˈstrætədʒiz" },
+    "address": { th: "จัดการ / แก้ไข", pos: "verb", phonetic: "əˈdres" },
+    "contemporary": { th: "ร่วมสมัย", pos: "adjective", phonetic: "kənˈtempəreri" },
+    "effectively": { th: "อย่างมีประสิทธิภาพ", pos: "adverb", phonetic: "ɪˈfektɪvli" },
+    "in-depth": { th: "เชิงลึก", pos: "adjective", phonetic: "ɪn depθ" },
+    "examination": { th: "การตรวจสอบ", pos: "noun", phonetic: "ɪɡˌzæmɪˈneɪʃn" },
+    "reveals": { th: "เผยให้เห็น", pos: "verb", phonetic: "rɪˈviːlz" },
+    "profound": { th: "ลึกซึ้ง", pos: "adjective", phonetic: "prəˈfaʊnd" },
+    "epistemological": { th: "ทางญาณวิทยา", pos: "adjective", phonetic: "ɪˌpɪstɪməˈlɑːdʒɪkl" },
+    "structural": { th: "เชิงโครงสร้าง", pos: "adjective", phonetic: "ˈstrʌktʃərəl" },
+    "dynamics": { th: "พลวัต", pos: "noun", phonetic: "daɪˈnæmɪks" },
+    "paradigms": { th: "กระบวนทัศน์", pos: "noun", phonetic: "ˈpærədaɪmz" },
+    "necessitate": { th: "เรียกร้อง", pos: "verb", phonetic: "nəˈsesɪteɪt" },
+    "critical": { th: "เชิงวิพากษ์", pos: "adjective", phonetic: "ˈkrɪtɪkl" },
+    "discourse": { th: "การอภิปราย", pos: "noun", phonetic: "ˈdɪskɔːrs" },
+    "sophisticated": { th: "ซับซ้อน / ละเมียดละไม", pos: "adjective", phonetic: "səˈfɪstɪkeɪtɪd" },
+    "methodological": { th: "ระเบียบวิธี", pos: "adjective", phonetic: "ˌmeθədəˈlɑːdʒɪkl" },
+    "frameworks": { th: "กรอบ", pos: "noun", phonetic: "ˈfreɪmwɜːrks" },
+    "nuanced": { th: "มีความละเมียดละไม", pos: "adjective", phonetic: "ˈnuːɑːnst" },
+    "interdisciplinary": { th: "ข้ามสาขาวิชา", pos: "adjective", phonetic: "ˌɪntərdɪsəˈplɪneri" },
+    "inquiry": { th: "การสอบถาม", pos: "noun", phonetic: "ɪnˈkwaɪri" },
+    "intellectual": { th: "ทางปัญญา", pos: "adjective", phonetic: "ˌɪntəˈlektʃuəl" },
+    "rigor": { th: "ความเข้มงวด", pos: "noun", phonetic: "ˈrɪɡər" },
+    "foresight": { th: "การมองการณ์ไกล", pos: "noun", phonetic: "ˈfɔːrsaɪt" },
+    "remain": { th: "คงอยู่", pos: "verb", phonetic: "rɪˈmeɪn" },
+    "paramount": { th: "สำคัญที่สุด", pos: "adjective", phonetic: "ˈpærəmaʊnt" },
+    "multifaceted": { th: "หลากหลายมิติ", pos: "adjective", phonetic: "ˌʌltiˈfæsɪtɪd" },
+    "global": { th: "ระดับโลก", pos: "adjective", phonetic: "ˈɡloʊbl" },
+    "phenomena": { th: "ปรากฏการณ์", pos: "noun", phonetic: "fəˈnɑːmənə" },
+    "institutional": { th: "สถาบัน", pos: "adjective", phonetic: "ˌɪnstɪˈtuːʃənl" },
+    "evolution": { th: "วิวัฒนาการ", pos: "noun", phonetic: "ˌevəˈluːʃn" },
+    "ontological": { th: "เชิงอภิปรัชญา", pos: "adjective", phonetic: "ˌɑːntəˈlɑːdʒɪkl" },
+    "metatheoretical": { th: "เมทาทฤษฎี", pos: "adjective", phonetic: "ˌmetəˌθiːəˈretɪkl" },
+    "unveils": { th: "เผยให้เห็น", pos: "verb", phonetic: "ʌnˈveɪlz" },
+    "intricate": { th: "ซับซ้อน", pos: "adjective", phonetic: "ˈɪntrɪkət" },
+    "webs": { th: "เครือข่าย", pos: "noun", phonetic: "webz" },
+    "conceptual": { th: "เชิงแนวคิด", pos: "adjective", phonetic: "kənˈseptʃuəl" },
+    "presuppositions": { th: "ข้อสมมติฐาน", pos: "noun", phonetic: "ˌpriːsʌpəˈzɪʃnz" },
+    "transcendental": { th: "เหนือประสบการณ์", pos: "adjective", phonetic: "ˌtrænsenˈdentl" },
+    "reflection": { th: "การสะท้อน", pos: "noun", phonetic: "rɪˈflekʃn" },
+    "deconstructive": { th: "แบบรื้อสร้าง", pos: "adjective", phonetic: "ˌdiːkənˈstrʌktɪv" },
+    "challenge": { th: "ท้าทาย", pos: "verb/noun", phonetic: "ˈtʃælɪndʒ" },
+    "foundational": { th: "รากฐาน", pos: "adjective", phonetic: "faʊnˈdeɪʃnl" },
+    "dogmas": { th: "หลักคำสอน", pos: "noun", phonetic: "ˈdɔːɡməz" },
+    "compelling": { th: "น่าสนใจ / บังคับ", pos: "adjective", phonetic: "kəmˈpelɪŋ" },
+    "radical": { th: "รากฐาน / หัวรุนแรง", pos: "adjective", phonetic: "ˈrædɪkl" },
+    "reconfiguration": { th: "การกำหนดค่าใหม่", pos: "noun", phonetic: "riːkənˌfɪɡəˈreɪʃn" },
+    "theoretical": { th: "ทางทฤษฎี", pos: "adjective", phonetic: "ˌθiːəˈretɪkl" },
+    "intersubjective": { th: "ระหว่างอัตวิสัย", pos: "adjective", phonetic: "ˌɪntərˈsʌbdʒektɪv" },
+    "realities": { th: "ความเป็นจริง", pos: "noun", phonetic: "riˈælətiz" },
+    "limits": { th: "ขีดจำกัด", pos: "noun", phonetic: "ˈlɪmɪts" },
+    "human": { th: "มนุษย์", pos: "noun/adjective", phonetic: "ˈhjuːmən" },
+    "cognition": { th: "การรับรู้", pos: "noun", phonetic: "kɑːɡˈnɪʃn" },
+    "to": { th: "ไปยัง / เพื่อ", pos: "preposition", phonetic: "tuː" },
+    "in": { th: "ใน", pos: "preposition", phonetic: "ɪn" },
+    "on": { th: "บน", pos: "preposition", phonetic: "ɑːn" },
+    "at": { th: "ที่", pos: "preposition", phonetic: "æt" },
+    "for": { th: "สำหรับ", pos: "preposition", phonetic: "fɔːr" },
+    "of": { th: "ของ", pos: "preposition", phonetic: "ʌv" },
+    "by": { th: "โดย", pos: "preposition", phonetic: "baɪ" },
+    "from": { th: "จาก", pos: "preposition", phonetic: "frʌm" },
+    "as": { th: "ในฐานะ / เป็น", pos: "conjunction", phonetic: "æz" },
+    "that": { th: "ว่า / ที่ / นั้น", pos: "pronoun/conjunction", phonetic: "ðæt" },
+    "it": { th: "มัน", pos: "pronoun", phonetic: "ɪt" },
+    "they": { th: "พวกเขา", pos: "pronoun", phonetic: "ðeɪ" },
+    "he": { th: "เขา", pos: "pronoun", phonetic: "hiː" },
+    "she": { th: "เธอ", pos: "pronoun", phonetic: "ʃiː" },
+    "her": { th: "ของเธอ", pos: "pronoun", phonetic: "hɜːr" },
+    "his": { th: "ของเขา", pos: "pronoun", phonetic: "hɪz" },
+    "their": { th: "ของพวกเขา", pos: "pronoun", phonetic: "ðer" },
+    "your": { th: "ของคุณ", pos: "pronoun", phonetic: "jʊr" },
+    "my": { th: "ของฉัน", pos: "pronoun", phonetic: "maɪ" },
+    "i": { th: "ฉัน", pos: "pronoun", phonetic: "aɪ" },
+    "you": { th: "คุณ", pos: "pronoun", phonetic: "juː" },
+    "be": { th: "เป็น / อยู่ / คือ", pos: "verb", phonetic: "biː" },
+    "have": { th: "มี", pos: "verb", phonetic: "hæv" },
+    "do": { th: "ทำ", pos: "verb", phonetic: "duː" },
+    "say": { th: "พูด", pos: "verb", phonetic: "seɪ" },
+    "get": { th: "ได้รับ", pos: "verb", phonetic: "ɡet" },
+    "make": { th: "ทำ / สร้าง", pos: "verb", phonetic: "meɪk" },
+    "go": { th: "ไป", pos: "verb", phonetic: "ɡoʊ" },
+    "know": { th: "รู้", pos: "verb", phonetic: "noʊ" },
+    "take": { th: "เอา / พา", pos: "verb", phonetic: "teɪk" },
+    "see": { th: "เห็น", pos: "verb", phonetic: "siː" },
+    "come": { th: "มา", pos: "verb", phonetic: "kʌm" },
+    "think": { th: "คิด", pos: "verb", phonetic: "θɪŋk" },
+    "look": { th: "มอง", pos: "verb", phonetic: "lʊk" },
+    "want": { th: "ต้องการ", pos: "verb", phonetic: "wɑːnt" },
+    "give": { th: "ให้", pos: "verb", phonetic: "ɡɪv" },
+    "use": { th: "ใช้", pos: "verb", phonetic: "juːz" },
+    "find": { th: "หา / พบ", pos: "verb", phonetic: "faɪnd" },
+    "tell": { th: "บอก", pos: "verb", phonetic: "tel" },
+    "ask": { th: "ถาม", pos: "verb", phonetic: "æsk" },
+    "work": { th: "ทำงาน", pos: "verb/noun", phonetic: "wɜːrk" },
+    "seem": { th: "ดูเหมือน", pos: "verb", phonetic: "siːm" },
+    "feel": { th: "รู้สึก", pos: "verb", phonetic: "fiːl" },
+    "try": { th: "พยายาม", pos: "verb", phonetic: "traɪ" },
+    "leave": { th: "ออกจาก", pos: "verb", phonetic: "liːv" },
+    "call": { th: "เรียก", pos: "verb", phonetic: "kɔːl" }
+  };
+
+  function guessPartOfSpeech(w) {
+    if (w.endsWith("ly")) return "adverb";
+    if (w.endsWith("ing") || w.endsWith("ed")) return "verb";
+    if (w.endsWith("ion") || w.endsWith("ment") || w.endsWith("ness") || w.endsWith("ity") || w.endsWith("s") || w.endsWith("es")) return "noun";
+    if (w.endsWith("ive") || w.endsWith("ous") || w.endsWith("ful") || w.endsWith("less") || w.endsWith("able")) return "adjective";
+    return "word";
+  }
+
+  function getPosThai(pos) {
+    if (pos === "noun") return "คำนาม (Noun)";
+    if (pos === "verb") return "คำกริยา (Verb)";
+    if (pos === "adjective") return "คำคุณศัพท์ (Adjective)";
+    if (pos === "adverb") return "คำกริยาวิเศษณ์ (Adverb)";
+    if (pos === "pronoun") return "คำสรรพนาม (Pronoun)";
+    if (pos === "preposition") return "คำบุพบท (Preposition)";
+    if (pos === "conjunction") return "คำสันธาน (Conjunction)";
+    return "คำศัพท์ภาษาอังกฤษ";
+  }
+
+  const ALL_STORIES = generateAllStories();
+  let currentActiveLevelFilter = "All";
+  let currentGenreFilter = "All";
+  let currentStory = null;
+  let currentStoryScrollHandler = null;
+
+  /* ---------- Curated stories: fairy tales (นิทาน) + ghost stories (เรื่องผี) ----------
+     Long stories carry `pages`/`thPages` arrays rendered with the page-flip book reader. */
+  const CURATED_STORIES = [
+    {
+      id: "cur-fairy-boy-cried-wolf", level: "A1", genre: "fairy",
+      title: "The Boy Who Cried Wolf",
+      pages: [
+        "A young shepherd watched his sheep on a green hill. He was bored, so he shouted, 'Wolf! Wolf! The wolf is coming!' The villagers ran to help him. But there was no wolf. They were not happy.",
+        "The boy played the same trick again the next day. The villagers ran again, but again there was no wolf. 'Do not lie,' they said. The boy only laughed.",
+        "Then one day a real wolf came. The boy shouted, 'Wolf! Wolf! Help!' But this time nobody came. The wolf frightened the sheep, and the boy learned a hard lesson: nobody believes a liar, even when he tells the truth."
+      ],
+      thPages: [
+        "เด็กเลี้ยงแกะหนุ่มเฝ้าดูแลแกะบนเนินเขาสีเขียว เขารู้สึกเบื่อจึงตะโกนว่า 'หมาป่า! หมาป่า! หมาป่ากำลังมา!' ชาวบ้านวิ่งมาช่วยเขา แต่ไม่มีหมาป่าเลย พวกเขาไม่พอใจ",
+        "เด็กเล่นกลอุบายเดิมอีกครั้งในวันถัดมา ชาวบ้านวิ่งมาอีก แต่ก็ยังไม่มีหมาป่า 'อย่าโกหก' พวกเขากล่าว เด็กหัวเราะเท่านั้น",
+        "แล้ววันหนึ่งหมาป่าตัวจริงก็มา เด็กตะโกนว่า 'หมาป่า! หมาป่า! ช่วยด้วย!' แต่คราวนี้ไม่มีใครมา หมาป่าทำให้แกะตกใจ และเด็กได้เรียนรู้บทเรียนอันยากลำบาก: ไม่มีใครเชื่อคนโกหก แม้เขาจะพูดความจริง"
+      ]
+    },
+    {
+      id: "cur-fairy-tortoise-hare", level: "A1", genre: "fairy",
+      title: "The Tortoise and the Hare",
+      pages: [
+        "A fast hare laughed at a slow tortoise. 'You are so slow!' he said. The tortoise smiled and said, 'Let us have a race.' The hare laughed loudly and agreed.",
+        "The race began. The hare ran very fast and soon he was far ahead. He felt sure he would win, so he stopped to rest under a big tree and fell asleep.",
+        "The tortoise walked slowly and steadily. He never stopped. When the hare woke up, the tortoise was near the finish line. The slow and steady tortoise won the race."
+      ],
+      thPages: [
+        "กระต่ายที่ว่องไวหัวเราะเยาะเต่าที่เชื่องช้า 'เจ้าเชื่องช้าจัง!' เขากล่าว เต่ายิ้มและพูดว่า 'มาแข่งกันเถอะ' กระต่ายหัวเราะเสียงดังและตกลง",
+        "การแข่งขันเริ่มขึ้น กระต่ายวิ่งเร็วมากและในไม่ช้าก็领先มาก เขามั่นใจว่าจะชนะ จึงหยุดพักใต้ต้นไม้ใหญ่และหลับไป",
+        "เต่าเดินช้าๆ แต่สม่ำเสมอ เขาไม่เคยหยุด เมื่อกระต่ายตื่นขึ้น เต่าก็อยู่ใกล้เส้นชัย เต่าที่ช้าแต่สม่ำเสมอชนะการแข่งขัน"
+      ]
+    },
+    {
+      id: "cur-fairy-lion-mouse", level: "A1", genre: "fairy",
+      title: "The Lion and the Mouse",
+      pages: [
+        "A lion was sleeping in the forest when a little mouse ran over his nose. The lion woke up and caught the mouse. 'Please let me go,' said the mouse. 'One day I will help you.' The lion laughed but let him go.",
+        "Later, the lion was caught in a hunter's net. He roared, but he could not escape. The little mouse heard the lion's roar and came running. He chewed through the net with his sharp teeth.",
+        "The lion was free. 'Thank you, little mouse,' he said. 'You saved my life.' From that day, the lion and the mouse were friends. Even the smallest friend can be a great help."
+      ],
+      thPages: [
+        "สิงโตกำลังนอนหลับอยู่ในป่าเมื่อหนูตัวเล็กวิ่งข้ามจมูกของมัน สิงโตตื่นขึ้นและจับหนูได้ 'กรุณาปล่อยฉันเถอะ' หนูกล่าว 'สักวันหนึ่งฉันจะช่วยคุณ' สิงโตหัวเราะแต่ก็ปล่อยเขาไป",
+        "ต่อมา สิงโตติดอยู่ในตาข่ายของนายพราน มันคำรามแต่หนีไม่พ้น หนูตัวเล็กได้ยินเสียงคำรามของสิงโตจึงวิ่งมา มันแทะตาข่ายด้วยฟันอันแหลมคม",
+        "สิงโตเป็นอิสระ 'ขอบใจนะหนูน้อย' มันกล่าว 'เจ้าช่วยชีวิตฉัน' ตั้งแต่วันนั้น สิงโตและหนูก็เป็นเพื่อนกัน แม้แต่เพื่อนที่เล็กที่สุดก็ช่วยได้มาก"
+      ]
+    },
+    {
+      id: "cur-fairy-cinderella", level: "A2", genre: "fairy",
+      title: "Cinderella",
+      pages: [
+        "Cinderella lived with her cruel stepmother and two stepsisters. They made her do all the housework while they wore beautiful clothes. Cinderella was kind, but she was sad and tired.",
+        "One day the king invited every young woman to a grand ball at the palace. The stepsisters were excited, but they told Cinderella she could not go. She had no dress and too much work to do.",
+        "Suddenly a kind fairy appeared. She waved her magic wand and turned a pumpkin into a golden carriage. She gave Cinderella a beautiful glass slipper, and she smiled: 'But you must leave the ball before midnight.'",
+        "At the ball, Cinderella danced with the prince all night. She was the most beautiful woman there. But at midnight the clock began to strike, and she ran away, losing one glass slipper on the stairs.",
+        "The prince searched the whole kingdom for the girl who fit the slipper. It fitted only Cinderella. The prince married her, and they lived happily ever after."
+      ],
+      thPages: [
+        "ซินเดอเรลล่าอาศัยอยู่กับแม่เลี้ยงที่โหดร้ายและพี่สาวเลี้ยงสองคน พวกเธอบังคับให้เธอทำงานบ้านทั้งหมดในขณะที่พวกเธอสวมเสื้อผ้าสวยงาม ซินเดอเรลล่าใจดี แต่เธอเศร้าและเหนื่อย",
+        "วันหนึ่งกษัตริย์เชิญหญิงสาวทุกคนไปงานบอลใหญ่ที่พระราชวัง พี่สาวเลี้ยงตื่นเต้นมาก แต่พวกเธอบอกว่าซินเดอเรลล่าไปไม่ได้ เธอไม่มีชุดและมีงานมากเกินไป",
+        "ทันใดนั้นนางฟ้าผู้ใจดีก็ปรากฏตัว นางโบกไม้กายสิทธิ์เปลี่ยนฟักทองเป็นรถม้าสีทอง นางมอบรองเท้าแก้วแสนสวยให้ซินเดอเรลล่าและยิ้ม: 'แต่เจ้าต้องกลับก่อนเที่ยงคืน'",
+        "ในงานบอล ซินเดอเรลล่าเต้นรำกับเจ้าชายตลอดทั้งคืน เธอเป็นหญิงสาวที่สวยที่สุดที่นั่น แต่เมื่อเที่ยงคืนนาฬิกาเริ่มตี เธอจึงวิ่งหนีไป และทำรองเท้าแก้วหายหนึ่งข้างบนบันได",
+        "เจ้าชายค้นหาทั่วราชอาณาจักรเพื่อหาหญิงสาวที่ใส่รองเท้าแก้วได้ รองเท้าเหมาะกับซินเดอเรลล่าเท่านั้น เจ้าชายแต่งงานกับเธอ และพวกเขาก็ใช้ชีวิตอย่างมีความสุขตลอดไป"
+      ]
+    },
+    {
+      id: "cur-ghost-haunted-house", level: "A2", genre: "ghost",
+      title: "The Haunted House",
+      pages: [
+        "At the end of the village road stood an old, empty house. Nobody had lived there for years. People said strange things happened at night: lights turned on by themselves, and cold whispers in the dark.",
+        "A curious boy named Tom wanted to see for himself. One evening he opened the creaking door and stepped inside. Dust covered everything, and the air was freezing cold.",
+        "Suddenly a soft voice whispered, 'Please... find my key...' Tom looked around and found a rusty key on the floor. He placed it on the old table. A warm light filled the room, and the voice said, 'Thank you.' The house was calm from that night on."
+      ],
+      thPages: [
+        "ที่ปลายถนนหมู่บ้านมีบ้านเก่าและว่างเปล่าตั้งอยู่ ไม่มีใครอาศัยมาหลายปี ผู้คนเล่าว่ามีสิ่งแปลกประหลาดเกิดขึ้นในตอนกลางคืน: ไฟเปิดเอง และเสียงกระซิบหนาวเย็นในความมืด",
+        "เด็กชายผู้อยากรู้อยากเห็นชื่อทอมต้องการพิสูจน์ด้วยตัวเอง เย็นวันหนึ่งเขาผลักประตูที่ลั่นดังเอี๊ยดแล้วก้าวเข้าไปข้างใน ฝุ่นปกคลุมทุกสิ่ง และอากาศเย็นเยือก",
+        "ทันใดนั้นเสียงเบาๆ กระซิบว่า 'กรุณา... หากุญแจของฉันให้เจอ...' ทอมมองไปรอบๆ และพบกุญแจสนิมบนพื้น เขาวางไว้บนโต๊ะเก่า แสงอบอุ่นสว่างเต็มห้อง และเสียงนั้นกล่าวว่า 'ขอบใจ' บ้านก็สงบตั้งแต่วันนั้นเป็นต้นมา"
+      ]
+    },
+    {
+      id: "cur-ghost-vanishing", level: "B1", genre: "ghost",
+      title: "The Vanishing Hitchhiker",
+      pages: [
+        "It was a dark, rainy night on the highway. A young driver named Dan saw a woman standing by the road in a white coat. She looked cold and tired, so he stopped and offered her a ride.",
+        "She got in and thanked him quietly. Dan asked her where she was going, but she only pointed forward. 'Do you live around here?' he asked. She did not answer. Dan felt a strange chill.",
+        "When they reached the next town, the woman said, 'Turn left at the old church, please.' Dan did, and when he looked again, she was gone. The door was still closed, and the seat beside him was empty.",
+        "Frightened, Dan went to the church and told the priest. The priest sighed. 'She was my daughter,' he said. 'She disappeared on this road twenty years ago, on a rainy night just like this. You are the third person to bring her home.'"
+      ],
+      thPages: [
+        "เป็นคืนที่มืดและฝนตกบนทางหลวง คนขับหนุ่มชื่อแดนเห็นหญิงสาวยืนอยู่ข้างถนนในเสื้อคลุมสีขาว เธอดูหนาวและเหนื่อย เขาจึงจอดและเสนอให้เธอโดยสาร",
+        "เธอขึ้นรถและขอบคุณอย่างเงียบๆ แดนถามว่าเธอจะไปไหน แต่เธอเพียงชี้ไปข้างหน้า 'คุณอยู่แถวนี้หรือ?' เขาถาม เธอไม่ตอบ แดนรู้สึกหนาวสั่นแปลกๆ",
+        "เมื่อถึงเมืองถัดไป หญิงสาวกล่าวว่า 'เลี้ยวซ้ายที่โบสถ์เก่าได้โปรด' แดนทำตาม และเมื่อเขามองอีกครั้ง เธอก็หายไปแล้ว ประตูยังปิดอยู่ และที่นั่งข้างๆ เขาว่างเปล่า",
+        "แดนตกใจจึงไปที่โบสถ์และเล่าให้บาทหลวงฟัง บาทหลวงถอนหายใจ 'เธอคือลูกสาวของฉัน' เขากล่าว 'เธอหายไปบนถนนสายนี้เมื่อยี่สิบปีก่อน ในคืนที่ฝนตกแบบนี้ คุณเป็นคนที่สามที่พาเธอกลับบ้าน'"
+      ]
+    },
+    {
+      id: "cur-ghost-tell-tale", level: "B1", genre: "ghost",
+      title: "The Tell-Tale Heart",
+      pages: [
+        "I loved the old man. He had done nothing wrong. But his eye was pale blue, like the eye of a vulture, and it made my blood run cold. I decided, at last, to take the old man's life and free myself of that eye forever.",
+        "Every night for a week I opened his door, very slowly, and shone a single ray of light onto that vulture eye. When it was closed, I left. But on the eighth night, the eye was open. My rage and fear grew. I heard a low, dull sound — the beating of his heart.",
+        "I rushed at him and smothered him in one moment. The beating stopped. I hid his body beneath the floorboards and cleaned every trace of blood. 'Who would suspect anything?' I thought. I was calm and clever.",
+        "Then the police came. I smiled and invited them in. I was sure of my plan. But soon I began to hear a faint sound — a low, dull beating. It grew louder and louder under the floor. The officers chatted calmly, but I could not stand it.",
+        "I tore up the boards and shouted, 'I admit the deed! It is the beating of his hideous heart!' The sound had come from my own guilt, and it had betrayed me."
+      ],
+      thPages: [
+        "ฉันรักชายชราคนนั้น เขาไม่ได้ทำผิดอะไร แต่ดวงตาของเขาสีฟ้าจางเหมือนตาของนกแร้ง และมันทำให้เลือดของฉันเย็นฉ่ำ ในที่สุดฉันตัดสินใจจะเอาชีวิตชายชราและปลดปล่อยตัวเองจากตานั้นตลอดไป",
+        "ทุกคืนเป็นเวลาหนึ่งสัปดาห์ ฉันเปิดประตูห้องเขาอย่างช้าๆ และส่องแสงเพียงเส้นเดียวไปที่ตานกแร้งนั้น เมื่อมันหลับตาฉันก็จากไป แต่ในคืนที่แปด ตานั้นเปิดอยู่ ความโกรธและความกลัวของฉันเพิ่มขึ้น ฉันได้ยินเสียงทึบต่ำ — เสียงหัวใจเต้นของเขา",
+        "ฉันพุ่งเข้าไปหาเขาและกดปิดปากเขาในชั่วพริบตา เสียงเต้นหยุดลง ฉันซ่อนศพของเขาไว้ใต้พื้นไม้และล้างร่องรอยเลือดทุกจุด 'ใครจะมาสงสัย' ฉันคิด ฉันสงบและฉลาด",
+        "แล้วตำรวจก็มา ฉันยิ้มและเชิญพวกเขาเข้ามา ฉันมั่นใจในแผนของฉัน แต่ไม่นานฉันก็เริ่มได้ยินเสียงอู้อี้ — เสียงเต้นทึบต่ำ มันดังขึ้นเรื่อยๆ ใต้พื้น เจ้าหน้าที่พูดคุยอย่างสงบ แต่ฉันทนไม่ไหว",
+        "ฉันฉีกแผ่นไม้ขึ้นและตะโกนว่า 'ฉันยอมรับว่าทำลงไป! มันคือเสียงหัวใจอันน่ากลัวของเขา!' เสียงนั้นมาจากความผิดของฉันเอง และมันทรยศฉัน"
+      ]
+    },
+    {
+      id: "cur-ghost-whisper-walls", level: "B2", genre: "ghost",
+      title: "The Whispers Behind the Wall",
+      pages: [
+        "Maya moved into an old apartment in the city center. The rent was cheap, and the room was beautiful. There was only one strange thing: every night at exactly three in the morning, she heard soft whispers coming from behind the wall.",
+        "At first she thought it was the neighbors. But the wall led to a narrow, empty hallway. Maya pressed her ear to the plaster and listened. The whispers spoke her name. 'Maya... Maya... come closer...'",
+        "She asked the landlord about the wall. His face turned pale. 'Nobody lived in that room for years,' he said quietly. 'They bricked it up after the accident.' He refused to say anything more.",
+        "That night, Maya could not sleep. At three o'clock the whispers returned. This time, she felt a cold wind through the cracks, and she saw a thin line of light glowing between the bricks. Her hands trembled as she touched the wall.",
+        "The next morning, a worker came to tear down the wall. Behind it, they found an old diary and a silver locket. The diary's last page read: 'If you can hear me, I am still here. Please let me out.' Maya opened the locket — inside was a photo of a woman who looked exactly like her."
+      ],
+      thPages: [
+        "มายาย้ายเข้าไปในอพาร์ตเมนต์เก่าใจกลางเมือง ค่าเช่าถูกและห้องก็สวยงาม มีเพียงสิ่งแปลกประหลาดอย่างเดียว: ทุกคืนตอนตีสามพอดี เธอได้ยินเสียงกระซิบแผ่วเบามาจากหลังกำแพง",
+        "ตอนแรกเธอคิดว่าเป็นเพื่อนบ้าน แต่กำแพงนั้นอยู่ติดกับทางเดินแคบๆ ที่ว่างเปล่า มายาแนบหูเข้ากับปูนและฟัง เสียงกระซิบเรียกชื่อเธอ 'มายา... มายา... เข้ามาใกล้ๆ...'",
+        "เธอถามเจ้าของบ้านเกี่ยวกับกำแพงนั้น ใบหน้าของเขาซีด 'ไม่มีใครอาศัยในห้องนั้นมาหลายปีแล้ว' เขาพูดเบาๆ 'พวกเขาปิดด้วยอิฐหลังเกิดอุบัติเหตุ' เขาปฏิเสธที่จะพูดอะไรอีก",
+        "คืนนั้นมายานอนไม่หลับ ตีสามเสียงกระซิบก็กลับมา คราวนี้เธอรู้สึกถึงลมหนาวพัดผ่านรอยแตก และเห็นเส้นแสงบางๆ เรืองแสงระหว่างก้อนอิฐ มือของเธอสั่นเมื่อสัมผัสกำแพง",
+        "เช้าวันถัดมา คนงานมาเพื่อทลายกำแพง หลังกำแพงพวกเขาพบสมุดบันทึกเก่าและสร้อยเงินจี้ หน้าสุดท้ายของบันทึกเขียนว่า 'ถ้าคุณได้ยินฉัน ฉันยังอยู่ที่นี่ โปรดปล่อยฉันออกมา' มายาเปิดจี้ — ข้างในมีรูปผู้หญิงที่หน้าตาเหมือนเธอเป๊ะ"
+      ]
+    },
+    {
+      id: "cur-fairy-three-little-pigs", level: "A1", genre: "fairy",
+      title: "The Three Little Pigs",
+      pages: [
+        "Three little pigs left their mother's house to build homes of their own. The first pig was lazy. He built his house quickly from straw. The second pig was a little more careful, so he built his house from sticks.",
+        "The third pig worked the hardest. He built his house from strong red bricks, stone by stone. He did not stop until the walls were thick and the roof was firm.",
+        "One day a big bad wolf came to the straw house. He knocked and said, 'Little pig, little pig, let me come in!' The pig refused, so the wolf blew the house down. The pig ran to his brother's stick house.",
+        "The wolf followed and blew the stick house down too. Both pigs ran as fast as they could to the brick house of their brother. The wolf knocked, but the third pig said, 'No, you cannot come in!'",
+        "The wolf huffed and puffed, but the brick house did not move. So he climbed onto the roof to come down the chimney. The pigs put a big pot of boiling water in the fireplace.",
+        "The wolf came down the chimney and fell straight into the hot pot. He howled, jumped out, and ran away forever. The three little pigs lived safely and happily in their strong brick house."
+      ],
+      thPages: [
+        "ลูกหมูสามตัวออกจากบ้านแม่เพื่อสร้างบ้านของตัวเอง ตัวแรกขี้เกียจ เขาสร้างบ้านจากฟางอย่างรวดเร็ว ตัวที่สองระมัดระวังขึ้นอีกนิด จึงสร้างบ้านจากไม้",
+        "ตัวที่สามขยันที่สุด เขาสร้างบ้านจากอิฐแดงที่แข็งแรงทีละก้อน เขาไม่หยุดจนกว่าผนังจะหนาและหลังคาจะมั่นคง",
+        "วันหนึ่งหมาป่าใจร้ายมาที่บ้านฟาง เขาเคาะแล้วพูดว่า 'หมูน้อย หมูน้อย ให้ฉันเข้าไปหน่อย!' หมูปฏิเสธ หมาป่าจึงเป่าบ้านพังทลาย หมูวิ่งไปหาพี่ที่บ้านไม้",
+        "หมาป่าตามไปและเป่าบ้านไม้พังเช่นกัน หมูสองตัววิ่งเร็วที่สุดเท่าที่จะทำได้ไปที่บ้านอิฐของพี่ชาย หม่าป่าเคาะ แต่ตัวที่สามพูดว่า 'ไม่ เจ้าเข้าไม่ได้!'",
+        "หมาป่าพ่นลมอย่างหนัก แต่บ้านอิฐไม่ขยับ เขาจึงปีนขึ้นไปบนหลังคาเพื่อลงมาทางปล่องไฟ หมูทั้งสามวางหม้อน้ำเดือดใบใหญ่ไว้ในเตาผิง",
+        "หมาป่าลงมาทางปล่องไฟและตกลงไปในหม้อน้ำเดือดพอดี เขาร้องโหยหวน กระโดดออกมาและวิ่งหนีไปตลอดกาล ลูกหมูสามตัวอาศัยอย่างปลอดภัยและมีความสุขในบ้านอิฐที่แข็งแรง"
+      ]
+    },
+    {
+      id: "cur-fairy-goldilocks", level: "A1", genre: "fairy",
+      title: "Goldilocks and the Three Bears",
+      pages: [
+        "Once there was a little girl with golden hair. Everyone called her Goldilocks. One morning she walked into the forest and found a small cottage. The door was open, so she went inside.",
+        "There were three bowls of porridge on the table. She tasted the first bowl, but it was too hot. She tasted the second bowl, but it was too cold. The third bowl was just right, so she ate it all.",
+        "Then she saw three chairs. The first chair was too big, and the second chair was too wide. The third chair was just right, but it broke under her!",
+        "Goldilocks was tired, so she went upstairs. There were three beds. The first was too hard and the second was too soft. The third bed was just right, and she fell asleep at once.",
+        "Soon the three bears came home. 'Someone ate my porridge!' said the big bear. 'Someone ate my porridge!' said the middle bear. 'Someone ate mine too!' cried the little bear.",
+        "The little bear found Goldilocks sleeping in his bed. She woke up, saw the three bears, and jumped out of the window. She ran all the way home and never went back to the cottage again."
+      ],
+      thPages: [
+        "กาลครั้งหนึ่งมีเด็กหญิงผมทองตัวน้อย ทุกคนเรียกเธอว่าโกลดิล็อกส์ เช้าวันหนึ่งเธอเดินเข้าไปในป่าและพบกระท่อมเล็กๆ ประตูเปิดอยู่ เธอจึงเดินเข้าไป",
+        "บนโต๊ะมีโจ๊กสามชาม เธอชิมชามแรก แต่มันร้อนเกินไป เธอชิมชามที่สอง แต่มันเย็นเกินไป ชามที่สามพอดี จึงกินหมด",
+        "แล้วเธอก็เห็นเก้าอี้สามตัว ตัวแรกใหญ่เกินไป ตัวที่สองกว้างเกินไป ตัวที่สามพอดี แต่มันหักอยู่ใต้ตัวเธอ!",
+        "โกลดิล็อกส์เหนื่อยจึงเดินขึ้นไปชั้นบน มีเตียงสามเตียง เตียงแรกแข็งเกินไป เตียงที่สองนุ่มเกินไป เตียงที่สามพอดี และเธอก็หลับไปทันที",
+        "ในไม่ช้าหมีสามตัวก็กลับมาบ้าน 'มีคนกินโจ๊กของฉัน!' หมีตัวใหญ่กล่าว 'มีคนกินโจ๊กของฉัน!' หมีตัวกลางกล่าว 'มีคนกินของฉันด้วย!' หมีตัวเล็กก cried",
+        "หมีตัวเล็กพบโกลดิล็อกส์กำลังนอนหลับบนเตียงของเขา เธอตื่นขึ้น เห็นหมีสามตัว และกระโดดออกจากหน้าต่าง เธอวิ่งกลับบ้านตลอดทางและไม่กลับไปที่กระท่อมอีกเลย"
+      ]
+    },
+    {
+      id: "cur-fairy-jack-beanstalk", level: "A2", genre: "fairy",
+      title: "Jack and the Beanstalk",
+      pages: [
+        "Jack lived with his mother in a tiny house. They were very poor, and one day they had no food left. His mother sent Jack to the market to sell their old cow.",
+        "On the way, Jack met an old man. The man offered him five magic beans for the cow. Jack agreed and ran home, excited about his treasure.",
+        "His mother was furious. 'Beans?! You sold our cow for beans?' She threw them out of the window. That night, a giant beanstalk grew all the way up into the clouds.",
+        "Jack climbed the beanstalk the next morning. At the top, he found a giant castle in the sky. He hid behind a door and watched a huge giant count his golden coins.",
+        "When the giant fell asleep, Jack grabbed a bag of gold coins and climbed back down. He and his mother were rich. But Jack wanted to explore the castle again, so he climbed up once more.",
+        "This time he took a magic hen that laid golden eggs and a magic harp that sang by itself. The giant chased him, but Jack chopped down the beanstalk. The giant fell, and Jack lived happily with his mother forever."
+      ],
+      thPages: [
+        "แจ็คอาศัยอยู่กับแม่ในบ้านหลังเล็ก พวกเขายากจนมาก และวันหนึ่งไม่มีอาหารเหลือเลย แม่ส่งแจ็คไปตลาดเพื่อขายวัวแก่ของพวกเขา",
+        "ระหว่างทาง แจ็คพบชายชราคนหนึ่ง ชายคนนั้นเสนอถั่ววิเศษห้าเมล็ดแลกกับวัว แจ็คตกลงและวิ่งกลับบ้านอย่างตื่นเต้นกับสมบัติของเขา",
+        "แม่ของเขาโกรธมาก 'ถั่ว?! เจ้าขายวัวแลกกับถั่วเหรอ?' เธอโยนมันออกไปนอกหน้าต่าง คืนนั้นต้นถั่ววิเศษยักษ์งอกขึ้นไปถึงเมฆ",
+        "เช้าวันรุ่งขึ้นแจ็คปีนต้นถั่ว บนยอดเขาพบปราสาทยักษ์กลางท้องฟ้า เขาซ่อนอยู่หลังประตูและดูยักษ์ตัวมหึมานับเหรียญทองของมัน",
+        "เมื่อยักษ์หลับ แจ็คคว้ากระสอบเหรียญทองและปีนลงมา เขากับแม่กลายเป็นคนรวย แต่แจ็คอยากสำรวจปราสาทอีกครั้ง จึงปีนขึ้นไปอีกครั้ง",
+        "คราวนี้เขาเอาไก่วิเศษที่ออกไข่ทองคำและพิณวิเศษที่ร้องเพลงเองได้ ยักษ์ไล่ตามเขา แต่แจ็คตัดต้นถั่วทิ้ง ยักษ์ตกลงมา และแจ็คก็อยู่กับแม่อย่างมีความสุขตลอดไป"
+      ]
+    },
+    {
+      id: "cur-fairy-red-riding-hood", level: "A2", genre: "fairy",
+      title: "Little Red Riding Hood",
+      pages: [
+        "Once there was a sweet little girl who always wore a red riding hood. Everyone in the village called her Little Red Riding Hood. One day her mother packed a basket of cakes and said, 'Take these to Grandma. She is sick.'",
+        "Little Red Riding Hood skipped through the forest. On the way she met a big wolf. 'Where are you going, little girl?' asked the wolf. 'To my grandmother's house,' she answered. The wolf smiled and ran ahead.",
+        "The wolf reached Grandma's house first. He knocked, and the old woman opened the door. The wolf frightened her, locked her in a cupboard, put on her clothes, and climbed into her bed.",
+        "When Little Red Riding Hood arrived, she noticed something strange. 'Grandma, what big eyes you have!' she said. 'The better to see you with,' replied the wolf. 'Grandma, what big ears you have!' 'The better to hear you with.'",
+        "'And what a big mouth you have!' she said. 'The better to eat you with!' roared the wolf, and he jumped out of bed. But a brave hunter heard the noise, ran in, and chased the wolf away.",
+        "The hunter freed Grandma from the cupboard. Little Red Riding Hood and her grandmother hugged each other. The little girl promised never to talk to strangers in the forest again, and they shared the cakes happily."
+      ],
+      thPages: [
+        "กาลครั้งหนึ่งมีเด็กหญิงตัวน้อยน่ารักที่สวมหมวกคลุมสีแดงเสมอ ทุกคนในหมู่บ้านเรียกเธอว่าหนูน้อยหมวกแดง วันหนึ่งแม่ห่อตะกร้าเค้กแล้วพูดว่า 'เอาไปให้คุณยาย เธอไม่สบาย'",
+        "หนูน้อยหมวกแดงเดินกระโดดไปเรื่อยๆ ผ่านป่า ระหว่างทางเธอพบหมาป่าตัวใหญ่ 'เจ้าจะไปไหนหนูน้อย?' หมาป่าถาม 'ไปบ้านคุณยาย' เธอตอบ หมาป่ายิ้มและวิ่งนำหน้าไปก่อน",
+        "หมาป่าไปถึงบ้านคุณยายก่อน มันเคาะประตู และหญิงชราก็เปิดประตู หมาป่าทำให้เธอตกใจ ล็อกเธอไว้ในตู้ สวมเสื้อผ้าของเธอ แล้วปีนขึ้นไปบนเตียง",
+        "เมื่อหนูน้อยหมวกแดงมาถึง เธอสังเกตเห็นบางอย่างแปลกๆ 'คุณยายตาโตจัง!' เธอกล่าว 'ก็เพื่อที่จะได้มองเห็นเธอชัดๆ' หมาป่าตอบ 'คุณยายหูใหญ่จัง!' 'ก็เพื่อที่จะได้ยินเธอชัดๆ'",
+        "'แล้วปากใหญ่จัง!' เธอกล่าว 'ก็เพื่อที่จะได้กินเธอ!' หมาป่าคำรามและกระโดดลงจากเตียง แต่พรานผู้กล้าหาญได้ยินเสียงจึงวิ่งเข้ามาและไล่หมาป่าไป",
+        "พรานช่วยคุณยายออกจากตู้ หนูน้อยหมวกแดงและคุณยายกอดกัน เธอสัญญาว่าจะไม่คุยกับคนแปลกหน้าในป่าอีก และพวกเขาก็กินเค้กอย่างมีความสุข"
+      ]
+    },
+    {
+      id: "cur-fairy-ugly-duckling", level: "A2", genre: "fairy",
+      title: "The Ugly Duckling",
+      pages: [
+        "By an old farmhouse, a mother duck sat on her nest. At last the eggs began to crack, and out came six pretty yellow ducklings. But one egg was bigger than the rest, and it took much longer to hatch.",
+        "When the big egg finally opened, out came a strange duckling. He was grey and clumsy, and he looked different from his brothers and sisters. 'Look at him!' said the other ducks. 'He is so ugly!'",
+        "Everywhere the poor duckling went, the other birds laughed at him. Even his own brothers did not want to play with him. He was very sad, and one night he flew away to live alone in the marsh.",
+        "Winter came. The marsh froze, and the ugly duckling was cold and hungry. But he did not give up. He survived the cold season, and in the spring he stretched his wings and flew into the air.",
+        "He landed on a beautiful lake where three white swans swam. They swam toward him, and he lowered his head, ashamed. But then he saw his own reflection in the water — he was a graceful swan!",
+        "The other swans welcomed him with open wings. He had never dreamed he could be so beautiful. 'It does not matter if you are born in a duck yard,' he thought. 'What matters is what you become inside.' And he was the happiest swan of all."
+      ],
+      thPages: [
+        "ข้างบ้านไร่เก่า เป็ดแม่นั่งกกไข่บนรัง ในที่สุดไข่ก็เริ่มแตก และลูกเป็ดสีเหลืองน่ารักหกตัวก็ออกมา แต่มีไข่ใบหนึ่งใหญ่กว่าใบอื่น และใช้เวลาฟักนานกว่ามาก",
+        "เมื่อไข่ใหญ่ใบนั้นฟักออกมา ลูกเป็ดตัวแปลกก็ออกมา เขาสีเทาและงุ่มง่าม ดูแตกต่างจากพี่น้อง 'ดูมันสิ!' เป็ดตัวอื่นกล่าว 'มันน่าเกลียดจัง!'",
+        "ลูกเป็ดผู้น่าสงสารไปที่ไหน นกตัวอื่นก็หัวเราะเยาะ แม้แต่พี่น้องของเขาเองก็ไม่อยากเล่นด้วย เขาเศร้ามาก และคืนหนึ่งเขาก็บินหนีไปอยู่ตามลำพังในหนองน้ำ",
+        "ฤดูหนาวมาถึง หนองน้ำแข็งตัว ลูกเป็ดตัวนั้นหนาวและหิว แต่เขาไม่ยอมแพ้ เขารอดชีวิตผ่านฤดูหนาว และในฤดูใบไม้ผลิเขาก็ยืดปีกและบินขึ้นสู่อากาศ",
+        "เขาลงจอดที่ทะเลสาบสวยงามซึ่งมีหงส์ขาวสามตัวว่ายอยู่ พวกมันว่ายเข้ามาหาเขา และเขาก็ก้มหน้าลงด้วยความละอาย แต่แล้วเขาก็เห็นเงาสะท้อนของตัวเองในน้ำ — เขาคือหงส์ที่สง่างาม!",
+        "หงส์ตัวอื่นต้อนรับเขาด้วยปีกที่กางออก เขาไม่เคยฝันว่าตนจะสวยได้ขนาดนี้ 'ไม่สำคัญว่าคุณจะเกิดในเล้าเป็ด' เขาคิด 'สิ่งที่สำคัญคือสิ่งที่คุณเป็นอยู่ภายใน' และเขาก็เป็นหงส์ที่มีความสุขที่สุด"
+      ]
+    },
+    {
+      id: "cur-ghost-monkeys-paw", level: "B1", genre: "ghost",
+      title: "The Monkey's Paw",
+      pages: [
+        "Outside a cold English village, the White family sat by the fire. A visitor named Sergeant-Major Morris arrived and told them a strange story about a monkey's paw that could grant three wishes to its owner.",
+        "Morris threw the dried paw onto the fire, but Mr. White grabbed it. 'I'll keep it,' he said. 'How do I use it?' Morris warned him seriously. 'Be careful what you wish for. I've seen things happen that I regret.'",
+        "That night, Mr. White wished for two hundred pounds. The next morning, his son Herbert went to work. A while later, a stranger came to the door with sad news: Herbert had been caught in the machinery and had died.",
+        "The stranger handed Mr. White two hundred pounds as compensation. The family was heartbroken. Weeks passed, and Mrs. White could not bear the loss. 'The paw! Wish for Herbert to come back!' she begged.",
+        "Reluctantly, Mr. White wished for his son to be alive again. That night, a terrible knocking came at the door. Something outside called Herbert's name in a low, hollow voice.",
+        "Mrs. White rushed to unlock the door, but Mr. White was terrified. The knocking grew louder. He found the paw, and with a shaking hand, he made a final wish. The knocking stopped. When Mrs. White opened the door, the street was empty."
+      ],
+      thPages: [
+        "นอกหมู่บ้านอังกฤษที่หนาวเย็น ครอบครัวไวท์นั่งอยู่ริมกองไฟ แขกคนหนึ่งชื่อจ่าเมเจอร์มอร์ริสมาถึงและเล่าเรื่องแปลกประหลาดเกี่ยวกับอุ้งตีนลิงที่สามารถให้พรสามข้อแก่เจ้าของได้",
+        "มอร์ริสโยนอุ้งตีนลิงแห้งนั้นลงในกองไฟ แต่คุณไวท์คว้าไว้ 'ฉันจะเก็บไว้' เขากล่าว 'ใช้ยังไง?' มอร์ริสเตือนเขาอย่างจริงจัง 'ระวังสิ่งที่เจ้าขอ ฉันเคยเห็นเรื่องที่ฉันเสียใจ'",
+        "คืนนั้นคุณไวท์ขอเงินสองร้อยปอนด์ เช้าวันรุ่งขึ้นเฮอร์เบิร์ตลูกชายไปทำงาน ต่อมาคนแปลกหน้ามาที่ประตูพร้อมข่าวเศร้า: เฮอร์เบิร์ตถูกเครื่องจักรเกี่ยวและเสียชีวิต",
+        "คนแปลกหน้าส่งเงินสองร้อยปอนด์ให้คุณไวท์เป็นค่าชดเชย ครอบครัวเสียใจมาก หลายสัปดาห์ผ่านไป คุณนายไวท์ทนการสูญเสียนี้ไม่ได้ 'อุ้งตีนลิง! ขอให้เฮอร์เบิร์ตกลับมา!' เธอวิงวอน",
+        "อย่างไม่เต็มใจ คุณไวท์ขอให้ลูกชายกลับมามีชีวิตอีกครั้ง คืนนั้นเสียงเคาะประตูอันน่ากลัวดังมา บางสิ่งนอกประตูเรียกชื่อเฮอร์เบิร์ตด้วยเสียงทุ้มและก้อง",
+        "คุณนายไวท์รีบวิ่งไปปลดล็อกประตู แต่คุณไวท์ตกใจมาก เสียงเคาะดังขึ้นเรื่อยๆ เขาหาอุ้งตีนลิงพบ และด้วยมือที่สั่น เขาขอพรสุดท้าย เสียงเคาะหยุดลง เมื่อคุณนายไวท์เปิดประตู ถนนก็ว่างเปล่า"
+      ]
+    },
+    {
+      id: "cur-ghost-sleepy-hollow", level: "B1", genre: "ghost",
+      title: "The Legend of Sleepy Hollow",
+      pages: [
+        "In a quiet valley called Sleepy Hollow lived a young schoolmaster named Ichabod Crane. He was tall and thin, and he loved ghost stories. The people of the village told a terrible tale about a Headless Horseman who rode at night.",
+        "Ichabod fell in love with Katrina Van Tassel, the daughter of a rich farmer. But another young man, Brom Bones, also wanted to marry Katrina, and he envied the schoolmaster.",
+        "One autumn evening, the Van Tassels held a great party. Ichabod danced with Katrina all night, while Brom watched angrily from the corner. As the party ended, Ichabod stayed behind to speak with Katrina.",
+        "It was late when Ichabod rode home alone. The road was dark and full of strange sounds. Suddenly, he saw a huge horseman following him. The rider had no head!",
+        "Ichabod urged his horse faster, but the horseman followed. They raced toward a wooden bridge. The legend said the ghost could not cross the bridge, so Ichabod galloped across it. Then the horseman threw his head at him!",
+        "The next morning, Ichabod's horse was found without its rider. His hat lay near the bridge, next to a smashed pumpkin. Nobody ever saw Ichabod Crane again, and some said he had married a rich widow far away. Brom Bones married Katrina, and he always laughed when the story was told."
+      ],
+      thPages: [
+        "ในหุบเขาที่เงียบสงบชื่อสลีปปี้ฮอลโลว์มีครูหนุ่มชื่ออิคาบ็อด เครนอาศัยอยู่ เขาสูงและผอม และชอบเรื่องผี ผู้คนในหมู่บ้านเล่าตำนานน่ากลัวเกี่ยวกับอัศวินไม่มีหัวที่ขี่ม้าในเวลากลางคืน",
+        "อิคาบ็อดตกหลุมรักคาทริน่า แวน ทาสเซล ลูกสาวของชาวนาที่ร่ำรวย แต่ชายหนุ่มอีกคนชื่อบรอม โบนส์ก็อยากแต่งงานกับคาทริน่าเช่นกัน และเขาก็อิจฉาครูหนุ่ม",
+        "เย็นวันหนึ่งในฤดูใบไม้ร่วง ครอบครัวแวนทาสเซลจัดงานเลี้ยงใหญ่ อิคาบ็อดเต้นรำกับคาทริน่าตลอดทั้งคืน ขณะที่บรอมมองอย่างโกรธเคืองจากมุมห้อง เมื่องานจบลง อิคาบ็อดอยู่ต่อเพื่อพูดคุยกับคาทริน่า",
+        "มันดึกมากเมื่ออิคาบ็อดขี่ม้ากลับบ้านคนเดียว ถนนมืดและเต็มไปด้วยเสียงประหลาด ทันใดนั้นเขาก็เห็นคนขี่ม้าตัวใหญ่ตามมา คนขี่ม้าไม่มีหัว!",
+        "อิคาบ็อดเร่งม้าให้เร็วขึ้น แต่มนุษย์ขี่ม้าก็ตามมา พวกเขาแข่งไปที่สะพานไม้ ตำนานกล่าวว่าผีข้ามสะพานไม่ได้ อิคาบ็อดจึงควบม้าข้ามไป แล้วคนขี่ม้าก็โยนหัวของเขามาใส่!",
+        "เช้าวันรุ่งขึ้นพบม้าของอิคาบ็อดโดยไม่มีคนขี่ หมวกของเขาอยู่ใกล้สะพาน ถัดจากฟักทองที่ถูกทุบ ไม่มีใครเห็นอิคาบ็อด เครนอีกเลย และบางคนก็บอกว่าเขาแต่งงานกับหญิงม่ายรวยในที่ห่างไกล บรอม โบนส์แต่งงานกับคาทริน่า และเขามักจะหัวเราะเสมอเมื่อมีคนเล่าเรื่องนี้"
+      ]
+    },
+    {
+      id: "cur-ghost-black-cat", level: "B2", genre: "ghost",
+      title: "The Black Cat",
+      pages: [
+        "I will not try to explain these events. I only say that I am not mad, and that I saw everything with my own eyes. I was a gentle man who loved animals, and my wife and I kept many pets, including a black cat named Pluto.",
+        "But my temper began to change. I grew gloomy and irritable, and I drank too much. One night, blinded by anger, I seized the cat and cut out one of its eyes. The next morning I wept, but the damage was done.",
+        "The cat avoided me, and my shame turned into bitterness. One evening, in a rage, I grabbed poor Pluto by the neck and hanged him from a tree. That very night my house burned down, and only one wall remained standing.",
+        "On that wall, drawn in the ashes, was the image of a giant cat with a rope around its neck. I shuddered, but I told myself it was a coincidence. I needed another pet, and soon I found a black cat in a tavern — identical to Pluto, except for one white spot on its chest.",
+        "The new cat followed me everywhere. The white spot slowly changed shape until it looked like a gallows. I began to fear and hate the creature, but I could not bring myself to harm it. My wife, however, loved it.",
+        "One day we went down to the cellar. The cat startled me, and I raised an axe. My wife tried to stop me, and in my madness I struck her instead. She fell dead. I hid her body inside the wall and finished my work in peace.",
+        "The police searched the house but found nothing. I grew confident, and on the fourth day I led them into the cellar myself. I tapped the wall, boasting of its strong construction. A terrible cry answered — and when the bricks fell, there stood the cat, sitting on my wife's head."
+      ],
+      thPages: [
+        "ฉันจะไม่พยายามอธิบายเหตุการณ์เหล่านี้ ฉันเพียงกล่าวว่าฉันไม่ได้บ้า และฉันเห็นทุกอย่างด้วยตาของตัวเอง ฉันเคยเป็นคนอ่อนโยนที่รักสัตว์ และฉันกับภรรยาเลี้ยงสัตว์หลายชนิด รวมถึงแมวดำตัวหนึ่งชื่อพลูโต",
+        "แต่นิสัยของฉันเริ่มเปลี่ยนไป ฉันหงุดหงิดและฉุนเฉียว และดื่มมากเกินไป คืนหนึ่ง ด้วยความโกรธที่บดบัง ฉันคว้าแมวและตัดตาของมันออกหนึ่งข้าง เช้าวันรุ่งขึ้นฉันร้องไห้ แต่ความเสียหายก็เกิดขึ้นแล้ว",
+        "แมวหลบฉัน และความอับอายของฉันก็กลายเป็นความขมขื่น เย็นวันหนึ่ง ด้วยความเดือดดาล ฉันจับพลูโตผู้น่าสงสารที่คอและแขวนมันไว้กับต้นไม้ คืนนั้นเองบ้านของฉันก็ถูกไฟไหม้ และเหลือเพียงกำแพงเดียวที่ยังตั้งอยู่",
+        "บนกำแพงนั้น ที่วาดในขี้เถ้า เป็นภาพของแมวยักษ์ที่มีเชือกอยู่ที่คอ ฉันสั่นสะท้าน แต่บอกตัวเองว่ามันเป็นเรื่องบังเอิญ ฉันต้องการสัตว์เลี้ยงตัวใหม่ และไม่นานฉันก็พบแมวดำตัวหนึ่งในโรงเหล้า — เหมือนพลูโตทุกอย่าง ยกเว้นจุดขาวบนหน้าอก",
+        "แมวตัวใหม่ตามฉันไปทุกที่ จุดขาวค่อยๆ เปลี่ยนรูปร่างจนดูเหมือนตะแลงแกง ฉันเริ่มกลัวและเกลียดสัตว์ตัวนั้น แต่ก็ไม่กล้าทำร้ายมัน อย่างไรก็ตาม ภรรยาของฉันรักมัน",
+        "วันหนึ่งเราลงไปที่ห้องใต้ดิน แมวทำให้ฉันสะดุ้ง ฉันจึงยกขวานขึ้น ภรรยาพยายามห้ามฉัน และด้วยความวิกลจริต ฉันกลับฟาดเธอแทน เธอล้มลงเสียชีวิต ฉันซ่อนร่างของเธอไว้ในกำแพงและทำงานต่ออย่างสงบ",
+        "ตำรวจค้นบ้านแต่ไม่พบอะไร ฉันเริ่มมั่นใจ และในวันที่สี่ฉันก็นำพวกเขาลงไปที่ห้องใต้ดินด้วยตัวเอง ฉันเคาะกำแพง อวดว่าก่อสร้างแข็งแรงเพียงใด เสียงร้องอันน่าสยดสยองตอบกลับมา — และเมื่ออิฐร่วงลงมา แมวตัวนั้นก็ยืนอยู่บนหัวของภรรยาฉัน"
+      ]
+    },
+    {
+      id: "cur-adv-robinson-crusoe", level: "B1", genre: "adventure",
+      title: "Robinson Crusoe",
+      pages: [
+        "My name is Robinson Crusoe. I was born in England and I always dreamed of the sea. My father begged me to stay home, but I would not listen. I sailed away at nineteen, and I have never regretted my love of adventure.",
+        "My first voyages were dangerous, but the greatest test came when a terrible storm sank our ship near a wild island. Every man on board was lost except me. The waves threw me onto the sand, and when I opened my eyes, I was alone.",
+        "I swam out to the broken ship and pulled out food, tools, guns, and rope. I carried them to the shore and built a strong shelter inside a cave. I made a calendar by cutting marks into a wooden post so I would not lose track of the days.",
+        "Months passed, and the island became my home. I learned to grow corn, to catch fish, and to make pots. I kept a few goats for milk and meat. I was no longer afraid; I worked hard every day and thanked God for saving my life.",
+        "I lived there quietly for many years. Then one day I saw a footprint in the sand. It was not my own. I hid in fear, certain that strangers had come to the island, and I prepared my guns and my walls.",
+        "One morning I watched a group of men drag two poor prisoners to the beach. One escaped and ran toward me. I rescued him, gave him a name — Friday — and taught him to speak. He was loyal and brave, and we became the best of friends.",
+        "After twenty-eight years on the island, a ship full of mutineers arrived. Friday and I freed its captain, defeated the mutineers, and took the ship. We sailed for England, where I returned as a wealthy man with my faithful friend Friday."
+      ],
+      thPages: [
+        "ฉันชื่อโรบินสัน ครูโซ ฉันเกิดที่อังกฤษและใฝ่ฝันถึงทะเลมาตลอด พ่อขอร้องให้ฉันอยู่บ้าน แต่ฉันไม่ฟัง ฉันออกเรือตอนอายุสิบเก้า และฉันไม่เคยเสียใจที่รักการผจญภัย",
+        "การเดินทางครั้งแรกของฉันอันตราย แต่บททดสอบที่ยิ่งใหญ่ที่สุดเกิดขึ้นเมื่อพายุร้ายจมเรือของเราใกล้เกาะร้าง ลูกเรือทุกคนจมน้ำตายยกเว้นฉัน คลื่นซัดฉันขึ้นฝั่ง และเมื่อฉันลืมตา ฉันก็อยู่เพียงลำพัง",
+        "ฉันว่ายไปที่เรือที่แตกและดึงอาหาร เครื่องมือ ปืน และเชือกขึ้นมา ฉันขนมันไปที่ฝั่งและสร้างที่พักพิงแข็งแรงในถ้ำ ฉันทำปฏิทินโดยการขีดรอยบนเสาไม้เพื่อไม่ให้ลืมนับวัน",
+        "หลายเดือนผ่านไป เกาะแห่งนี้กลายเป็นบ้านของฉัน ฉันเรียนรู้ที่จะปลูกข้าวโพด จับปลา และทำหม้อ ฉันเลี้ยงแพะไม่กี่ตัวไว้กินนมและเนื้อ ฉันไม่กลัวอีกต่อไป ฉันทำงานหนักทุกวันและขอบคุณพระเจ้าที่ช่วยชีวิตฉัน",
+        "ฉันอาศัยอยู่ที่นั่นอย่างสงบหลายปี แล้ววันหนึ่งฉันเห็นรอยเท้าบนทราย มันไม่ใช่รอยเท้าของฉัน ฉันซ่อนตัวด้วยความกลัว แน่ใจว่าคนแปลกหน้ามาที่เกาะ และฉันก็เตรียมปืนและกำแพงของฉัน",
+        "เช้าวันหนึ่งฉันเห็นกลุ่มคนลากนักโทษผู้น่าสงสารสองคนไปที่ชายหาด คนหนึ่งหนีออกมาและวิ่งมาหาฉัน ฉันช่วยเขา ตั้งชื่อให้เขาว่า 'ฟรายเดย์' และสอนให้เขาพูด เขาจงรักภักดีและกล้าหาญ และเรากลายเป็นเพื่อนสนิทกัน",
+        "หลังจากอยู่บนเกาะยี่สิบแปดปี เรือที่เต็มไปด้วยพวกกบฏก็มาถึง ฟรายเดย์กับฉันช่วยกัปตันของมัน เอาชนะพวกกบฏ และยึดเรือได้ เราออกเรือกลับอังกฤษ ที่ซึ่งฉันกลับมาเป็นคนรวยพร้อมกับเพื่อนผู้ซื่อสัตย์ของฉัน ฟรายเดย์"
+      ]
+    },
+    {
+      id: "cur-adv-treasure-island", level: "B1", genre: "adventure",
+      title: "Treasure Island",
+      pages: [
+        "I am Jim Hawkins, and I must tell you the story of the gold. It began when an old sailor named Billy Bones came to my mother's inn. He paid us well to keep quiet, but he drank too much and talked too much about the sea.",
+        "Billy feared a one-legged man more than anything. One night, blind Pew came with a black spot — a signal of death. Billy was struck down, and before he died, he gave me his old sea chest. Inside lay a map of an island, with a cross marking buried treasure.",
+        "Dr. Livesey and Squire Trelawney read the map and planned a voyage. The squire bought a fine ship called the Hispaniola and hired a crew. But the cook he hired was a clever man named Long John Silver, who smiled and seemed kind to everyone.",
+        "We sailed for weeks. Then, one night, I climbed into the apple barrel to hide and overheard Silver talking to the sailors. He was a pirate! He planned to steal the treasure and kill us all when we reached the island.",
+        "When we landed, I warned the captain. The pirates attacked, and we fought behind a wooden stockade in the forest. Silver tried to bargain and even switched sides, but I could see the greed in his eyes.",
+        "I slipped away and found a man living alone on the island. His name was Ben Gunn, and he had been marooned there for three years. He told me he had already found the treasure and moved it to his cave!",
+        "Silver led us to the empty hole where the gold should have been. Thanks to Ben Gunn, we loaded the treasure onto the ship and sailed home. We left Silver on the island, but I will never forget the adventure."
+      ],
+      thPages: [
+        "ฉันคือจิม ฮอว์กินส์ และฉันต้องเล่าเรื่องทองคำให้ฟัง มันเริ่มขึ้นเมื่อกะลาสีแก่ชื่อบิลลี่ โบนส์มาพักที่โรงแรมของแม่ฉัน เขาจ่ายเงินดีเพื่อให้เราเงียบ แต่เขาดื่มมากเกินไปและพูดถึงทะเลมากเกินไป",
+        "บิลลี่กลัวชายขาเดียวมากกว่าสิ่งใด คืนหนึ่งพิวตาบอดมาพร้อมจุดดำ — สัญญาณแห่งความตาย บิลลี่ถูกโจมตี และก่อนตาย เขามอบหีบสมบัติเก่าของเขาให้ฉัน ข้างในมีแผนที่เกาะหนึ่ง ซึ่งมีเครื่องหมายกากบาทกำกับตำแหน่งสมบัติที่ฝังไว้",
+        "ดร.ไลฟ์ซีย์และสุภาพบุรุษเทรลอว์นีย์อ่านแผนที่และวางแผนการเดินทาง สุภาพบุรุษซื้อเรือที่สวยงามชื่อฮิสปานิโอลาและจ้างลูกเรือ แต่พ่อครัวที่เขาจ้างเป็นคนฉลาดชื่อลองจอห์นซิลเวอร์ ผู้ซึ่งยิ้มแย้มและดูใจดีกับทุกคน",
+        "เราแล่นเรือหลายสัปดาห์ แล้วคืนหนึ่งฉันปีนเข้าไปในถังแอปเปิลเพื่อซ่อน และได้ยินซิลเวอร์คุยกับกะลาสี เขาคือโจรสลัด! เขาวางแผนจะขโมยสมบัติและฆ่าพวกเราทุกคนเมื่อไปถึงเกาะ",
+        "เมื่อเราขึ้นฝั่ง ฉันเตือนกัปตัน พวกโจรสลัดโจมตี และเราสู้รบหลังกำแพงไม้ในป่า ซิลเวอร์พยายามต่อรองและแม้แต่เปลี่ยนข้าง แต่ฉันเห็นความโลภในดวงตาของเขา",
+        "ฉันหนีออกไปและพบชายคนหนึ่งอาศัยอยู่คนเดียวบนเกาะ ชื่อของเขาคือเบน กันน์ และเขาถูกทิ้งร้างบนเกาะมาสามปี เขาบอกฉันว่าเขาพบสมบัติแล้วและย้ายมันไปที่ถ้ำของเขาแล้ว!",
+        "ซิลเวอร์นำพวกเราไปที่หลุมว่างเปล่าที่สมบัติควรจะอยู่ ต้องขอบคุณเบน กันน์ เราขนสมบัติขึ้นเรือและแล่นกลับบ้าน เราทิ้งซิลเวอร์ไว้บนเกาะ แต่ฉันจะไม่มีวันลืมการผจญภัยครั้งนี้"
+      ]
+    },
+    {
+      id: "cur-adv-around-world-80", level: "B2", genre: "adventure",
+      title: "Around the World in Eighty Days",
+      pages: [
+        "In 1872, a very exact gentleman named Phileas Fogg lived in London. He had no friends and no adventure in his heart, until one evening at his club he made a bold bet. He wagered twenty thousand pounds that he could circle the globe in eighty days.",
+        "That same night, Fogg hired a new servant named Jean Passepartout. 'We leave in ten minutes,' said Fogg. 'Around the world!' Passepartout cried in surprise. He packed one small bag, and the two men caught the first train to Paris.",
+        "A detective named Fix followed them. He believed Fogg was a bank robber, because twenty thousand pounds had just been stolen from the Bank of England. Fix planned to arrest Fogg the moment he set foot on British soil again.",
+        "The pair crossed Europe by train and sailed to India, where Fogg bought an elephant to cross the jungle. On the way, they rescued a beautiful Indian woman named Aouda from a terrible ceremony, and Fogg agreed to take her with them.",
+        "From Calcutta they took a steamer to Hong Kong and then to Japan. Passepartout lost his master for a time, but they reunited and crossed the Pacific to America, where they raced across the plains by train, even swinging the car onto the track when a bridge broke.",
+        "At last they reached New York and boarded a fast steamer for Liverpool. Fix arrested Fogg just before the ship docked — but the thief was already caught elsewhere, and Fogg was set free. Even so, they had lost the race; it was December 21st, a day late.",
+        "Then Passepartout realized the truth: by traveling east, they had gained a whole day. It was actually Saturday, not Sunday! Fogg rushed to his club and arrived at exactly the final second. He won the bet and married the lovely Aouda."
+      ],
+      thPages: [
+        "ในปี ค.ศ. 1872 สุภาพบุรุษผู้แม่นยำชื่อไพล์ส ฟอกก์อาศัยอยู่ในลอนดอน เขาไม่มีเพื่อนและไม่มีความตื่นเต้นในใจ จนกระทั่งเย็นวันหนึ่งที่สมาคม เขาทำเดิมพันอย่างกล้าหาญ เขาพนันเงินสองหมื่นปอนด์ว่าเขาสามารถวนรอบโลกได้ในแปดสิบวัน",
+        "คืนนั้นเอง ฟอกก์จ้างคนรับใช้ใหม่ชื่อฌอง ปาสปาร์ตู 'เราออกเดินทางในสิบนาที' ฟอกก์กล่าว 'รอบโลก!' ปาสปาร์ตูร้องด้วยความประหลาดใจ เขาแพ็คกระเป๋าใบเล็กหนึ่งใบ และชายสองคนขึ้นรถไฟขบวนแรกไปปารีส",
+        "นักสืบชื่อฟิกซ์ตามพวกเขามา เขาเชื่อว่าฟอกก์คือขโมยธนาคาร เพราะเงินสองหมื่นปอนด์เพิ่งถูกขโมยจากธนาคารแห่งอังกฤษ ฟิกซ์วางแผนจะจับกุมฟอกก์ทันทีที่เขาก้าวเท้าลงบนแผ่นดินอังกฤษอีกครั้ง",
+        "สองคนเดินทางข้ามยุโรปด้วยรถไฟและล่องเรือไปอินเดีย ที่ซึ่งฟอกก์ซื้อช้างเพื่อข้ามป่า ระหว่างทาง พวกเขาช่วยหญิงสาวชาวอินเดียผู้งดงามชื่ออาอูดาจากพิธีกรรมอันน่าสยดสยอง และฟอกก์ตกลงที่จะพาเธอไปด้วย",
+        "จากกัลกัตตา พวกเขานั่งเรือกลไฟไปฮ่องกงแล้วไปญี่ปุ่น ปาสปาร์ตูหลงเจ้านายอยู่พักหนึ่ง แต่พวกเขาก็กลับมาพบกันและข้ามมหาสมุทรแปซิฟิกไปอเมริกา ที่ซึ่งพวกเขาแข่งกับรถไฟข้ามทุ่งกว้าง แม้แต่ยกตู้รถไฟกลับขึ้นรางเมื่อสะพานหัก",
+        "ในที่สุดพวกเขาก็ถึงนิวยอร์กและขึ้นเรือกลไฟเร็วไปลิเวอร์พูล ฟิกซ์จับกุมฟอกก์ก่อนที่เรือจะเทียบท่า — แต่ขโมยตัวจริงถูกจับที่อื่นแล้ว และฟอกก์ก็เป็นอิสระ ถึงอย่างนั้น พวกเขาก็แพ้การแข่งขัน มันคือวันที่ 21 ธันวาคม ช้าไปหนึ่งวัน",
+        "แล้วปาสปาร์ตูก็ตระหนักถึงความจริง: โดยการเดินทางไปทางตะวันออก พวกเขาได้เพิ่มเวลาขึ้นหนึ่งวันเต็ม ที่จริงมันคือวันเสาร์ ไม่ใช่วันอาทิตย์! ฟอกก์รีบวิ่งไปที่สมาคมและมาถึงตรงวินาทีสุดท้ายพอดี เขาชนะเดิมพันและแต่งงานกับอาอุดาผู้งดงาม"
+      ]
+    },
+    {
+      id: "cur-adv-20000-leagues", level: "B2", genre: "adventure",
+      title: "Twenty Thousand Leagues Under the Sea",
+      pages: [
+        "In 1866, sailors around the world reported a strange creature in the ocean — a giant animal that moved faster than any whale. Professor Aronnax, a famous scientist, boarded a warship to hunt it down, sure it was a huge narwhal.",
+        "After weeks at sea, the creature attacked. The professor, his servant Conseil, and the harpooner Ned Land were thrown into the water. The creature, they discovered, was not an animal at all. It was a submarine made of steel!",
+        "The ship's commander opened a door and welcomed them inside. His name was Captain Nemo. 'You will never leave this ship,' he said calmly. 'But you will see wonders that no man has ever seen.'",
+        "For months they sailed beneath every ocean. Nemo showed the professor forests of coral, sunken ships full of gold, and the lost city of Atlantis beneath the waves. They walked on the sea floor in heavy diving suits.",
+        "One day the submarine was trapped under ice at the South Pole. The crew worked for hours to cut the ice, and just when the air ran out, they broke free and surfaced with a great roar.",
+        "Then a school of giant squid attacked the ship. The crew fought the monsters on deck with axes while Ned threw his harpoon. One man was dragged into the water, and Nemo wept over his loss.",
+        "Nemo's heart grew darker, and his mysterious past filled the professor with fear. When a whirlpool — the Maelstrom — pulled the ship into its spinning grip, the three men escaped in a small boat and were rescued by fishermen. Captain Nemo and his submarine were never seen again."
+      ],
+      thPages: [
+        "ในปี ค.ศ. 1866 กะลาสีทั่วโลกรายงานว่ามีสิ่งมีชีวิตประหลาดในมหาสมุทร — สัตว์ยักษ์ที่เคลื่อนที่เร็วกว่าปลาวาฬใดๆ ศาสตราจารย์อารอนแนกซ์ นักวิทยาศาสตร์ชื่อดัง ขึ้นเรือรบเพื่อตามล่ามัน โดยมั่นใจว่ามันคือนาร์วาลตัวมหึมา",
+        "หลังอยู่กลางทะเลหลายสัปดาห์ สิ่งมีชีวิตนั้นก็โจมตี ศาสตราจารย์ คนรับใช้คอนเซย์ และคนฉมวกเน็ด แลนด์ถูกโยนลงน้ำ สิ่งมีชีวิตนั้น พวกเขาค้นพบ ไม่ใช่สัตว์เลยสักนิด มันคือเรือดำน้ำที่ทำจากเหล็กกล้า!",
+        "ผู้บัญชาการเรือเปิดประตูและต้อนรับพวกเขาเข้าไปข้างใน ชื่อของเขาคือกัปตันนีโม 'คุณจะไม่มีวันออกจากเรือลำนี้' เขากล่าวอย่างสงบ 'แต่คุณจะได้เห็นสิ่งมหัศจรรย์ที่ไม่มีมนุษย์คนใดเคยเห็น'",
+        "เป็นเวลาหลายเดือนที่พวกเขาแล่นเรืออยู่ใต้มหาสมุทรทุกแห่ง นีโมพาศาสตราจารย์ชมปะการังป่า เรือจมที่เต็มไปด้วยทองคำ และเมืองแอตแลนติสที่สาบสูญใต้คลื่น พวกเขาเดินบนพื้นทะเลในชุดดำน้ำหนัก",
+        "วันหนึ่งเรือดำน้ำถูกกักอยู่ใต้แผ่นน้ำแข็งที่ขั้วโลกใต้ ลูกเรือทำงานหลายชั่วโมงเพื่อตัดน้ำแข็ง และเมื่ออากาศใกล้หมดพอดี พวกเขาก็หลุดออกมาและลอยขึ้นสู่ผิวน้ำด้วยเสียงคำรามอันยิ่งใหญ่",
+        "แล้วฝูงปลาหมึกยักษ์ก็โจมตีเรือ ลูกเรือต่อสู้กับสัตว์ประหลาดบนดาดฟ้าด้วยขวานขณะที่เน็ดขว้างฉมวก ชายคนหนึ่งถูกฉุดลงน้ำ และนีโมก็ร้องไห้เสียใจกับการสูญเสียนั้น",
+        "หัวใจของนีโมเริ่มมืดมนลง และอดีตลึกลับของเขาทำให้ศาสตราจารย์เต็มไปด้วยความกลัว เมื่อวังวน — มาเอลสตรอม — ดูดเรือเข้าไปในแรงหมุนของมัน ชายสามคนก็หนีออกมาในเรือเล็กและได้รับการช่วยเหลือจากชาวประมง กัปตันนีโมและเรือดำน้ำของเขาไม่เคยถูกพบเห็นอีกเลย"
+      ]
+    },
+    {
+      id: "cur-adv-jungle-book", level: "A2", genre: "adventure",
+      title: "The Jungle Book",
+      pages: [
+        "Deep in the Indian jungle, a wolf family found a tiny baby in the bushes. He had no fear, and he smiled at the wolves. They adopted him and named him Mowgli, the little frog, and he grew up strong and clever.",
+        "The great bear Baloo taught Mowgli the Law of the Jungle. 'Be careful of Man,' Baloo warned. 'And never trust the Bandar-log — the monkey people.' But Mowgli loved playing in the trees with the noisy monkeys.",
+        "One day the monkeys stole Mowgli and carried him to their ruined city. The panther Bagheera and Baloo called on Kaa, the giant python. Kaa hypnotized the monkeys with his slow dance, and Mowgli was free.",
+        "Mowgli returned to his wolf family, but the fierce tiger Shere Khan wanted to kill him. 'Man-cub, I will eat you!' the tiger snarled. Mowgli grew brave and began to learn the secret ways of the jungle.",
+        "The wolves argued about keeping Mowgli. So the boy went to the village to fetch fire — the Red Flower, as the animals called it. He carried it back into the jungle, burning a branch, ready to fight Shere Khan.",
+        "With the burning branch, Mowgli drove the tiger into a trap of his own making, and Shere Khan was destroyed. The jungle roared its praise. But Mowgli's heart belonged to two worlds, and one day he walked into the village of men."
+      ],
+      thPages: [
+        "ลึกเข้าไปในป่าของอินเดีย ครอบครัวหมาป่าพบทารกตัวน้อยในพุ่มไม้ เขาไม่มีความกลัวและยิ้มให้หมาป่า พวกมันรับเลี้ยงเขาและตั้งชื่อเขาว่ามาวกลี เจ้ากบน้อย และเขาเติบโตขึ้นอย่างแข็งแรงและฉลาด",
+        "หมีใหญ่บาเลาสอนกฎแห่งป่าให้มาวกลี 'ระวังมนุษย์' บาเลาเตือน 'และอย่าไว้ใจบันดาร์-ล็อก — พวกมนุษย์ลิง' แต่มาวกลีชอบเล่นบนต้นไม้กับลิงที่ส่งเสียงดัง",
+        "วันหนึ่งลิงขโมยมาวกลีและพาเขาไปที่เมืองปรักหักพังของพวกมัน เสือดำบากีรากับบาเลาเรียกคาร์ เจ้างูหลามยักษ์ คาร์สะกดจิตลิงด้วยการเต้นรำช้าๆ ของเขา และมาวกลีก็เป็นอิสระ",
+        "มาวกลีกลับไปหาครอบครัวหมาป่า แต่เสือโคร่งเชียร์ข่านต้องการฆ่าเขา 'เจ้าลูกมนุษย์ ฉันจะกินเจ้า!' เสือคำราม มาวกลีกล้าหาญขึ้นและเริ่มเรียนรู้วิถีลับของป่า",
+        "หมาป่าโต้เถียงกันว่าจะเก็บมาวกลีไว้หรือไม่ ดังนั้นเด็กชายจึงไปที่หมู่บ้านเพื่อเอาไฟ — ดอกไม้แดง ตามที่สัตว์เรียกมัน เขาแบกมันกลับเข้าป่า พร้อมเผากิ่งไม้ เตรียมสู้กับเชียร์ข่าน",
+        "ด้วยกิ่งไม้ที่ลุกไหม้ มาวกลีผลักเสือเข้าไปในกับดักที่เสือสร้างไว้เอง และเชียร์ข่านก็พ่ายแพ้ ป่าคำรามสรรเสริญเขา แต่หัวใจของมาวกลีเป็นของสองโลก และวันหนึ่งเขาก็เดินเข้าไปในหมู่บ้านมนุษย์"
+      ]
+    },
+    {
+      id: "cur-sf-time-machine", level: "B2", genre: "scifi",
+      title: "The Time Machine",
+      pages: [
+        "A brilliant inventor gathered his friends around a small machine of ivory and glass. 'I have built a machine that travels in time,' he said. 'I will test it tonight.' He pressed a lever, and the machine vanished.",
+        "He returned a week later, pale and shaken. 'Listen,' he said, and told them his story. He had set the machine's dial far into the future and watched the sun spin and the seasons fly like a blur of days.",
+        "He landed in the year 802,701. The world was a peaceful garden, and gentle little people called the Eloi lived there. They fed him fruit and flowers, but they were weak and seemed to have no cares at all.",
+        "Then the Time Traveller noticed that his machine was gone. Someone had dragged it into a tall bronze statue. He searched everywhere, and at last he learned the truth: below the earth lived the Morlocks, pale creatures of the dark who ate the Eloi at night.",
+        "A brave Eloi woman named Weena became his friend. Together they explored the dark underworld, where the Morlocks kept the machines running. He found his machine but could not free it, and the creatures attacked him.",
+        "He escaped by climbing into a thick forest, where the trees caught fire. Weena was lost in the flames, and he returned alone. With a heavy heart, he found the machine at last and fled forward in time to escape the Morlocks.",
+        "He sped millions of years ahead and saw a dying red sun over a lifeless shore. Filled with dread, he returned to his own time. 'I will go back again,' he told his friends. He stepped into the machine and never came home."
+      ],
+      thPages: [
+        "นักประดิษฐ์อัจฉริยะรวบรวมเพื่อนๆ รอบเครื่องจักรเล็กๆ ที่ทำจากงาช้างและแก้ว 'ฉันสร้างเครื่องจักรที่เดินทางข้ามเวลาได้' เขากล่าว 'คืนนี้ฉันจะทดสอบมัน' เขากดคันโยก และเครื่องจักรก็หายไป",
+        "เขากลับมาหนึ่งสัปดาห์ต่อมา หน้าซีดและสั่นเทา 'ฟังก่อน' เขากล่าว แล้วเล่าเรื่องของเขา เขาตั้งหน้าปัดเครื่องจักรไปไกลในอนาคต และเฝ้าดูดวงอาทิตย์หมุนและฤดูกาลผ่านไปราวกับวันเวลาที่เลือนราง",
+        "เขาลงจอดในปี 802,701 โลกเป็นสวนอันสงบสุข และผู้คนตัวเล็กที่อ่อนโยนเรียกว่าชาวเอลอยอาศัยอยู่ที่นั่น พวกเขาให้ผลไม้และดอกไม้แก่เขา แต่พวกเขาอ่อนแอและดูเหมือนไม่มีความกังวลใดๆ เลย",
+        "แล้วนักเดินทางเวลาก็สังเกตเห็นว่าเครื่องจักรของเขาหายไป มีคนลากมันเข้าไปในรูปปั้นทองสัมฤทธิ์สูง เขาค้นหาทุกที่ และในที่สุดก็รู้ความจริง: ใต้พื้นดินอาศัยมอร์ล็อกส์ สิ่งมีชีวิตสีซีดแห่งความมืดที่กินชาวเอลอยในตอนกลางคืน",
+        "หญิงสาวเอลอยผู้กล้าหาญชื่อวีน่ากลายเป็นเพื่อนของเขา พวกเขาสำรวจโลกใต้ดินอันมืดมิดด้วยกัน ที่ซึ่งมอร์ล็อกส์คอยเดินเครื่องจักร เขาพบเครื่องจักรของเขาแต่ไม่สามารถปลดปล่อยมันได้ และสิ่งมีชีวิตเหล่านั้นก็โจมตีเขา",
+        "เขาหนีโดยการปีนเข้าไปในป่าทึบ ที่ซึ่งต้นไม้ถูกไฟไหม้ วีน่าหายไปในเปลวเพลิง และเขากลับมาคนเดียว ด้วยหัวใจที่หนักอึ้ง ในที่สุดเขาก็พบเครื่องจักรและหนีไปข้างหน้าในเวลาเพื่อหลบหนีมอร์ล็อกส์",
+        "เขาพุ่งไปหลายล้านปีข้างหน้าและเห็นดวงอาทิตย์สีแดงที่กำลังจะตายเหนือชายฝั่งที่ไร้ชีวิต ด้วยความหวาดกลัว เขากลับมาสู่ยุคของตัวเอง 'ฉันจะกลับไปอีกครั้ง' เขาบอกเพื่อนๆ เขาก้าวเข้าไปในเครื่องจักรและไม่เคยกลับบ้านอีกเลย"
+      ]
+    },
+    {
+      id: "cur-sf-war-of-worlds", level: "B2", genre: "scifi",
+      title: "The War of the Worlds",
+      pages: [
+        "No one believed that another world could watch us. But that night, astronomers saw a burst of fire on Mars, and a strange object fell from the sky into the fields near London. Men rushed out to stare at the great metal cylinder.",
+        "When the top of the cylinder unscrewed, a gray creature crawled out. It had huge dark eyes and long tentacles. It was a Martian — and it was followed by others. They brought terrible machines and an unknown weapon.",
+        "The Martians pointed a box of mirrors at the crowd, and a beam of heat flashed out. Men and women burst into flame and fell. The Martian war machines — towering tripods — strode across the countryside, leaving destruction behind.",
+        "I was one of the survivors. I fled the burning roads and hid with my wife in a cellar while the thunder of the tripods shook the earth. For days I crept through ruined villages, hungry and terrified, searching for a way to escape.",
+        "I met an artilleryman who had a wild plan to live underground and rebuild civilization. But I could not share his hope. The red weed covered the land, and the Martians seemed unstoppable, drinking the blood of men.",
+        "I hid inside a half-broken house and watched through a crack as a Martian crawled toward me. For hours I stayed frozen, and I felt my reason slipping away. But the Martian did not see me — it fell beside the house, motionless.",
+        "The truth was simple and wonderful. On Earth, the Martians had no defense against our smallest enemies. The invisible bacteria of our world destroyed them, one by one. The mighty invaders fell, and the red weed withered away. Humanity was saved by the humblest of creatures."
+      ],
+      thPages: [
+        "ไม่มีใครเชื่อว่าโลกอื่นจะเฝ้าดูเรา แต่คืนนั้น นักดาราศาสตร์เห็นแสงระเบิดบนดาวอังคาร และวัตถุประหลาดตกลงมาจากท้องฟ้าลงสู่ทุ่งนาใกล้ลอนดอน ผู้คนวิ่งออกไปจ้องดูกระบอกโลหะขนาดใหญ่",
+        "เมื่อฝากระบอกคลายเกลียวออก สิ่งมีชีวิตสีเทาก็คลานออกมา มันมีดวงตาสีเข้มขนาดใหญ่และหนวดยาว มันคือมนุษย์ดาวอังคาร — และมีตัวอื่นตามมา พวกมันนำเครื่องจักรอันน่ากลัวและอาวุธที่ไม่รู้จักมาด้วย",
+        "มนุษย์ดาวอังคารชี้กล่องกระจกไปที่ฝูงชน และลำแสงความร้อนก็พุ่งออกมา ชายและหญิงลุกเป็นไฟและล้มลง เครื่องจักรสงครามของดาวอังคาร — หุ่นสามขาสูงตระหง่าน — ก้าวย่างข้ามชนบท ทิ้งความหายนะไว้เบื้องหลัง",
+        "ฉันเป็นหนึ่งในผู้รอดชีวิต ฉันหนีจากถนนที่ลุกไหม้และซ่อนตัวกับภรรยาในห้องใต้ดิน ขณะที่เสียงฟ้าร้องของหุ่นสามขาสั่นสะเทือนแผ่นดิน หลายวันฉันคืบคลานผ่านหมู่บ้านปรักหักพัง หิวโหยและหวาดกลัว มองหาหนทางหนี",
+        "ฉันพบนายทหารปืนใหญ่คนหนึ่งที่มีแผนบ้าคลั่งที่จะอาศัยอยู่ใต้ดินและสร้างอารยธรรมขึ้นใหม่ แต่ฉันแบ่งปันความหวังของเขาไม่ได้ วัชพืชสีแดงปกคลุมแผ่นดิน และมนุษย์ดาวอังคารดูเหมือนหยุดไม่ได้ พวกมันดื่มเลือดของมนุษย์",
+        "ฉันซ่อนตัวในบ้านครึ่งพังและมองผ่านรอยแตก ขณะที่มนุษย์ดาวอังคารคลานเข้ามาหาฉัน หลายชั่วโมงฉันแข็งทื่อ และรู้สึกว่าสติของฉันกำลังจะหลุดลอย แต่ชายดาวอังคารไม่เห็นฉัน — มันล้มลงข้างบ้าน ไม่ไหวติง",
+        "ความจริงนั้นเรียบง่ายและมหัศจรรย์ บนโลก มนุษย์ดาวอังคารไม่มีทางต้านทานศัตรูที่เล็กที่สุดของเรา แบคทีเรียที่มองไม่เห็นของโลกเราทำลายพวกมันทีละตัว ผู้รุกรานผู้ยิ่งใหญ่ล้มลง และวัชพืชสีแดงก็เหี่ยวเฉา มนุษยชาติได้รับความรอดจากสิ่งมีชีวิตที่ต่ำต้อยที่สุด"
+      ]
+    },
+    {
+      id: "cur-sf-center-earth", level: "B2", genre: "scifi",
+      title: "Journey to the Center of the Earth",
+      pages: [
+        "My uncle, Professor Lidenbrock, was a famous scientist in Hamburg. One day he found an old book with a strange message written in secret letters. 'Decode it,' he ordered me, 'and we will make history.'",
+        "Together we solved the code. The message was from an ancient explorer named Arne Saknussemm, who claimed he had reached the center of the Earth through a volcano in Iceland. My uncle was overjoyed. 'We leave tomorrow!' he shouted.",
+        "We traveled to Iceland, hired a guide named Hans, and climbed the mountain Sneffels. At the summit we found a dark crater and a narrow chimney leading down. My uncle lowered himself first, and we followed into the darkness.",
+        "Down, down we went for days. The walls grew warm, and strange lights glowed in the rock. At last we reached a vast underground sea, and we built a raft of wood to sail across its still, silent water.",
+        "The sea was full of wonders — ancient fish, forests of giant mushrooms, and creatures that had vanished from the world above. Then a great storm rose, and lightning flashed across the underground sky as our raft was tossed like a leaf.",
+        "The storm carried us to a strange shore where we found the bones of ancient monsters and the carved name of Saknussemm on a stone. We followed his path and came to a narrow passage that we could not pass. So my uncle lit a charge of gunpowder and blasted the rock.",
+        "The explosion opened a tunnel behind us, and a river of fire — flowing lava — swept us upward. With a deafening roar, the volcano erupted, and we were thrown out onto the green slopes of Italy. We had crossed the entire Earth and returned to the surface!"
+      ],
+      thPages: [
+        "ลุงของฉัน ศาสตราจารย์ลีเดนบร็อก เป็นนักวิทยาศาสตร์ชื่อดังในฮัมบูร์ก วันหนึ่งเขาพบหนังสือเก่าที่มีข้อความแปลกประหลาดเขียนด้วยตัวอักษรลับ 'ถอดรหัสมัน' เขาสั่งฉัน 'แล้วเราจะสร้างประวัติศาสตร์'",
+        "ด้วยกันเราถอดรหัสได้ ข้อความนั้นมาจากนักสำรวจโบราณชื่ออาร์น ซัคนุสเซมม์ ผู้ซึ่งอ้างว่าเขาไปถึงใจกลางโลกผ่านภูเขาไฟในไอซ์แลนด์ ลุงของฉันดีใจมาก 'เราออกเดินทางพรุ่งนี้!' เขาตะโกน",
+        "เราเดินทางไปไอซ์แลนด์ จ้างไกด์ชื่อฮันส์ และปีนภูเขาสเนฟเฟลส์ บนยอดเขาเราพบปล่องภูเขาไฟมืดและช่องแคบที่นำลงไปข้างใต้ ลุงของฉันหย่อนตัวเองลงไปก่อน แล้วเราก็ตามลงไปในความมืด",
+        "ลงไป ลงไป เราลงไปหลายวัน กำแพงเริ่มอุ่นขึ้น และแสงประหลาดเรืองรองในหิน ในที่สุดเราก็ถึงทะเลใต้ดินอันกว้างใหญ่ และเราก็สร้างแพไม้เพื่อแล่นข้ามน้ำที่นิ่งสงบและเงียบงัน",
+        "ทะเลนั้นเต็มไปด้วยสิ่งมหัศจรรย์ — ปลาโบราณ ป่าเห็ดยักษ์ และสิ่งมีชีวิตที่สูญพันธุ์ไปจากโลกเบื้องบน แล้วพายุใหญ่ก็ก่อตัวขึ้น และฟ้าแลบวาบข้ามท้องฟ้าใต้ดิน ขณะที่แพของเราถูกซัดราวกับใบไม้",
+        "พายุพาเราไปที่ชายฝั่งประหลาด ที่ซึ่งเราพบกระดูกของสัตว์ประหลาดโบราณและชื่อของซัคนุสเซมม์ที่แกะสลักบนหิน เราตามเส้นทางของเขาและมาถึงทางเดินแคบที่เราไม่สามารถผ่านได้ ดังนั้นลุงของฉันจึงจุดดินระเบิดและระเบิดหิน",
+        "การระเบิดเปิดอุโมงค์ที่อยู่ข้างหลังเรา และแม่น้ำแห่งไฟ — ลาวาที่ไหล — พัดพาเราขึ้นไป ด้วยเสียงคำรามกึกก้อง ภูเขาไฟก็ปะทุ และเราถูกเหวี่ยงออกไปบนเนินเขาสีเขียวของอิตาลี เราข้ามโลกทั้งใบและกลับสู่ผิวน้ำ!"
+      ]
+    },
+    {
+      id: "cur-sf-frankenstein", level: "B2", genre: "scifi",
+      title: "Frankenstein",
+      pages: [
+        "A ship trapped in Arctic ice found a man near death on a floating block. His name was Victor Frankenstein, and he told the captain his terrible story — a warning that he begged the world to hear.",
+        "Victor had been a brilliant student who loved science. He became obsessed with the secret of life itself. After years of secret work, he gathered the parts of dead bodies and used electricity to give a new being the spark of life.",
+        "When the creature opened its yellow eyes, Victor was filled with horror. He fled his own creation. The lonely monster wandered the world, learning to speak and to read, but every human who saw it screamed and drove it away.",
+        "The creature found Victor at last. 'I am miserable,' it said. 'You made me. You owe me a mate.' Victor refused at first, but the monster threatened his family, and he agreed to build a female companion.",
+        "But as Victor worked, doubt filled his heart. What if the two monsters had children? What if they destroyed the world? In a fit of fear, he tore the new creature apart. The monster watched, and rage filled its heart.",
+        "The monster killed Victor's brother, then his best friend, and finally his beloved bride Elizabeth on their wedding night. 'You destroyed my hope,' it said. 'Now you will know my loneliness.' Victor swore to hunt it to the ends of the Earth.",
+        "Victor chased the monster across frozen wastes until his health gave out. On the ship, he died. The monster appeared at his coffin, wept, and promised to end its own life. It leapt onto the ice and vanished into the darkness forever."
+      ],
+      thPages: [
+        "เรือที่ติดอยู่ในน้ำแข็งอาร์กติกพบชายคนหนึ่งใกล้ตายบนก้อนน้ำแข็งที่ลอยอยู่ ชื่อของเขาคือวิกเตอร์ แฟรงเกนสไตน์ และเขาเล่าเรื่องราวอันน่าสยดสยองของเขาให้กัปตันฟัง — คำเตือนที่เขาวิงวอนให้โลกได้ยิน",
+        "วิกเตอร์เคยเป็นนักเรียนที่เก่งกาจผู้รักวิทยาศาสตร์ เขากลายเป็นคนหมกมุ่นกับความลับของชีวิตเอง หลังทำงานลับหลายปี เขารวบรวมชิ้นส่วนของศพและใช้ไฟฟ้าเพื่อมอบประกายแห่งชีวิตให้กับสิ่งมีชีวิตใหม่",
+        "เมื่อสิ่งมีชีวิตนั้นลืมตาสีเหลือง วิกเตอร์เต็มไปด้วยความสยดสยอง เขาหนีจากสิ่งที่เขาสร้างขึ้น สัตว์ประหลาดผู้โดดเดี่ยวเร่ร่อนไปทั่วโลก เรียนรู้ที่จะพูดและอ่าน แต่ทุกมนุษย์ที่เห็นมันก็กรีดร้องและไล่มันไป",
+        "ในที่สุดสิ่งมีชีวิตนั้นก็พบวิกเตอร์ 'ฉันทุกข์ทรมาน' มันกล่าว 'คุณสร้างฉันขึ้นมา คุณเป็นหนี้ฉันเพื่อนคู่ครอง' วิกเตอร์ปฏิเสธในตอนแรก แต่สัตว์ประหลาดข่มขู่ครอบครัวของเขา และเขาก็ตกลงที่จะสร้างคู่หูหญิง",
+        "แต่ขณะที่วิกเตอร์ทำงาน ความสงสัยก็เติมเต็มหัวใจของเขา จะเกิดอะไรขึ้นถ้าสัตว์ประหลาดสองตัวมีลูก? จะเกิดอะไรขึ้นถ้าพวกมันทำลายโลก? ด้วยความกลัว เขาฉีกสิ่งมีชีวิตตัวใหม่ออกจากกัน สัตว์ประหลาดเฝ้าดู และความโกรธก็เติมเต็มหัวใจของมัน",
+        "สัตว์ประหลาดฆ่าน้องชายของวิกเตอร์ แล้วก็เพื่อนสนิทของเขา และในที่สุดก็ฆ่าเอลิซาเบธเจ้าสาวผู้เป็นที่รักของเขาในคืนแต่งงาน 'คุณทำลายความหวังของฉัน' มันกล่าว 'ตอนนี้คุณจะรู้จักความโดดเดี่ยวของฉัน' วิกเตอร์สาบานว่าจะไล่ล่ามันจนสุดขอบโลก",
+        "วิกเตอร์ไล่ตามสัตว์ประหลาดข้ามทุ่งน้ำแข็งจนสุขภาพของเขาทรุดโทรม บนเรือ เขาเสียชีวิต สัตว์ประหลาดปรากฏตัวที่โลงศพของเขา ร้องไห้ และสัญญาว่าจะจบชีวิตของมันเอง มันกระโดดขึ้นบนน้ำแข็งและหายไปในความมืดตลอดกาล"
+      ]
+    },
+    {
+      id: "cur-mys-hound-baskerville", level: "B2", genre: "mystery",
+      title: "The Hound of the Baskervilles",
+      pages: [
+        "In the misty moors of Devonshire, a great dog was said to haunt the Baskerville family. Legend told how Sir Hugo Baskerville was killed by a monstrous hound after a wicked crime, and his descendants were cursed from that day on.",
+        "A hundred years later, Sir Charles Baskerville was found dead near his manor, his face twisted with terror. The only clue was a set of huge footprints — like those of a giant hound — leading away from his body.",
+        "Dr. Mortimer brought the case to Sherlock Holmes. 'Keep my heir, Sir Henry, safe,' he begged. 'He arrives from America tomorrow.' Holmes sent his friend Dr. Watson to the manor to guard the young man and watch everyone closely.",
+        "At Baskerville Hall, Watson met the strange butler Barrymore and his wife. One night he saw Barrymore signal with a candle from a window, and he discovered that the butler's brother was a dangerous convict hiding on the moors.",
+        "Watson also met the naturalist Stapleton, who lived across the moor with his sister. A strange fog often rose from the bog, and Watson heard a sound like a great hound howling in the night. Stapleton warned him away from the Grimpen Mire.",
+        "Then Sherlock Holmes himself appeared, hidden on the moors. He had guessed the truth: Stapleton was a Baskerville in disguise, and he planned to kill the heir. The 'hound' was a huge, glowing dog he kept in the marsh, ready to be set loose.",
+        "In the fog, the giant hound attacked Sir Henry. Holmes and Watson shot it as it leaped, and its glow faded. Stapleton fled into the bog and drowned in the mire. The curse of the Baskervilles was ended, and Sir Henry was safe."
+      ],
+      thPages: [
+        "ในทุ่งหมอกของเดวอนเชียร์ ว่ากันว่าสุนัขตัวใหญ่สิงสถิตครอบครัวแบสเกอร์วิลล์ ตำนานเล่าว่าเซอร์ฮูโก แบสเกอร์วิลล์ถูกสุนัขปีศาจฆ่าตายหลังก่ออาชญากรรมชั่วร้าย และลูกหลานของเขาถูกสาปตั้งแต่วันนั้นเป็นต้นมา",
+        "ร้อยปีต่อมา เซอร์ชาร์ลส์ แบสเกอร์วิลล์ถูกพบเสียชีวิตใกล้คฤหาสน์ของเขา ใบหน้าบิดเบี้ยวด้วยความสยดสยอง เบาะแสเดียวคือรอยเท้าขนาดมหึมา — เหมือนรอยของสุนัขยักษ์ — ทอดออกไปจากร่างของเขา",
+        "ดร.มอร์ติเมอร์นำคดีนี้มาหาเชอร์ล็อก โฮมส์ 'ดูแลทายาทของฉัน เซอร์เฮนรี ให้ปลอดภัยด้วย' เขาวิงวอน 'เขาจะมาถึงพรุ่งนี้จากอเมริกา' โฮมส์ส่งเพื่อนของเขา ดร.วัตสัน ไปที่คฤหาสน์เพื่อคุ้มครองชายหนุ่มและเฝ้าดูทุกคนอย่างใกล้ชิด",
+        "ที่แบสเกอร์วิลล์ฮอลล์ วัตสันพบพ่อบ้านแปลกหน้าชื่อแบร์รีมอร์กับภรรยาของเขา คืนหนึ่งเขาเห็นแบร์รีมอร์ส่งสัญญาณด้วยเทียนจากหน้าต่าง และเขาค้นพบว่าน้องชายของพ่อบ้านคืออาชญากรอันตรายที่ซ่อนตัวอยู่บนทุ่ง",
+        "วัตสันยังได้พบกับสเตเปิลตัน นักธรรมชาติวิทยา ที่อาศัยอยู่อีกฟากของทุ่งกับน้องสาวของเขา หมอกแปลกๆ มักลอยขึ้นจากหนองบึง และวัตสันได้ยินเสียงเหมือนสุนัขตัวใหญ่หอนในยามค่ำคืน สเตเปิลตันเตือนเขาให้หลีกเลี่ยงหนองกริมเพน",
+        "แล้วเชอร์ล็อก โฮมส์เองก็ปรากฏตัว ซ่อนตัวอยู่บนทุ่ง เขาคาดเดาความจริงได้: สเตเปิลตันคือแบสเกอร์วิลล์ในคราบปลอมตัว และเขาวางแผนจะฆ่าทายาท 'สุนัข' ที่ว่านั้นคือสุนัขตัวใหญ่เรืองแสงที่เขาเลี้ยงไว้ในหนอง พร้อมปล่อยออกมา",
+        "ในหมอก สุนัขยักษ์โจมตีเซอร์เฮนรี โฮมส์และวัตสันยิงมันขณะที่มันกระโดด และแสงของมันก็มืดลง สเตเปิลตันหนีเข้าไปในหนองและจมน้ำตาย คำสาปของแบสเกอร์วิลล์สิ้นสุดลง และเซอร์เฮนรีก็ปลอดภัย"
+      ]
+    },
+    {
+      id: "cur-mys-rue-morgue", level: "B2", genre: "mystery",
+      title: "The Murders in the Rue Morgue",
+      pages: [
+        "In Paris, a terrible crime shook the city. In a locked room on the fourth floor of the Rue Morgue, the bodies of a mother and daughter were found. The mother's throat was cut, and the daughter had been strangled and thrown up the chimney.",
+        "The door was locked from inside, and the windows were firmly shut. Money lay scattered on the floor, but nothing was stolen. People said the daughter had a voice too loud for a woman, and witnesses argued about a foreign language they had heard.",
+        "The police were lost. But the great detective Auguste Dupin read the newspaper and saw the truth in the details. He noticed that the windows opened in a strange way, and that the daughter was wedged into the chimney with terrible force.",
+        "Dupin examined the room himself. He found hairs on the mother's hand that were not human, and marks on the throat that no human hands could have made. 'This was no murder by a man,' he said quietly.",
+        "The answer was a wild creature. A sailor had brought a huge orangutan back from Borneo. It had escaped, climbed into the window, and killed the women in a blind frenzy. The voices the witnesses heard were the cries of the beast.",
+        "Dupin found the sailor through an advertisement and told him the whole story. The man was grateful to escape blame, and he told Dupin everything. The mystery of the Rue Morgue was solved by careful thought — and the police never understood a single step."
+      ],
+      thPages: [
+        "ในปารีส อาชญากรรมอันน่าสยดสยองสั่นสะเทือนทั้งเมือง ในห้องที่ล็อกไว้บนชั้นสี่ของถนนรูมอร์ก พบศพของแม่และลูกสาว ร่างของแม่ถูกเฉือนคอ และลูกสาวถูกรัดคอแล้วถูกโยนขึ้นไปในปล่องไฟ",
+        "ประตูถูกล็อกจากด้านใน และหน้าต่างก็ปิดสนิท เงินกระจายอยู่บนพื้น แต่ไม่มีอะไรถูกขโมย ผู้คนกล่าวว่าลูกสาวมีเสียงดังเกินกว่าผู้หญิงคนหนึ่ง และพยานโต้เถียงกันเกี่ยวกับภาษาต่างประเทศที่พวกเขาได้ยิน",
+        "ตำรวจสับสนสิ้น แต่ยอดนักสืบออกุสต์ ดูแปงอ่านหนังสือพิมพ์และเห็นความจริงในรายละเอียด เขาสังเกตว่าหน้าต่างเปิดในลักษณะแปลก และลูกสาวถูกอัดเข้าไปในปล่องไฟด้วยแรงมหาศาล",
+        "ดูแปงตรวจห้องด้วยตัวเอง เขาพบเส้นผมบนมือของแม่ที่ไม่ใช่เส้นผมมนุษย์ และรอยบนคอที่มือมนุษย์ไม่สามารถทำได้ 'นี่ไม่ใช่การฆาตกรรมโดยมนุษย์' เขากล่าวอย่างเงียบๆ",
+        "คำตอบคือสัตว์ป่า กะลาสีคนหนึ่งนำอุรังอุตังตัวใหญ่กลับมาจากเกาะบอร์เนียว มันหนีออกมา ปีนเข้าไปในหน้าต่าง และฆ่าผู้หญิงทั้งสองในความคลั่งไคล้ที่มองไม่เห็น เสียงที่พยานได้ยินคือเสียงร้องของสัตว์ร้าย",
+        "ดูแปงหากะลาสีเจอผ่านการลงโฆษณาและเล่าเรื่องทั้งหมดให้เขาฟัง ชายคนนั้นรู้สึกขอบคุณที่พ้นผิด และเล่าทุกอย่างให้ดูแปงฟัง ปริศนาของถนนรูมอร์กถูกไขด้วยการคิดอย่างรอบคอบ — และตำรวจไม่เคยเข้าใจสักขั้นตอนเดียว"
+      ]
+    },
+    {
+      id: "cur-cls-christmas-carol", level: "A2", genre: "classic",
+      title: "A Christmas Carol",
+      pages: [
+        "Ebenezer Scrooge was the meanest man in London. He loved money, hated Christmas, and refused to help the poor. 'Bah! Humbug!' he said to anyone who wished him a merry Christmas.",
+        "One Christmas Eve, the ghost of his old partner Jacob Marley appeared, wrapped in heavy chains. 'I wore these chains for my greed,' Marley moaned. 'Tonight, three spirits will visit you. Listen to them, or you will suffer as I do.'",
+        "The Ghost of Christmas Past showed Scrooge his boyhood — happy days he had forgotten. It showed him his old love, who had left him because of his cold heart. Scrooge wept to see what he had become.",
+        "The Ghost of Christmas Present showed him the home of his poor clerk, Bob Cratchit, where the family enjoyed a simple feast. Bob's small son Tiny Tim was ill, and Scrooge asked, 'Will the boy live?' The ghost said, 'If nothing changes, he will die.'",
+        "The Ghost of Christmas Yet to Come showed Scrooge a grave with his own name on it, and greedy men glad that he was dead. Scrooge fell to his knees. 'I will change!' he cried. 'I promise to honor Christmas in my heart!'",
+        "Scrooge woke in his own bed, laughing with joy. He sent a huge turkey to the Cratchit family, gave money to the poor, and walked through the streets wishing everyone a merry Christmas.",
+        "From that day on, Scrooge kept his promise. He helped Tiny Tim, who lived, and became like a second father to him. The people of London said no one knew better than Scrooge how to keep Christmas well."
+      ],
+      thPages: [
+        "เอ็บเบเนเซอร์ สครูจเป็นคนที่ใจร้ายที่สุดในลอนดอน เขารักเงิน เกลียดคริสต์มาส และปฏิเสธที่จะช่วยคนยากจน 'บาห์! ฮัมบั๊ก!' เขาพูดกับใครก็ตามที่อวยพรคริสต์มาสให้เขา",
+        "คืนก่อนวันคริสต์มาส ผีของเจค็อบ มาร์ลีย์หุ้นส่วนเก่าของเขาปรากฏตัว ถูกพันธนาการด้วยโซ่หนัก 'ฉันสวมโซ่เหล่านี้เพราะความโลภของฉัน' มาร์ลีย์คร่ำครวญ 'คืนนี้ วิญญาณสามตนจะมาเยือนคุณ ฟังพวกมัน หรือคุณจะทนทุกข์เหมือนฉัน'",
+        "ผีแห่งคริสต์มาสอดีตพาสครูจดูวัยเด็กของเขา — วันที่มีความสุขที่เขาลืมไปแล้ว มันพาเขาดูคนรักเก่าของเขาที่จากไปเพราะหัวใจเย็นชาของเขา สครูจร้องไห้ที่เห็นว่าตัวเองกลายเป็นอะไร",
+        "ผีแห่งคริสต์มาสปัจจุบันพาเขาดูบ้านของบ็อบ แครทชิตเสมียนผู้ยากจนของเขา ที่ซึ่งครอบครัวเพลิดเพลินกับมื้ออาหารที่เรียบง่าย ทิมน้อยลูกชายตัวเล็กของบ็อบป่วย และสครูจถามว่า 'เด็กคนนั้นจะรอดไหม?' ผีกล่าว 'ถ้าไม่มีอะไรเปลี่ยนแปลง เขาจะตาย'",
+        "ผีแห่งคริสต์มาสที่ยังมาไม่ถึงพาสครูจดูหลุมศพที่มีชื่อของเขาอยู่บนนั้น และชายโลภที่ดีใจที่เขาตาย สครูจคุกเข่าลง 'ฉันจะเปลี่ยน!' เขาร้องไห้ 'ฉันสัญญาว่าจะให้เกียรติคริสต์มาสในหัวใจ!'",
+        "สครูจตื่นขึ้นบนเตียงของตัวเอง หัวเราะด้วยความสุข เขาส่งไก่งวงตัวใหญ่ให้ครอบครัวแครทชิต ให้เงินคนยากจน และเดินผ่านถนนอวยพรคริสต์มาสกับทุกคน",
+        "ตั้งแต่วันนั้นเป็นต้นมา สครูจรักษาสัญญาของเขา เขาช่วยทิมน้อย ผู้ซึ่งรอดชีวิต และกลายเป็นเหมือนพ่อคนที่สองของเขา ผู้คนในลอนดอนกล่าวว่าไม่มีใครรู้จักวิธีเฉลิมฉลองคริสต์มาสได้ดีเท่าสครูจ"
+      ]
+    },
+    {
+      id: "cur-cls-alice-wonderland", level: "A2", genre: "classic",
+      title: "Alice in Wonderland",
+      pages: [
+        "Alice was sitting by the river with her sister when a white rabbit ran past, pulling a watch from its pocket. 'I'm late!' it cried. Alice chased it down a rabbit hole and fell, falling slowly, down into a strange new world.",
+        "She landed in a hall full of doors. On a table stood a bottle labeled 'Drink me' and a cake labeled 'Eat me.' When she drank, she shrank. When she ate, she grew taller than the house. Nothing made sense, but everything was wonderful.",
+        "Alice wept so much that she swam in a pool of her own tears. Then she joined a strange race with birds and animals, and everyone was wet and tired. 'Curiouser and curiouser,' she said to herself.",
+        "She met the White Rabbit again, who thought she was his servant, and a blue caterpillar who smoked a hookah. 'Who are you?' the caterpillar asked. Alice sighed. 'I hardly know anymore — I change so often today!'",
+        "At a long table she found the Mad Hatter, the March Hare, and a sleepy dormouse having tea. They asked her riddles and moved around the table, shouting, 'No room! No room!' Alice left them and walked into a beautiful garden.",
+        "In the garden she met the Queen of Hearts, who ordered, 'Off with their heads!' at every small mistake. Alice played croquet with flamingos and hedgehogs, but the Queen wanted to behead even the players she disliked.",
+        "Then Alice was called to a trial over some stolen tarts. When the Queen shouted to behead her, Alice cried, 'You're nothing but a pack of cards!' The cards flew up in the air, and Alice woke on the riverbank — it had all been a dream."
+      ],
+      thPages: [
+        "อลิซกำลังนั่งอยู่ริมแม่น้ำกับพี่สาวของเธอ เมื่อกระต่ายขาวตัวหนึ่งวิ่งผ่านมา ดึงนาฬิกาออกจากกระเป๋า 'ฉันสายแล้ว!' มันร้อง อลิซไล่ตามมันลงไปในโพรงกระต่ายและตกลงไป ตกลงช้าๆ ลงสู่โลกใหม่ที่แปลกประหลาด",
+        "เธอลงจอดในห้องโถงที่เต็มไปด้วยประตู บนโต๊ะมีขวดที่ติดฉลาก 'ดื่มฉัน' และเค้กที่ติดฉลาก 'กินฉัน' เมื่อเธอดื่ม เธอก็เล็กลง เมื่อเธอกิน เธอก็สูงขึ้นกว่าบ้าน ไม่มีอะไรสมเหตุสมผล แต่ทุกอย่างวิเศษ",
+        "อลิซร้องไห้มากจนเธอว่ายอยู่ในสระน้ำตาของตัวเอง แล้วเธอก็เข้าร่วมการแข่งแปลกๆ กับนกและสัตว์ และทุกคนก็เปียกและเหนื่อย 'แปลกขึ้น แปลกขึ้นเรื่อยๆ' เธอพูดกับตัวเอง",
+        "เธอพบกระต่ายขาวอีกครั้ง ซึ่งคิดว่าเธอเป็นคนรับใช้ของมัน และหนอนผีเสื้อสีน้ำเงินที่สูบไปป์น้ำ 'เธอเป็นใคร?' หนอนถาม อลิซถอนหายใจ 'ฉันแทบไม่รู้ตัวอีกแล้ว — ฉันเปลี่ยนไปมากวันนี้!'",
+        "ที่โต๊ะยาว เธอพบคนบ้าฮัทเตอร์ กระต่ายมีนาคม และดอร์เมาส์ง่วงนอนกำลังดื่มชา พวกเขาถามปริศนาและย้ายไปรอบโต๊ะ ตะโกนว่า 'ไม่มีที่! ไม่มีที่!' อลิซจากพวกเขาไปและเดินเข้าไปในสวนที่สวยงาม",
+        "ในสวนเธอพบราชินีหัวใจ ผู้ซึ่งสั่ง 'ตัดหัวพวกมันซะ!' กับทุกความผิดพลาดเล็กๆ อลิซเล่นครอกเกต์กับฟลามิงโกและเม่น แต่ราชินีต้องการตัดหัวแม้แต่ผู้เล่นที่เธอไม่ชอบ",
+        "แล้วอลิซก็ถูกเรียกไปพิจารณาคดีเกี่ยวกับทาร์ตที่ถูกขโมย เมื่อราชินีตะโกนสั่งตัดหัวเธอ อลิซร้องว่า 'คุณเป็นแค่สำรับไพ่!' ไพ่บินขึ้นไปในอากาศ และอลิซก็ตื่นขึ้นบนฝั่งแม่น้ำ — มันเป็นแค่ความฝัน"
+      ]
+    },
+    {
+      id: "cur-cls-little-prince", level: "B1", genre: "classic",
+      title: "The Little Prince",
+      pages: [
+        "Once a pilot crashed his plane in the desert. As he fixed it, a small boy appeared and asked for a drawing of a sheep. The boy was the Little Prince, and he came from a tiny planet no bigger than a house.",
+        "The Little Prince told the pilot about his planet, where a beautiful rose grew. He loved her dearly, but she was proud and vain. One day he grew tired of her, and he left to see the wide world and learn what it meant to have friends.",
+        "He visited other planets. On one lived a king who ruled over nothing. On another lived a vain man who wanted everyone to admire him. A third was owned by a businessman who counted stars and called them his wealth.",
+        "On the next planet lived a lamplighter, who lit his lamp again and again because his planet spun faster and faster. 'He is the only one who is not ridiculous,' thought the prince. 'Because he cares about his duty.'",
+        "At last the Little Prince came to Earth. He walked through a garden of roses and felt sad, because his own rose had told him she was the only one of her kind. But a fox taught him a secret. 'It is the time you spend on your rose that makes her so important.'",
+        "'You become responsible forever for what you have tamed,' the fox said. 'What is essential is invisible to the eye.' The Little Prince understood. He returned to his rose in his heart, ready to love and be loved.",
+        "The Little Prince left the pilot at last, telling him that he would go home to his planet and his rose. The pilot never saw him again, but every night he listened to the stars, as if they were a million laughing bells."
+      ],
+      thPages: [
+        "ครั้งหนึ่งนักบินตกเครื่องบินในทะเลทราย ขณะที่เขาซ่อมมัน เด็กชายตัวเล็กคนหนึ่งปรากฏตัวและขอภาพวาดแกะหนึ่งตัว เด็กชายคือเจ้าชายน้อย และเขามาจากดาวเคราะห์เล็กๆ ที่ใหญ่ไม่เกินบ้านหลังหนึ่ง",
+        "เจ้าชายน้อยเล่าให้นักบินฟังเกี่ยวกับดาวเคราะห์ของเขา ที่ซึ่งกุหลาบแสนสวยงอกขึ้น เขารักเธออย่างสุดหัวใจ แต่เธอหยิ่งและโอ้อวด วันหนึ่งเขาเบื่อเธอ จึงจากไปเพื่อดูโลกกว้างและเรียนรู้ว่าการมีเพื่อนหมายถึงอะไร",
+        "เขาไปเยือนดาวเคราะห์ดวงอื่น ดวงหนึ่งมีกษัตริย์ผู้ปกครองสิ่งที่ไม่มี อีกดวงมีคนขี้โอ่ที่ต้องการให้ทุกคนชื่นชมเขา ดวงที่สามเป็นของนักธุรกิจที่นับดวงดาวและเรียกมันว่าความมั่งคั่งของเขา",
+        "บนดาวเคราะห์ดวงถัดไปมีคนจุดตะเกียง ผู้จุดตะเกียงของเขาซ้ำแล้วซ้ำเล่าเพราะดาวเคราะห์ของเขาหมุนเร็วขึ้นเรื่อยๆ 'เขาเป็นคนเดียวที่ไม่ไร้สาระ' เจ้าชายคิด 'เพราะเขาห่วงใยหน้าที่ของเขา'",
+        "ในที่สุดเจ้าชายน้อยก็มาถึงโลก เขาเดินผ่านสวนกุหลาบและรู้สึกเศร้า เพราะกุหลาบของเขาเองเคยบอกว่าเธอเป็นเพียงหนึ่งเดียวในสายพันธุ์ของเธอ แต่สุนัขจิ้งจอกสอนความลับแก่เขา 'เวลาที่คุณใช้กับกุหลาบของคุณคือสิ่งที่ทำให้เธอสำคัญขนาดนั้น'",
+        "'คุณต้องรับผิดชอบตลอดไปสำหรับสิ่งที่คุณผูกพัน' จิ้งจอกกล่าว 'สิ่งที่สำคัญนั้นมองไม่เห็นด้วยตา' เจ้าชายน้อยเข้าใจ เขากลับหากุหลาบของเขาในหัวใจ พร้อมที่จะรักและถูกรัก",
+        "ในที่สุดเจ้าชายน้อยก็จากนักบินไป โดยบอกว่าเขาจะกลับบ้านไปยังดาวเคราะห์และกุหลาบของเขา นักบินไม่เคยเห็นเขาอีกเลย แต่ทุกคืนเขาฟังดวงดาว ราวกับว่าพวกมันเป็นระฆังหัวเราะนับล้านใบ"
+      ]
+    },
+    {
+      id: "cur-cls-wizard-oz", level: "A2", genre: "classic",
+      title: "The Wizard of Oz",
+      pages: [
+        "Dorothy lived on a gray farm in Kansas with her dog Toto. One day a great cyclone lifted the little house into the air and carried it far away to a strange and beautiful land of colors.",
+        "The house landed in the country of the Munchkins and squashed the Wicked Witch of the East. A good witch gave Dorothy silver shoes and said, 'Follow the yellow brick road to the Emerald City. The great Wizard of Oz can send you home.'",
+        "On the road Dorothy met a scarecrow who wanted a brain, a tin man who wanted a heart, and a cowardly lion who wanted courage. She invited them all to come with her to see the Wizard.",
+        "After many dangers, they reached the Emerald City, where everything sparkled with green. But the Wizard appeared as a giant head and refused their request. 'Bring me the broom of the Wicked Witch of the West,' he demanded, 'and I will help you.'",
+        "The Witch captured them and sent flying monkeys to attack. But Dorothy threw water on the Witch by accident, and the wicked woman melted away. The Munchkins were free, and Dorothy took the Witch's golden broom back to the city.",
+        "The Wizard turned out to be a small, ordinary man behind a curtain. But he gave the Scarecrow a brain of bran, the Tin Man a silk heart, and the Lion a potion of courage. 'You always had these inside you,' he told them.",
+        "The Wizard floated away in his balloon without Dorothy. But the good witch told her to click her silver shoes three times and say, 'There's no place like home.' The shoes carried her back to Kansas, where she hugged Aunt Em and Toto, safe at last."
+      ],
+      thPages: [
+        "โดโรธีอาศัยอยู่ในฟาร์มสีเทาในแคนซัสกับสุนัขชื่อโตโต วันหนึ่งพายุไซโคลนลูกใหญ่พัดบ้านหลังเล็กขึ้นไปในอากาศและพามันไปไกลถึงดินแดนแห่งสีสันที่แปลกประหลาดและสวยงาม",
+        "บ้านลงจอดในดินแดนของมันช์กินส์และทับแม่มดชั่วแห่งตะวันออก แม่มดใจดีมอบรองเท้าเงินให้โดโรธีและกล่าวว่า 'เดินตามถนนอิฐเหลืองไปยังเมืองมรกต มหาจอมเวทแห่งออซจะส่งเธอกลับบ้านได้'",
+        "ระหว่างทางโดโรธีพบหุ่นไล่กาที่ต้องการสมอง มนุษย์ดีบุกที่ต้องการหัวใจ และสิงโตขี้ขลาดที่ต้องการความกล้าหาญ เธอชวนพวกเขาทั้งหมดไปพบจอมเวทด้วยกัน",
+        "หลังอันตรายมากมาย พวกเขาก็ถึงเมืองมรกต ที่ซึ่งทุกอย่างเปล่งประกายสีเขียว แต่จอมเวทปรากฏตัวเป็นศีรษะยักษ์และปฏิเสธคำขอของพวกเขา 'เอาไม้กวาดของแม่มดชั่วแห่งตะวันตกมา' เขาเรียกร้อง 'แล้วฉันจะช่วย'",
+        "แม่มดจับพวกเขาและส่งลิงบินมาโจมตี แต่โดโรธีเผลอสาดน้ำใส่แม่มดโดยบังเอิญ และหญิงชั่วก็ละลายหายไป มันช์กินส์เป็นอิสระ และโดโรธีนำไม้กวาดทองของแม่มดกลับไปที่เมือง",
+        "ปรากฏว่าจอมเวทเป็นเพียงชายตัวเล็กธรรมดาที่ซ่อนอยู่หลังม่าน แต่เขามอบสมองรำข้าวให้หุ่นไล่กา หัวใจผ้าไหมให้มนุษย์ดีบุก และยาน้ำแห่งความกล้าให้สิงโต 'พวกเธอมีสิ่งเหล่านี้อยู่ในตัวมาตลอด' เขาบอกพวกเขา",
+        "จอมเวทบินจากไปในบอลลูนโดยไม่มีโดโรธี แต่แม่มดใจดีบอกให้เธอคลิกส้นรองเท้าเงินสามครั้งแล้วพูดว่า 'ไม่มีที่ไหนเหมือนบ้าน' รองเท้าพาเธอกลับไปแคนซัส ที่ซึ่งเธอกอดป้าอีเอ็มและโตโต ปลอดภัยในที่สุด"
+      ]
+    },
+    {
+      id: "cur-fairy-snow-white", level: "A1", genre: "fairy",
+      title: "Snow White",
+      pages: [
+        "A queen had a beautiful daughter named Snow White, with skin as white as snow. When the queen died, the king married a proud new queen who had a magic mirror. Every day she asked, 'Mirror, mirror, who is the fairest of them all?'",
+        "For years the mirror answered, 'You, my queen, are the fairest of all.' But one day it said, 'Snow White is fairer than you.' The queen grew furious, and she ordered a huntsman to take Snow White into the forest and kill her.",
+        "The huntsman could not harm the kind girl. 'Run away and never come back!' he cried. Snow White ran deep into the forest, where she found a tiny cottage with seven little chairs and seven little beds. It belonged to seven dwarfs.",
+        "When the dwarfs came home, they loved Snow White at once and let her stay. 'But beware,' they warned her. 'Your stepmother may find you.' Every morning they kissed her goodbye and went off to dig for gold.",
+        "The evil queen learned the truth and came to the cottage disguised as an old woman. She offered Snow White a beautiful red apple, and one bite sent the girl into a deep sleep that seemed like death.",
+        "The dwarfs found her and laid her in a glass coffin on a hill, sad beyond words. One day a handsome prince saw her and kissed her. The spell broke, and Snow White opened her eyes.",
+        "The prince took her to his castle, and they married with great joy. The wicked queen was never seen again, and Snow White and her seven dwarf friends lived happily together forever."
+      ],
+      thPages: [
+        "ราชินีองค์หนึ่งมีลูกสาวที่สวยงามชื่อสโนว์ไวท์ ผิวขาวราวกับหิมะ เมื่อราชินีสิ้นพระชนม์ กษัตริย์ทรงอภิเษกกับราชินีองค์ใหม่ผู้หยิ่งยโสที่มีกระจกวิเศษ ทุกวันเธอถามว่า 'กระจก กระจก ใครสวยที่สุดในโลก?'",
+        "เป็นเวลาหลายปีที่กระจกตอบว่า 'ท่านราชินี ท่านสวยที่สุดในโลก' แต่วันหนึ่งมันกล่าวว่า 'สโนว์ไวท์สวยกว่าท่าน' ราชินีโกรธจัด และสั่งนายพรานให้พาสโนว์ไวท์ไปที่ป่าแล้วฆ่าเธอ",
+        "นายพรานทำร้ายเด็กใจดีไม่ได้ 'วิ่งหนีไปและอย่ากลับมา!' เขาร้อง สโนว์ไวท์วิ่งลึกเข้าไปในป่า ที่ซึ่งเธอพบกระท่อมหลังเล็กที่มีเก้าอี้เล็กๆ เจ็ดตัวและเตียงเล็กๆ เจ็ดเตียง มันเป็นของคนแคระทั้งเจ็ด",
+        "เมื่อคนแคระกลับมาถึงบ้าน พวกเขารักสโนว์ไวท์ทันทีและให้เธอพักอยู่ 'แต่ระวัง' พวกเขาเตือนเธอ 'แม่เลี้ยงของเธออาจตามหาเธอเจอ' ทุกเช้าพวกเขาจูบเธอลาและออกไปขุดทอง",
+        "ราชินีชั่วร้ายรู้ความจริงและมาที่กระท่อมปลอมตัวเป็นหญิงชรา เธอเสนอแอปเปิลแดงสวยงามให้สโนว์ไวท์ และหนึ่งคำกัดก็ทำให้เด็กหญิงหลับลึกดูเหมือนตาย",
+        "คนแคระพบเธอและวางเธอไว้ในโลงแก้วบนเนินเขา เศร้าเกินกว่าจะพูด เย็นวันหนึ่งเจ้าชายรูปงามเห็นเธอและจูบเธอ เสน่ห์สลาย และสโนว์ไวท์ก็ลืมตา",
+        "เจ้าชายพาเธอไปที่ปราสาทของเขา และพวกเขาก็แต่งงานกันด้วยความยินดียิ่ง ราชินีชั่วร้ายไม่เคยถูกพบเห็นอีกเลย และสโนว์ไวท์กับเพื่อนคนแคระทั้งเจ็ดก็อยู่ร่วมกันอย่างมีความสุขตลอดไป"
+      ]
+    },
+    {
+      id: "cur-fairy-beauty-beast", level: "A2", genre: "fairy",
+      title: "Beauty and the Beast",
+      pages: [
+        "A rich merchant lost all his money, and his family had to live in a small cottage. His youngest daughter, Beauty, was kind and good, and she loved her father more than the fine dresses she no longer had.",
+        "One winter, the merchant lost his way in a dark forest. He found a great castle, empty and strange, and he slept there. In the garden he picked a single rose for Beauty. A terrible Beast appeared and roared, 'You have stolen my rose! You must pay with your life!'",
+        "'Please spare me for my daughter's sake,' begged the merchant. The Beast agreed, on one condition: someone must come to the castle in his place. When Beauty heard the story, she said, 'Father, I will go to the Beast myself.'",
+        "At the castle, Beauty expected a monster. Instead, the Beast was gentle and gave her everything she wished for. Every evening he asked, 'Beauty, will you marry me?' And every time she answered, 'No, Beast.' But she grew fond of his kindness.",
+        "One day a magic mirror showed Beauty her father, who was ill. She begged the Beast to let her visit home. 'Go,' he said sadly, 'but if you do not return in seven days, I will die.' Beauty hurried home to her father.",
+        "Her sisters persuaded her to stay longer. Then one night Beauty dreamed of the Beast, dying in his garden. She ran back to the castle at once and found him weak beside the rose. 'I could not live without you,' he whispered.",
+        "Beauty wept. 'I love you, Beast,' she said. 'You shall be my husband.' The spell broke, and the Beast became a handsome prince. They married and lived happily, and Beauty understood that true beauty is found within the heart."
+      ],
+      thPages: [
+        "พ่อค้าผู้มั่งคั่งเสียทรัพย์สินทั้งหมด และครอบครัวของเขาต้องอาศัยในกระท่อมเล็กๆ ลูกสาวคนเล็กชื่อบิวตี้เป็นคนใจดีและดีงาม และเธอรักพ่อมากกว่าชุดสวยๆ ที่เธอไม่มีแล้ว",
+        "ฤดูหนาวปีหนึ่ง พ่อค้าหลงทางในป่ามืด เขาพบปราสาทใหญ่ที่ว่างเปล่าและแปลกประหลาด และเขานอนที่นั่น ในสวนเขาเด็ดกุหลาบเพียงดอกเดียวให้บิวตี้ สัตว์ร้ายที่น่ากลัวปรากฏตัวและคำราม 'เจ้าขโมยกุหลาบของฉัน! เจ้าต้องชดใช้ด้วยชีวิต!'",
+        "'โปรดไว้ชีวิตฉันเพื่อลูกสาวของฉัน' พ่อค้าวิงวอน สัตว์ร้ายตกลง โดยมีเงื่อนไขเดียว: ต้องมีคนมาแทนเขาที่ปราสาท เมื่อบิวตี้ฟังเรื่อง เธอกล่าวว่า 'พ่อ ฉันจะไปหาสัตว์ร้ายเอง'",
+        "ที่ปราสาท บิวตี้คาดว่าจะเจอสัตว์ประหลาด แต่กลับตรงกันข้าม สัตว์ร้ายอ่อนโยนและมอบทุกสิ่งที่เธอปรารถนาให้ ทุกเย็นมันถามว่า 'บิวตี้ เจ้าจะแต่งงานกับฉันไหม?' และทุกครั้งเธอตอบว่า 'ไม่ สัตว์ร้าย' แต่เธอเริ่มรักในความใจดีของมัน",
+        "วันหนึ่งกระจกวิเศษแสดงให้บิวตี้เห็นพ่อของเธอ ซึ่งกำลังป่วย เธอวิงวอนให้สัตว์ร้ายปล่อยเธอกลับบ้าน 'ไปเถอะ' มันกล่าวอย่างเศร้า 'แต่ถ้าเจ้าไม่กลับมาภายในเจ็ดวัน ฉันจะตาย' บิวตี้รีบกลับบ้านไปหาพ่อ",
+        "พี่สาวของเธอชักชวนให้เธออยู่ต่อ แล้วคืนหนึ่งบิวตี้ฝันเห็นสัตว์ร้าย กำลังจะตายในสวนของมัน เธอวิ่งกลับปราสาททันทีและพบมันอ่อนแออยู่ข้างกุหลาบ 'ฉันอยู่ไม่ได้ถ้าไม่มีเจ้า' มันกระซิบ",
+        "บิวตี้ร้องไห้ 'ฉันรักคุณ สัตว์ร้าย' เธอกล่าว 'คุณจะเป็นสามีของฉัน' เสน่ห์สลาย และสัตว์ร้ายก็กลายเป็นเจ้าชายรูปงาม พวกเขาแต่งงานและอยู่กันอย่างมีความสุข และบิวตี้เข้าใจว่าความงามที่แท้จริงอยู่ภายในหัวใจ"
+      ]
+    },
+    {
+      id: "cur-ghost-fall-house-usher", level: "B2", genre: "ghost",
+      title: "The Fall of the House of Usher",
+      pages: [
+        "One dull autumn day, I rode toward the House of Usher. Even from afar, the ancient mansion filled me with dread. Its walls were black with damp, and a crack ran from the roof down to the dark water below.",
+        "My friend Roderick Usher awaited me. He was pale and nervous, and his eyes had a haunted look. 'I am sick,' he said. 'My senses are too sharp. Every sound is a torture.' He feared the darkness and his own family curse.",
+        "Roderick lived with his twin sister Madeline, who was wasting away from a strange illness. 'When she dies, I shall be the last of the Ushers,' he whispered. Her illness filled him with a nameless terror.",
+        "One evening Madeline fell into a deathlike trance, and Roderick believed she had died. We carried her to a vault beneath the house and shut the iron door. He wanted to keep her one last time, even in death.",
+        "That night a storm raged. Strange sounds echoed through the halls, and Roderick grew wilder. 'I know what I heard!' he screamed. 'I buried her alive — and now she is knocking!' The door burst open, and Madeline stood there, covered in blood.",
+        "She fell upon her brother, and they died together in each other's arms. I fled the house in terror. Behind me, the great crack widened, and the entire House of Usher sank into the dark tarn, swallowed by the earth forever."
+      ],
+      thPages: [
+        "วันหนึ่งในฤดูใบไม้ร่วงที่หม่นหมอง ฉันขี่ม้าไปทางคฤหาสน์อัสเชอร์ แม้แต่จากไกล วิลล่าโบราณก็ทำให้ฉันเต็มไปด้วยความหวาดกลัว กำแพงของมันดำคล้ำด้วยความชื้น และมีรอยร้าวทอดจากหลังคาลงไปถึงน้ำมืดเบื้องล่าง",
+        "โรเดอริค อัสเชอร์เพื่อนของฉันรอฉันอยู่ เขาหน้าซีดและประหม่า และดวงตาของเขามีแววหลอน 'ฉันป่วย' เขากล่าว 'ประสาทสัมผัสของฉันแหลมคมเกินไป ทุกเสียงคือการทรมาน' เขากลัวความมืดและคำสาปของครอบครัวของเขาเอง",
+        "โรเดอริคอาศัยอยู่กับแมเดอลีนน้องสาวฝาแฝด ซึ่งกำลังทรุดโทรมจากอาการป่วยประหลาด 'เมื่อเธอตาย ฉันจะเป็นคนสุดท้ายของตระกูลอัสเชอร์' เขากระซิบ ความเจ็บป่วยของเธอทำให้เขาหวาดกลัวจนพูดไม่ออก",
+        "เย็นวันหนึ่งแมเดอลีนตกอยู่ในภวังค์คล้ายตาย และโรเดอริคเชื่อว่าเธอเสียชีวิตแล้ว เราอุ้มเธอไปที่ห้องใต้ดินใต้บ้านและปิดประตูเหล็ก เขาต้องการเก็บเธอไว้อีกครั้งหนึ่ง แม้แต่ในความตาย",
+        "คืนนั้นพายุโหมกระหน่ำ เสียงแปลกประหลาดก้องสะท้อนผ่านโถง และโรเดอริคก็ยิ่งเพ้อคลั่ง 'ฉันรู้ว่าฉันได้ยินอะไร!' เขากรีดร้อง 'ฉันฝังเธอทั้งเป็น — และตอนนี้เธอกำลังเคาะประตู!' ประตูพังทลาย และแมเดอลีนยืนอยู่ตรงนั้น ปกคลุมไปด้วยเลือด",
+        "เธอซบลงบนพี่ชายของเธอ และพวกเขาก็ตายด้วยกันในอ้อมแขนของกันและกัน ฉันหนีออกจากบ้านด้วยความสยดสยอง ข้างหลังฉัน รอยร้าวใหญ่ขยายกว้างขึ้น และคฤหาสน์อัสเชอร์ทั้งหลังก็จมลงสู่บึงน้ำมืด ถูกแผ่นดินกลืนหายไปตลอดกาล"
+      ]
+    },
+    {
+      id: "cur-ghost-dracula", level: "B2", genre: "ghost",
+      title: "Dracula",
+      pages: [
+        "A young English lawyer named Jonathan Harker traveled to a far castle in Transylvania to meet a client, Count Dracula. The mountains were wild, and the people crossed themselves in fear when they heard the Count's name.",
+        "Inside the castle, Jonathan found the Count strange and pale. Dracula never ate and never appeared in daylight. He slept in a coffin filled with earth, and his reflection did not appear in the mirror. Jonathan knew at last that he was not a man.",
+        "One night the Count crawled down the castle wall like a great bat. Jonathan discovered three pale women in a hidden room, and he barely escaped with his life. He fled the castle, leaving his friend, the ship's doctor Van Helsing, to learn the truth later.",
+        "Back in England, Jonathan's wife Mina and her friend Lucy were in danger. Lucy grew pale and weak, with two small marks on her neck. Van Helsing understood at once: a vampire was feeding on her, night after night.",
+        "They tried to save Lucy with garlic and silver, but the vampire returned each night. At last Lucy died and rose again as a creature of the night. Van Helsing and his friends staked her heart, freeing her soul, and swore to destroy the vampire.",
+        "They learned Dracula had fled to London and bought a house. Following his boxes of earth, they hunted him across the city. Van Helsing discovered the lair and cleansed the boxes, breaking the vampire's refuge, while Dracula slipped away to sea.",
+        "The chase led them to Transylvania, where they cornered Dracula at his castle at sunset. Jonathan struck the knife, and Van Helsing cut the Count's throat. The vampire turned to dust, and Mina was freed. The curse was broken forever."
+      ],
+      thPages: [
+        "ทนายความหนุ่มชาวอังกฤษชื่อโจนาธาน ฮาร์เกอร์เดินทางไปปราสาทห่างไกลในทรานซิลเวเนียเพื่อพบลูกค้าของเขา เคาท์แดรกคูลา ภูเขาดุร้าย และผู้คนก็ทำเครื่องหมายกากบาทด้วยความกลัวเมื่อได้ยินชื่อเคาท์",
+        "ในปราสาท โจนาธานพบว่าเคาท์แปลกและหน้าซีด แดรกคูลาไม่เคยกินและไม่เคยปรากฏตัวในเวลากลางวัน เขานอนในโลงศพที่เต็มไปด้วยดิน และเงาสะท้อนของเขาไม่ปรากฏในกระจก ในที่สุดโจนาธานก็รู้ว่าเขาไม่ใช่มนุษย์",
+        "คืนหนึ่งเคาท์คลานลงมาจากกำแพงปราสาทราวกับค้างคาวยักษ์ โจนาธานค้นพบผู้หญิงหน้าซีดสามคนในห้องลับ และแทบเอาชีวิตไม่รอด เขาหนีออกจากปราสาท ทิ้งให้เพื่อนของเขา แวน เฮลซิงแพทย์ประจำเรือ ไปค้นหาความจริงในภายหลัง",
+        "กลับมาที่อังกฤษ มีนามิสภรรยาของโจนาธานและลูซี่เพื่อนของเธอกำลังตกอยู่ในอันตราย ลูซี่หน้าซีดและอ่อนแอ มีรอยเล็กๆ สองรอยที่คอของเธอ แวน เฮลซิงเข้าใจทันที: แวมไพร์กำลังดูดเลือดเธอ ทุกคืน",
+        "พวกเขาพยายามช่วยลูซี่ด้วยกระเทียมและเงิน แต่แวมไพร์กลับมาทุกคืน ในที่สุดลูซี่ก็ตายและฟื้นขึ้นมาเป็นสิ่งมีชีวิตแห่งราตรี แวน เฮลซิงและเพื่อนๆ ใช้หลักปักหัวใจเธอ ปลดปล่อยวิญญาณของเธอ และสาบานว่าจะทำลายแวมไพร์",
+        "พวกเขารู้ว่าแดรกคูลาหนีไปลอนดอนและซื้อบ้าน ตามกล่องดินของเขา พวกเขาล่ามันไปทั่วเมือง แวน เฮลซิงพบที่ซ่อนและชำระกล่อง ทำลายที่หลบภัยของแวมไพร์ ขณะที่แดรกคูลาหลุดรอดลงทะเลไป",
+        "การไล่ล่าพาพวกเขาไปทรานซิลเวเนีย ที่ซึ่งพวกเขาต้อนแดรกคูลาให้จนมุมที่ปราสาทของเขาในยามตะวันตกดิน โจนาธานแทงด้วยมีด และแวน เฮลซิงก็เฉือนคอเคาท์ แวมไพร์กลายเป็นฝุ่น และมินาก็เป็นอิสระ คำสาปถูกทำลายตลอดกาล"
+      ]
+    },
+    {
+      id: "cur-adv-gulliver", level: "B1", genre: "adventure",
+      title: "Gulliver's Travels",
+      pages: [
+        "I am Lemuel Gulliver, a ship's surgeon. My life has been full of strange journeys, but none stranger than my first voyage to the land of Lilliput, where the people were no taller than my thumb.",
+        "After my ship was wrecked, I woke up on the shore. I could not move! Hundreds of tiny ropes held me to the ground, and a crowd of little people climbed over my body with spears and ladders.",
+        "They fed me and built a great wooden platform to carry me to their city. I was their prisoner, but they treated me kindly. I learned their language and promised to obey their laws.",
+        "The king of Lilliput asked me to help his army fight the neighboring land of Blefuscu. I crossed the channel, tied their whole fleet with one rope, and pulled the ships to Lilliput. The king was delighted.",
+        "But the king wanted me to destroy Blefuscu forever, and I refused. I would not help him enslave an entire nation. From that moment, the king and his court plotted against me, and my life was in danger.",
+        "I escaped to Blefuscu, where I found a small boat and sailed away. A passing ship rescued me and carried me home to England, where I told my friends the most amazing story they had ever heard."
+      ],
+      thPages: [
+        "ฉันคือเลมูเอล กัลลิเวอร์ ศัลยแพทย์ประจำเรือ ชีวิตของฉันเต็มไปด้วยการเดินทางแปลกประหลาด แต่ไม่มีครั้งไหนแปลกกว่าการเดินทางครั้งแรกไปยังดินแดนลิลลิพุต ที่ซึ่งผู้คนตัวเล็กไม่สูงกว่านิ้วหัวแม่มือของฉัน",
+        "หลังจากเรือของฉันอับปาง ฉันตื่นขึ้นบนชายฝั่ง ขยับไม่ได้! เชือกเล็กๆ นับร้อยมัดฉันไว้กับพื้น และฝูงคนตัวเล็กปีนขึ้นมาบนร่างกายของฉันพร้อมหอกและบันได",
+        "พวกเขาเลี้ยงอาหารฉันและสร้างแท่นไม้ขนาดใหญ่เพื่อขนฉันไปยังเมืองของพวกเขา ฉันเป็นนักโทษของพวกเขา แต่พวกเขาปฏิบัติกับฉันอย่างใจดี ฉันเรียนรู้ภาษาของพวกเขาและสัญญาว่าจะเชื่อฟังกฎหมายของพวกเขา",
+        "กษัตริย์แห่งลิลลิพุตขอให้ฉันช่วยกองทัพของเขาต่อสู้กับดินแดนเพื่อนบ้านเบลฟุสคู ฉันข้ามช่องแคบ ผูกกองเรือทั้งหมดของพวกเขาด้วยเชือกเส้นเดียว แล้วลากเรือมาที่ลิลลิพุต กษัตริย์พอใจมาก",
+        "แต่กษัตริย์ต้องการให้ฉันทำลายเบลฟุสคูให้สิ้นซาก และฉันปฏิเสธ ฉันจะไม่ช่วยเขาทำให้ชาติทั้งชาติเป็นทาส ตั้งแต่นั้นมา กษัตริย์และข้าราชสำนักก็วางแผนร้ายต่อฉัน และชีวิตของฉันก็ตกอยู่ในอันตราย",
+        "ฉันหนีไปเบลฟุสคู ที่ซึ่งฉันพบเรือเล็กและแล่นจากไป เรือที่แล่นผ่านช่วยฉันไว้และพาฉันกลับบ้านที่อังกฤษ ที่ซึ่งฉันเล่าเรื่องที่น่าทึ่งที่สุดที่เพื่อนๆ เคยได้ยิน"
+      ]
+    },
+    {
+      id: "cur-adv-monkey-temple", level: "B1", genre: "adventure",
+      title: "The Lost Temple of the Monkey God",
+      pages: [
+        "Dr. Elena Rivera was a young archaeologist who had spent ten years hunting for the lost Monkey Temple of the Amazon. An old map, passed down in her family, showed its secret location high in the green mountains.",
+        "She gathered a small team: Marcos, a brave guide, and Lena, a botanist who knew every plant in the jungle. They paddled upriver for days, past howling monkeys and giant trees, until the river turned to rocks.",
+        "Deep in the forest they found a stone wall covered in moss. Behind it lay a hidden staircase that led down into the earth. Torches in their hands, they descended into a cool, dark hall carved with golden monkeys.",
+        "At the center of the hall stood a great stone altar, and on it rested a box of solid gold. Lena gasped. 'We found it!' she whispered. But the floor began to tremble, and the walls started to close in.",
+        "A trap! The ancient builders had guarded their treasure. Marcos spotted a small hole in the altar, shaped like a monkey's head. Elena pressed it, and the walls stopped moving. The treasure was theirs to take.",
+        "They carried the golden box to the surface and shared its wealth with the nearby village, which had protected the secret for generations. Elena kept only one golden monkey, a token of the greatest adventure of her life."
+      ],
+      thPages: [
+        "ดร.เอเลน่า ริเวร่าเป็นนักโบราณคดีสาวที่ใช้เวลาสิบปีตามล่าวัดลิงแห่งอเมซอนที่สูญหาย แผนที่เก่าที่สืบทอดในครอบครัวของเธอ แสดงตำแหน่งลับของมันบนภูเขาสีเขียวสูงตระหง่าน",
+        "เธอรวบรวมทีมเล็กๆ: มาร์คอส ไกด์ผู้กล้าหาญ และลีน่า นักพฤกษศาสตร์ที่รู้จักต้นไม้ทุกชนิดในป่า พวกเขาพายเรือขึ้นแม่น้ำหลายวัน ผ่านลิงที่หอนและต้นไม้ยักษ์ จนแม่น้ำกลายเป็นโขดหิน",
+        "ลึกเข้าไปในป่า พวกเขาพบกำแพงหินที่ปกคลุมด้วยมอส ข้างหลังมันมีบันไดซ่อนที่ทอดลงใต้ดิน ถือคบเพลิงไว้ในมือ พวกเขาลงไปในห้องโถงเย็นและมืดที่แกะสลักด้วยลิงทองคำ",
+        "กลางห้องโถงมีแท่นหินใหญ่ และบนนั้นมีกล่องทองคำบริสุทธิ์วางอยู่ ลีน่าหอบหายใจ 'เราพบมันแล้ว!' เธอกระซิบ แต่พื้นเริ่มสั่นสะเทือน และกำแพงเริ่มเคลื่อนเข้าหากัน",
+        "กับดัก! ผู้สร้างโบราณได้ปกป้องสมบัติของพวกเขา มาร์คอสสังเกตเห็นรูเล็กๆ บนแท่น มีรูปร่างเหมือนหัวลิง เอเลน่ากดมัน และกำแพงก็หยุดเคลื่อน สมบัติเป็นของพวกเขา",
+        "พวกเขาอุ้มกล่องทองคำขึ้นสู่ผิวน้ำและแบ่งความมั่งคั่งให้หมู่บ้านใกล้เคียง ที่ซึ่งปกป้องความลับนี้มาหลายชั่วอายุคน เอเลน่าเก็บลิงทองคำไว้หนึ่งตัว เป็นเครื่องเตือนใจการผจญภัยที่ยิ่งใหญ่ที่สุดในชีวิตของเธอ"
+      ]
+    },
+    {
+      id: "cur-adv-sky-sailors", level: "B1", genre: "adventure",
+      title: "The Sky Sailors",
+      pages: [
+        "In the year 1889, the airship Aurora drifted over the clouds with its brave crew: Captain Reyes, the engineer Sofia, and the young navigator Tomas. They were mapping the unknown winds of the Atlantic.",
+        "One evening a wild storm seized the airship. Lightning struck the rudder, and the engines failed. The Aurora fell through the clouds and crashed onto a plateau hidden high above the ocean, a place no map had ever shown.",
+        "The crew found the plateau full of wonders: purple flowers, giant birds, and a great stone tower built by an ancient people. Inside the tower, paintings told the story of a civilization that once ruled the sky.",
+        "The paintings showed a secret: the ancients had learned to fill a great balloon with hot air to cross the mountains. Sofia studied the drawings and rebuilt the balloon with the airship's canvas and ropes.",
+        "The three friends gathered food and water, filled the great balloon, and rose into the sky just as the storm returned. Below them, the hidden plateau vanished into the clouds forever.",
+        "They sailed back to civilization, where their story of the floating island amazed the world. Captain Reyes wrote it all in his journal, and from that day, no one doubted the courage of the Sky Sailors."
+      ],
+      thPages: [
+        "ในปี ค.ศ. 1889 เรือเหาะออโรร่าลอยอยู่เหนือเมฆพร้อมลูกเรือผู้กล้าหาญ: กัปตันเรเยส วิศวกรโซเฟีย และโทมัสผู้นำทางหนุ่ม พวกเขากำลังทำแผนที่ลมที่ไม่รู้จักของมหาสมุทรแอตแลนติก",
+        "เย็นวันหนึ่งพายุร้ายเข้าครอบงำเรือเหาะ ฟ้าผ่าถูกหางเสือ และเครื่องยนต์ก็ขัดข้อง ออโรร่าตกลงผ่านเมฆและชนบนที่ราบสูงที่ซ่อนอยู่เหนือมหาสมุทร สถานที่ที่ไม่มีแผนที่ใดเคยแสดง",
+        "ลูกเรือพบว่าที่ราบสูงเต็มไปด้วยสิ่งมหัศจรรย์: ดอกไม้สีม่วง นกยักษ์ และหอคอยหินใหญ่ที่สร้างโดยคนโบราณ ภายในหอคอย ภาพวาดเล่าเรื่องราวของอารยธรรมที่เคยครองท้องฟ้า",
+        "ภาพวาดเผยความลับ: คนโบราณเรียนรู้ที่จะเติมบอลลูนใหญ่ด้วยลมร้อนเพื่อข้ามภูเขา โซเฟียศึกษาภาพวาดและสร้างบอลลูนขึ้นใหม่ด้วยผ้าใบและเชือกของเรือเหาะ",
+        "เพื่อนสามคนเก็บอาหารและน้ำ เติมบอลลูนใหญ่ และลอยขึ้นสู่ท้องฟ้าพอดีกับที่พายุกลับมา เบื้องล่างพวกเขา ที่ราบสูงที่ซ่อนอยู่ก็หายไปในเมฆตลอดกาล",
+        "พวกเขาแล่นกลับสู่อารยธรรม ที่ซึ่งเรื่องราวเกาะลอยฟ้าของพวกเขาทำให้โลกตะลึง กัปตันเรเยสเขียนมันทั้งหมดลงในสมุดบันทึก และตั้งแต่วันนั้น ไม่มีใครสงสัยความกล้าหาญของนักบินนภา"
+      ]
+    },
+    {
+      id: "cur-adv-volcano-island", level: "B1", genre: "adventure",
+      title: "The Secret Volcano Island",
+      pages: [
+        "Professor Aldo Bruno believed that an island of fire rose and sank in the southern ocean. His students laughed, but the government sent a ship to search, and Aldo went along as a guest.",
+        "After three weeks at sea, a sailor saw smoke on the horizon. There, rising from the waves, was a black volcanic island covered in green forests. Aldo cried with joy. 'There she is! I was right!'",
+        "The crew anchored the ship and explored the island. They found hot springs, caves full of glowing crystals, and strange birds that sang like flutes. But at the mountain's heart, something rumbled like thunder.",
+        "Aldo studied the rocks and saw the truth. The volcano was waking up. 'We must leave!' he shouted. 'The mountain is about to explode!' The crew raced back to the ship, but the sea was already boiling.",
+        "They launched the lifeboats just as the volcano erupted. Fire and smoke filled the sky, and the whole island began to sink into the waves. The ship was lost, but every sailor was saved.",
+        "Back home, Aldo published his discovery. The island he had dreamed of had risen from the sea, and he had seen it with his own eyes. His students honored him, and his name entered the history of great explorers."
+      ],
+      thPages: [
+        "ศาสตราจารย์อัลโด บรูโนเชื่อว่าเกาะไฟลอยขึ้นและจมลงในมหาสมุทรทางใต้ ลูกศิษย์ของเขาหัวเราะเยาะ แต่รัฐบาลส่งเรือออกค้นหา และอัลโดก็ไปด้วยในฐานะแขก",
+        "หลังอยู่กลางทะเลสามสัปดาห์ กะลาสีคนหนึ่งเห็นควันบนขอบฟ้า ที่นั่น ลอยขึ้นจากคลื่น คือเกาะภูเขาไฟสีดำที่ปกคลุมด้วยป่าเขียวขจี อัลโดร้องด้วยความยินดี 'มันอยู่ที่นั่น! ฉันพูดถูก!'",
+        "ลูกเรือทอดสมอและสำรวจเกาะ พวกเขาพบน้ำพุร้อน ถ้ำที่เต็มไปด้วยคริสตัลเรืองแสง และนกแปลกที่ร้องเพลงเหมือนขลุ่ย แต่ที่ใจกลางภูเขา มีบางอย่างคำรามเหมือนฟ้าร้อง",
+        "อัลโดศึกษาหินและเห็นความจริง ภูเขาไฟกำลังตื่นขึ้น 'เราต้องออกไป!' เขาตะโกน 'ภูเขากำลังจะระเบิด!' ลูกเรือวิ่งกลับไปที่เรือ แต่ทะเลเดือดพล่านแล้ว",
+        "พวกเขาปล่อยเรือชูชีพพอดีกับที่ภูเขาไฟปะทุ ไฟและควันเต็มท้องฟ้า และทั้งเกาะเริ่มจมลงสู่คลื่น เรือสูญหาย แต่กะลาสีทุกคนรอดชีวิต",
+        "กลับบ้าน อัลโดตีพิมพ์การค้นพบของเขา เกาะที่เขาเคยฝันถึงได้ลอยขึ้นจากทะเล และเขาได้เห็นมันด้วยตาตัวเอง ลูกศิษย์ยกย่องเขา และชื่อของเขาเข้าสู่ประวัติศาสตร์ของนักสำรวจผู้ยิ่งใหญ่"
+      ]
+    },
+    {
+      id: "cur-sf-martian-encounter", level: "B2", genre: "scifi",
+      title: "The Martian Encounter",
+      pages: [
+        "Dr. Amara Okafor ran the first research station on Mars. For two years she had studied the red sand and the empty sky. Then one morning, the radar detected something moving beneath the surface.",
+        "The sensors showed a shape, huge and silent, traveling under the ice near the great canyon. Amara and her crew drove their rover to investigate, hearts racing with wonder and fear.",
+        "They found a door of dark metal buried in the ground. It opened by itself, and a soft blue light rose from below. 'This is not ours,' Amara whispered. 'This was here long before we came.'",
+        "Inside, they found a chamber covered in glowing symbols. A gentle voice spoke in perfect English. 'We are the builders of this place. We left a gift for those who would come after us.'",
+        "The gift was a crystal that held the knowledge of an entire civilization — the secrets of clean energy, of healing, and of reaching the stars. Amara understood: the Martians had vanished long ago, but they had chosen to help us.",
+        "Amara carried the crystal back to Earth, where it changed the world. She never stopped wondering who the Martians were, but she knew one thing for certain: somewhere among the stars, a great people were watching over us."
+      ],
+      thPages: [
+        "ดร.อามาร่า โอกาโฟร์เป็นผู้นำสถานีวิจัยแห่งแรกบนดาวอังคาร สองปีที่เธอศึกษาทรายสีแดงและท้องฟ้าที่ว่างเปล่า แล้วเช้าวันหนึ่ง เรดาร์ตรวจจับบางอย่างเคลื่อนที่อยู่ใต้ผิวดิน",
+        "เซนเซอร์แสดงรูปร่าง ใหญ่และเงียบ เคลื่อนที่ใต้ชั้นน้ำแข็งใกล้หุบเขายักษ์ อามาร่าและลูกเรือขับรถสำรวจไปตรวจสอบ หัวใจเต้นแรงด้วยความประหลาดใจและความกลัว",
+        "พวกเขาพบประตูโลหะมืดฝังอยู่ในพื้นดิน มันเปิดเอง และแสงสีฟ้าอ่อนลอยขึ้นมาจากด้านล่าง 'นี่ไม่ใช่ของเรา' อามาร่ากระซิบ 'สิ่งนี้อยู่ที่นี่นานก่อนที่เราจะมา'",
+        "ข้างใน พวกเขาพบห้องที่ปกคลุมด้วยสัญลักษณ์เรืองแสง เสียงอ่อนโยนพูดภาษาอังกฤษสำเนียงสมบูรณ์ 'เราเป็นผู้สร้างสถานที่นี้ เราฝากของขวัญไว้ให้ผู้ที่มาทีหลัง'",
+        "ของขวัญนั้นคือคริสตัลที่เก็บความรู้ของอารยธรรมทั้งมวล — ความลับของพลังงานสะอาด การเยียวยา และการไปถึงดวงดาว อามาร่าเข้าใจ: ชาวอังคารหายไปนานแล้ว แต่พวกเขาเลือกที่จะช่วยเรา",
+        "อามาร่าอุ้มคริสตัลกลับโลก ที่ซึ่งมันเปลี่ยนโลกทั้งใบ เธอไม่เคยหยุดสงสัยว่าชาวอังคารเป็นใคร แต่เธอรู้สิ่งหนึ่งแน่นอน: ที่ไหนสักแห่งท่ามกลางดวงดาว ผู้คนผู้ยิ่งใหญ่กำลังเฝ้าดูเราอยู่"
+      ]
+    },
+    {
+      id: "cur-sf-time-paradox", level: "B2", genre: "scifi",
+      title: "The Time Paradox",
+      pages: [
+        "Professor Liu Wei had spent thirty years building a machine that could send letters into the past. His goal was simple: warn his younger self not to trust the man who would betray him.",
+        "He typed the warning and pressed the send button. Nothing happened at first. But when he returned to his office the next morning, he found a reply on the machine — written in his own hand, dated thirty years ago.",
+        "The letter was not what he expected. It said: 'Do not change the past. Your betrayal made you strong. The man you fear becomes your greatest teacher. Let him come.'",
+        "Confused and angry, Liu Wei ignored the letter and sent another warning. This time, the reply came faster. 'You have already tried this before. In every version of time, you send the same warning. And in every version, you fail.'",
+        "Liu Wei sat down, shaken. He realized that his machine was not sending messages across time — it was sending them to himself, over and over, in an endless loop. There was only one way to break the circle: forgive.",
+        "He deleted the warning, wrote a letter of thanks to the man who had betrayed him, and sent it. The reply that came back was full of tears and peace. Time had not changed, but Liu Wei had — and that was enough."
+      ],
+      thPages: [
+        "ศาสตราจารย์หลิว เว่ยใช้เวลาสามสิบปีสร้างเครื่องจักรที่สามารถส่งจดหมายไปยังอดีตได้ เป้าหมายของเขาง่ายๆ: เตือนตัวเองในวัยหนุ่มไม่ให้ไว้ใจชายผู้ที่จะทรยศเขา",
+        "เขาพิมพ์คำเตือนและกดปุ่มส่ง ตอนแรกไม่มีอะไรเกิดขึ้น แต่เมื่อเขากลับมาที่ห้องทำงานในเช้าวันรุ่งขึ้น เขาก็พบคำตอบบนเครื่องจักร — เขียนด้วยลายมือของเขาเอง ลงวันที่สามสิบปีก่อน",
+        "จดหมายไม่ใช่สิ่งที่เขาคาดหวัง มันกล่าวว่า 'อย่าเปลี่ยนอดีต การทรยศทำให้คุณแข็งแกร่ง ชายที่คุณกลัวจะกลายเป็นครูที่ดีที่สุดของคุณ ปล่อยให้เขามา'",
+        "หลิว เว่ยสับสนและโกรธ เขาเพิกเฉยต่อจดหมายและส่งคำเตือนอีกครั้ง คราวนี้ คำตอบกลับมาเร็วขึ้น 'คุณเคยลองทำแบบนี้มาก่อนแล้ว ในทุกเวอร์ชันของเวลา คุณส่งคำเตือนเดียวกัน และในทุกเวอร์ชัน คุณล้มเหลว'",
+        "หลิว เว่ยนั่งลง ตัวสั่น เขาตระหนักว่าเครื่องจักรของเขาไม่ได้ส่งข้อความข้ามเวลา — มันส่งข้อความถึงตัวเขาเอง ซ้ำแล้วซ้ำเล่า ในวงวนที่ไม่มีวันจบ มีเพียงวิธีเดียวที่จะทำลายวงจรนี้: ให้อภัย",
+        "เขาลบคำเตือน เขียนจดหมายขอบคุณชายที่ทรยศเขา และส่งมัน คำตอบที่กลับมาเต็มไปด้วยน้ำตาและความสงบ เวลาไม่ได้เปลี่ยน แต่หลิว เว่ยเปลี่ยน — และนั่นก็เพียงพอแล้ว"
+      ]
+    },
+    {
+      id: "cur-sf-silent-station", level: "B2", genre: "scifi",
+      title: "The Silent Station",
+      pages: [
+        "Deep under the frozen sea of Europa, the research station Aquarius hummed with life. Twenty scientists studied the strange ocean below the ice, but they had stopped answering Earth for three days.",
+        "Commander Imani Cole traveled from Mars to find out why. The station was silent when she arrived. The lights were on, the machines were running, but there was no sign of the crew.",
+        "In the lab she found a note: 'Follow the bubbles. They are not gas. They are messages.' Imani walked to the ice window and watched. Bubbles rose from the dark water below, arranging themselves into shapes.",
+        "The bubbles formed words: 'We went below. The ocean is alive. It sings to us, and we cannot resist.' Imani's blood ran cold. The crew had walked into the water, one by one, drawn by a voice from the deep.",
+        "Imani felt the song then — a gentle hum that filled her mind with peace and belonging. Her hand moved toward the lock. But she stopped, shook herself, and sealed the station with an emergency wall.",
+        "She reported the truth to Earth and stayed to guard the station. The ocean below was alive, and its song was beautiful beyond words. Imani listened to it every night, and she remembered the crew who had gone where no human should go."
+      ],
+      thPages: [
+        "ลึกใต้ทะเลน้ำแข็งของดวงจันทร์ยูโรปา สถานีวิจัยอควอเรียสยังคงมีเสียงชีวิต นักวิทยาศาสตร์ยี่สิบคนศึกษามหาสมุทรประหลาดใต้แผ่นน้ำแข็ง แต่พวกเขาหยุดตอบโลกสามวันแล้ว",
+        "ผู้บัญชาการอิมาอานี โคลเดินทางจากดาวอังคารเพื่อค้นหาสาเหตุ สถานีเงียบงันเมื่อเธอมาถึง ไฟยังสว่าง เครื่องจักรยังทำงาน แต่ไม่มีวี่แววของลูกเรือ",
+        "ในห้องแล็บ เธอพบข้อความ: 'ตามฟองอากาศไป พวกมันไม่ใช่แก๊ส พวกมันคือข้อความ' อิมาอานีเดินไปที่หน้าต่างน้ำแข็งและเฝ้าดู ฟองอากาศลอยขึ้นจากน้ำมืดเบื้องล่าง จัดเรียงตัวเองเป็นรูปร่าง",
+        "ฟองอากาศก่อตัวเป็นคำ: 'เราลงไปข้างล่าง มหาสมุทรมีชีวิต มันร้องเพลงให้เรา และเราต้านทานไม่ได้' เลือดของอิมาอานีเย็นฉ่ำ ลูกเรือได้เดินลงไปในน้ำ ทีละคน ถูกดึงดูดด้วยเสียงจากห้วงลึก",
+        "อิมาอานีรู้สึกถึงเพลงนั้น — เสียงก้องเบาๆ ที่เติมเต็มหัวใจของเธอด้วยความสงบและการเป็นส่วนหนึ่ง มือของเธอขยับไปที่ล็อก แต่เธอหยุด สะบัดตัวเอง และผนึกสถานีด้วยกำแพงฉุกเฉิน",
+        "เธอรายงานความจริงสู่โลกและอยู่เฝ้าสถานี มหาสมุทรเบื้องล่างมีชีวิต และเพลงของมันสวยงามเกินคำบรรยาย อิมาอานีฟังมันทุกคืน และเธอคิดถึงลูกเรือที่ไปยังที่ที่มนุษย์ไม่ควรไป"
+      ]
+    },
+    {
+      id: "cur-sf-solar-sail", level: "B2", genre: "scifi",
+      title: "The Solar Sail",
+      pages: [
+        "The ship Satori carried no fuel. Its great silver sail, as wide as a city, caught the light of the sun and pushed the crew gently toward the stars. Captain Reiko Tanaka commanded the longest journey humans had ever attempted.",
+        "The goal was a planet called Haven, orbiting a star forty light-years away. The crew slept in cold sleep, waking for only a few weeks each year to check the ship and watch the stars slide past.",
+        "In her waking time, Reiko studied the messages from Earth. Her daughter, grown now, sent recordings of the ocean. Reiko listened to the waves and felt the years stretching like a long, quiet river.",
+        "Then the signal came. The sail had torn, just a small rip, but the ship's course was drifting. Reiko had to repair it while wearing a suit, floating in the endless light between the sun and the dark.",
+        "She fixed the tear with trembling hands, and the ship steadied. Below her, Earth shrank to a dot. Ahead, the star of Haven grew brighter with every passing year, a promise written in light.",
+        "At last the crew woke for good. Haven filled the window with green and blue. Reiko smiled. 'We are home,' she said. And behind her, a small flag with her daughter's drawing of the ocean floated in the gentle light."
+      ],
+      thPages: [
+        "เรือซาโตริไม่บรรทุกเชื้อเพลิง ใบเรือสีเงินขนาดใหญ่ กว้างเท่าเมือง รับแสงของดวงอาทิตย์และผลักลูกเรือไปสู่ดวงดาวอย่างอ่อนโยน กัปตันเรย์โกะ ทานากะนำการเดินทางที่ยาวนานที่สุดที่มนุษย์เคยพยายาม",
+        "เป้าหมายคือดาวเคราะห์ชื่อเฮเวน โคจรรอบดาวฤกษ์ที่อยู่ห่างออกไปสี่สิบปีแสง ลูกเรือหลับในภาวะเย็นจัด ตื่นเพียงไม่กี่สัปดาห์ต่อปีเพื่อตรวจเรือและเฝ้าดูดวงดาวเคลื่อนผ่าน",
+        "ในช่วงเวลาที่ตื่น เรย์โกะศึกษาข้อความจากโลก ลูกสาวของเธอ ซึ่งโตแล้ว ส่งบันทึกเสียงของมหาสมุทร เรย์โกะฟังคลื่นและรู้สึกถึงปีที่ยืดยาวราวกับแม่น้ำอันเงียบสงบ",
+        "แล้วสัญญาณก็มา ใบเรือฉีกขาด เป็นเพียงรอยฉีกเล็กๆ แต่เส้นทางของเรือเริ่มเบี่ยง เรย์โกะต้องซ่อมมันขณะสวมชุดอวกาศ ลอยอยู่ในแสงที่ไม่มีที่สิ้นสุดระหว่างดวงอาทิตย์กับความมืด",
+        "เธอซ่อมรอยฉีกด้วยมือที่สั่น และเรือก็ทรงตัว เบื้องล่างเธอ โลกหดเล็กลงเป็นจุด ข้างหน้า ดาวของเฮเวนสว่างขึ้นทุกปีที่ผ่านไป เป็นคำสัญญาที่เขียนด้วยแสง",
+        "ในที่สุดลูกเรือก็ตื่นอย่างถาวร เฮเวนเต็มหน้าต่างด้วยสีเขียวและสีน้ำเงิน เรย์โกะยิ้ม 'เราถึงบ้านแล้ว' เธอกล่าว และข้างหลังเธอ ธงผืนเล็กที่มีภาพวาดมหาสมุทรของลูกสาว ลอยอยู่ในแสงอันอ่อนโยน"
+      ]
+    },
+    {
+      id: "cur-mys-northguard-murders", level: "B2", genre: "mystery",
+      title: "The Northguard Murders",
+      pages: [
+        "The village of Northguard was quiet and perfect, until the day the baker was found dead in his own oven room. The door was locked from inside, and the only key lay beside his cold body.",
+        "Inspector Vera Stone arrived from the city. She spoke to everyone: the jealous blacksmith, the silent innkeeper, and the baker's pretty young wife, who wept at the door and seemed to know nothing.",
+        "Vera noticed something odd: the baker's hands were clean, but he had worked with flour all his life. A baker who touches flour never has clean hands. 'He did not knead dough that morning,' she said softly.",
+        "She studied the oven and found a hidden door behind it, leading to a small tunnel. The tunnel opened into the inn's cellar. The silent innkeeper went pale when Vera held up the key.",
+        "The truth came out at last. The innkeeper had owed the baker a great debt, and the baker had threatened to expose him. They had argued, and the innkeeper had struck him, then locked the door to hide his crime.",
+        "Vera took the innkeeper away in handcuffs. The village breathed again, and the people whispered that Inspector Vera Stone saw what others could not see. Peace returned to Northguard, and justice had found its voice."
+      ],
+      thPages: [
+        "หมู่บ้านนอร์ธการ์ดเงียบสงบและสมบูรณ์แบบ จนกระทั่งวันหนึ่งพบคนทำขนมปังเสียชีวิตในห้องเตาอบของตัวเอง ประตูล็อกจากด้านใน และกุญแจดอกเดียววางอยู่ข้างร่างเย็นของเขา",
+        "สารวัตรเวร่า สโตนมาจากเมือง เธอพูดคุยกับทุกคน: ช่างตีเหล็กที่อิจฉา เจ้าของโรงแรมที่เงียบขรึม และภรรยาสาวสวยของคนทำขนมปัง ที่ร้องไห้ที่ประตูและดูเหมือนไม่รู้อะไรเลย",
+        "เวร่าสังเกตเห็นบางอย่างแปลก: มือของคนทำขนมปังสะอาด แต่เขาทำงานกับแป้งมาตลอดชีวิต คนทำขนมปังที่สัมผัสแป้งไม่มีวันมีมือสะอาด 'เช้านั้นเขาไม่ได้นวดแป้ง' เธอกล่าวเบาๆ",
+        "เธอศึกษาเตาอบและพบประตูซ่อนอยู่ข้างหลัง มันนำไปสู่อุโมงค์เล็ก อุโมงค์เปิดเข้าสู่ห้องใต้ดินของโรงแรม เจ้าของโรงแรมที่เงียบขรึมหน้าซีดเมื่อเวร่าชูกุญแจขึ้น",
+        "ความจริงถูกเปิดเผยในที่สุด เจ้าของโรงแรมติดหนี้คนทำขนมปังจำนวนมาก และคนทำขนมปังข่มขู่จะเปิดโปงเขา พวกเขาทะเลาะกัน และเจ้าของโรงแรมก็ตีเขา แล้วล็อกประตูเพื่อซ่อนอาชญากรรม",
+        "เวร่าควบคุมตัวเจ้าของโรงแรมไปในกุญแจมือ หมู่บ้านหายใจได้อีกครั้ง และผู้คนกระซิบว่าสารวัตรเวร่า สโตนมองเห็นสิ่งที่คนอื่นมองไม่เห็น ความสงบกลับคืนสู่นอร์ธการ์ด และความยุติธรรมได้พบเสียงของมัน"
+      ]
+    },
+    {
+      id: "cur-mys-orchid-mystery", level: "B1", genre: "mystery",
+      title: "The Mystery of the Blue Orchid",
+      pages: [
+        "The Blue Orchid was the most famous painting in the museum. Then one morning, it was gone. The glass was broken, the frame was empty, and the guard swore he had seen no one all night.",
+        "Detective Liu Xinyi examined the room. The floor was wet near the window, and a single green leaf lay on the carpet. 'A thief who leaves a leaf,' she murmured, 'has a gardener's heart.'",
+        "She visited the museum's head gardener, an old man who loved orchids more than people. His greenhouse was full of rare flowers, and in the corner stood a pot with a young blue orchid.",
+        "Xinyi smiled. The painting was worth millions, but the thief had stolen nothing else. 'You did not want the money,' she said. 'You wanted the painting because you love its subject.'",
+        "The old gardener bowed his head. 'I tended that orchid in the painting for forty years,' he said. 'When they sold it, I only wanted to see it once more.' Xinyi found the painting hidden behind his orchids.",
+        "The gardener returned the painting with a gentle smile, and the museum gave him a small copy. The Blue Orchid hung safely again, and Xinyi learned that even a thief could act from love."
+      ],
+      thPages: [
+        "บลูออร์คิดเป็นภาพวาดที่มีชื่อเสียงที่สุดในพิพิธภัณฑ์ แล้วเช้าวันหนึ่ง มันก็หายไป กระจกแตก กรอบว่างเปล่า และยามสาบานว่าเขาไม่เห็นใครตลอดทั้งคืน",
+        "นักสืบหลิว ซินอี้ตรวจห้อง พื้นเปียกใกล้หน้าต่าง และใบไม้สีเขียวใบเดียววางอยู่บนพรม 'ขโมยที่ทิ้งใบไม้ไว้' เธอพึมพำ 'มีหัวใจของคนสวน'",
+        "เธอไปพบหัวหน้าคนสวนของพิพิธภัณฑ์ ชายแก่ที่รักกล้วยไม้มากกว่ามนุษย์ เรือนกระจกของเขาเต็มไปด้วยดอกไม้หายาก และที่มุมห้องมีกระถางกล้วยไม้สีน้ำเงินต้นเล็กๆ",
+        "ซินอี้ยิ้ม ภาพวาดมีค่าหลายล้าน แต่ขโมยไม่ได้ขโมยสิ่งอื่น 'คุณไม่ได้ต้องการเงิน' เธอกล่าว 'คุณต้องการภาพวาดเพราะคุณรักสิ่งที่มันวาด'",
+        "คนสวนแก่ก้มศีรษะ 'ฉันดูแลกล้วยไม้ในภาพวาดนั้นมาสี่สิบปี' เขากล่าว 'เมื่อพวกเขาขายมัน ฉันแค่อยากเห็นมันอีกครั้ง' ซินอี้พบภาพวาดซ่อนอยู่หลังกล้วยไม้ของเขา",
+        "คนสวนคืนภาพวาดด้วยรอยยิ้มอ่อนโยน และพิพิธภัณฑ์มอบสำเนาเล็กๆ ให้เขา บลูออร์คิดแขวนอย่างปลอดภัยอีกครั้ง และซินอี้เรียนรู้ว่าแม้แต่ขโมยก็สามารถกระทำด้วยความรักได้"
+      ]
+    },
+    {
+      id: "cur-mys-clockmaker-alibi", level: "B2", genre: "mystery",
+      title: "The Clockmaker's Alibi",
+      pages: [
+        "The old clockmaker, Mr. Hargrove, was found dead in his shop at midnight, a broken watch still in his hand. The police suspected his rival, Mr. Grant, who had been seen arguing with him that very evening.",
+        "Grant had a perfect alibi. 'I was at the theater,' he said. 'I have the ticket and the program. I was there from seven to eleven.' The police believed him, but Inspector Alice Nguyen did not.",
+        "Alice studied the broken watch in the clockmaker's hand. It had stopped at exactly nine-fifteen. 'A clockmaker grips the time of his death,' she said. 'He could not reach a pen, so he froze the clock.'",
+        "She went to the theater and checked the program. The show had run from seven to eleven, but the second act, she learned, was nearly an hour long. Grant could easily have slipped out and returned.",
+        "Alice returned to the shop and opened the wall clock. Inside, she found a tiny note in the clockmaker's hand: 'Grant came at nine. He took the jewels.' The watch had stopped when Hargrove's hand fell.",
+        "Grant broke down when Alice showed him the note. He had stolen the jewels and killed the old man. The clock, faithful to the end, had told the truth. Justice, Alice thought, keeps perfect time."
+      ],
+      thPages: [
+        "ช่างทำนาฬิกาแก่ คุณฮาร์โกรฟ ถูกพบเสียชีวิตในร้านของเขาเวลาเที่ยงคืน นาฬิกาที่พังยังอยู่ในมือ สงสัยคู่แข่งของเขาคือคุณแกรนท์ ที่ถูกเห็นทะเลาะกับเขาในเย็นวันนั้นเอง",
+        "แกรนท์มีข้อแก้ตัวที่สมบูรณ์แบบ 'ผมอยู่ที่โรงละคร' เขากล่าว 'ผมมีตั๋วและรายการการแสดง ผมอยู่ที่นั่นตั้งแต่เจ็ดโมงถึงห้าทุ่ม' ตำรวจเชื่อเขา แต่สารวัตรอลิซ เหงียนไม่เชื่อ",
+        "อลิซศึกษานาฬิกาที่พังในมือของช่างทำนาฬิกา มันหยุดที่เก้านาฬิกาสิบห้านาทีพอดี 'ช่างทำนาฬิกาจับเวลาการตายของเขา' เธอกล่าว 'เขาเอื้อมปากกาไม่ถึง จึงหยุดนาฬิกาไว้'",
+        "เธอไปที่โรงละครและตรวจรายการการแสดง ละครฉายตั้งแต่เจ็ดถึงห้าทุ่ม แต่เธอได้เรียนรู้ว่าองก์ที่สองเกือบหนึ่งชั่วโมง แกรนท์สามารถแอบออกไปและกลับมาได้ง่ายๆ",
+        "อลิซกลับไปที่ร้านและเปิดนาฬิกาแขวน ข้างใน เธอพบข้อความเล็กๆ ในลายมือของช่างทำนาฬิกา: 'แกรนท์มาตอนเก้าโมง เขาเอาอัญมณีไป' นาฬิกาหยุดเมื่อมือของฮาร์โกรฟร่วง",
+        "แกรนท์พังทลายเมื่ออลิซแสดงข้อความให้ดู เขาได้ขโมยอัญมณีและฆ่าชายชรา นาฬิกา ที่ซื่อสัตย์จนถึงที่สุด ได้บอกความจริง ความยุติธรรม อลิซคิด เก็บเวลาได้อย่างสมบูรณ์แบบ"
+      ]
+    },
+    {
+      id: "cur-cls-great-gatsby", level: "B2", genre: "classic",
+      title: "The Great Gatsby",
+      pages: [
+        "In the summer of 1922, I moved to New York and rented a small house beside a great mansion. Every weekend, music and light spilled from the mansion, and thousands of guests came to its famous parties.",
+        "The mansion belonged to a mysterious man named Jay Gatsby. No one knew where his money came from, but everyone loved his champagne. I was invited to one party, and at last I met the host himself — young, charming, and strangely sad.",
+        "Gatsby took me aside and told me his secret. Years ago he had loved a girl named Daisy, but she had married a rich man named Tom Buchanan. Gatsby had built his fortune for one reason only: to win her back.",
+        "He arranged for me to invite Daisy to tea at my house. When she arrived, Gatsby was so nervous he nearly left. But when they spoke, the old love returned. For a while, Gatsby was the happiest man in the world.",
+        "Daisy's husband Tom grew jealous, and one night the truth exploded. Daisy realized she could not leave Tom's world of safety for Gatsby's world of dreams. In her car, driving too fast and too upset, she struck and killed a woman.",
+        "Tom told the dead woman's husband that Gatsby had been driving. The man, mad with grief, shot Gatsby dead in his pool. I arranged his funeral, but almost no one came. He had lived a dream, and the dream had cost him everything."
+      ],
+      thPages: [
+        "ในฤดูร้อนปี ค.ศ. 1922 ฉันย้ายมาที่นิวยอร์กและเช่าบ้านเล็กๆ ข้างคฤหาสน์ใหญ่ ทุกสุดสัปดาห์ เสียงดนตรีและแสงไฟสาดออกมาจากคฤหาสน์ และแขกนับพันมาที่งานเลี้ยงอันโด่งดังของมัน",
+        "คฤหาสน์เป็นของชายลึกลับชื่อเจย์ แกตส์บี้ ไม่มีใครรู้ว่าเงินของเขามาจากไหน แต่ทุกคนรักแชมเปญของเขา ฉันได้รับเชิญไปงานเลี้ยงหนึ่ง และในที่สุดก็ได้พบเจ้าภาพเอง — หนุ่ม หล่อเหลา และเศร้าอย่างประหลาด",
+        "แกตส์บี้พาฉันไปด้านข้างและเล่าความลับของเขา หลายปีก่อนเขารักสาวชื่อเดซี่ แต่เธอแต่งงานกับเศรษฐีชื่อทอม บูคานัน แกตส์บี้สร้างโชคลาภด้วยเหตุผลเดียว: เพื่อชนะใจเธอกลับคืนมา",
+        "เขาจัดให้ฉันเชิญเดซี่มาดื่มชาที่บ้านฉัน เมื่อเธอมาถึง แกตส์บี้ประหม่าจนเกือบหนี แต่เมื่อพวกเขาพูดคุย ความรักเก่าก็กลับมา ชั่วขณะหนึ่ง แกตส์บี้เป็นคนที่มีความสุขที่สุดในโลก",
+        "ทอมสามีของเดซี่เริ่มอิจฉา และคืนหนึ่งความจริงก็ระเบิด เดซี่ตระหนักว่าเธอไม่สามารถละทิ้งโลกที่ปลอดภัยของทอมเพื่อโลกแห่งความฝันของแกตส์บี้ ในรถของเธอ ที่ขับเร็วเกินไปและอารมณ์เสียเกินไป เธอชนหญิงคนหนึ่งเสียชีวิต",
+        "ทอมบอกสามีของหญิงที่ตายว่าแกตส์บี้เป็นคนขับ ชายคนนั้น คลั่งด้วยความโศกเศร้า ยิงแกตส์บี้เสียชีวิตในสระของเขา ฉันจัดงานศพของเขา แต่แทบไม่มีใครมา เขาใช้ชีวิตในความฝัน และความฝันก็พรากทุกอย่างจากเขา"
+      ]
+    },
+    {
+      id: "cur-cls-oliver-twist", level: "B2", genre: "classic",
+      title: "Oliver Twist",
+      pages: [
+        "In a cold workhouse in London, a poor boy named Oliver Twist was born and grew up. The workhouse gave him little food and no kindness, and when he asked for more, the masters were horrified.",
+        "Oliver was sold to a cruel undertaker, where he was beaten and starved. One night he ran away to London, hungry and alone, hoping to find a better life among the busy streets.",
+        "In London, a boy named the Artful Dodger took Oliver under his wing and led him to the house of an old criminal named Fagin. Fagin taught boys to pick pockets, and Oliver, innocent as he was, became one of them.",
+        "Oliver was caught on his first job and taken to court. A kind gentleman named Mr. Brownlow believed in him and took him home. For the first time in his life, Oliver knew warmth and love.",
+        "But Fagin's men dragged Oliver back into their world, and he was forced to help them rob a great house. Oliver was shot and left behind, but the people of the house, the Maylies, nursed him back to health.",
+        "In the end, the criminals were caught and the truth was told. Oliver was not an orphan at all — he was the son of a good family. Mr. Brownlow and the Maylies adopted him, and Oliver Twist, who had known only suffering, finally found a happy home."
+      ],
+      thPages: [
+        "ในสถานสงเคราะห์เย็นเยือกแห่งหนึ่งในลอนดอน เด็กชายผู้น่าสงสารชื่อโอลิเวอร์ ทวิสต์ถือกำเนิดและเติบโต สถานสงเคราะห์ให้อาหารน้อยและไม่มีความเมตตา และเมื่อเขาขออาหารเพิ่ม ผู้ดูแลก็ตกใจมาก",
+        "โอลิเวอร์ถูกขายให้กับสัปเหร่อที่โหดร้าย ที่ซึ่งเขาถูกทุบตีและอดอยาก คืนหนึ่งเขาหนีไปลอนดอน หิวโหยและโดดเดี่ยว หวังว่าจะพบชีวิตที่ดีกว่าท่ามกลางถนนที่วุ่นวาย",
+        "ในลอนดอน เด็กชายชื่อจอมเจ้าเล่ห์ดอดเจอร์รับโอลิเวอร์ไว้ใต้ปีกและพาเขาไปที่บ้านของอาชญากรแก่ชื่อเฟกิน เฟกินสอนเด็กๆ ให้ล้วงกระเป๋า และโอลิเวอร์ ผู้ซึ่งไร้เดียงสา ได้กลายเป็นหนึ่งในพวกเขา",
+        "โอลิเวอร์ถูกจับในงานแรกของเขาและถูกนำตัวขึ้นศาล สุภาพบุรุษใจดีชื่อมิสเตอร์บราวน์โลว์เชื่อในตัวเขาและพาเขากลับบ้าน เป็นครั้งแรกในชีวิตที่โอลิเวอร์ได้รู้จักความอบอุ่นและความรัก",
+        "แต่คนของเฟกินลากโอลิเวอร์กลับเข้าสู่โลกของพวกเขา และเขาถูกบังคับให้ช่วยพวกเขาปล้นคฤหาสน์ใหญ่ โอลิเวอร์ถูกยิงและถูกทิ้งไว้ แต่ผู้คนในบ้านนั้น ครอบครัวเมย์ลี พยาบาลเขาจนหายดี",
+        "ในที่สุด อาชญากรก็ถูกจับ และความจริงก็ถูกเปิดเผย โอลิเวอร์ไม่ใช่เด็กกำพร้าเลย — เขาเป็นลูกของครอบครัวที่ดี มิสเตอร์บราวน์โลว์และครอบครัวเมย์ลีรับเลี้ยงเขา และโอลิเวอร์ ทวิสต์ ผู้รู้จักแต่ความทุกข์ ในที่สุดก็พบบ้านที่มีความสุข"
+      ]
+    },
+    {
+      id: "cur-cls-moby-dick", level: "B1", genre: "classic",
+      title: "Moby Dick",
+      pages: [
+        "Call me Ishmael. I went to sea to escape the sadness of the shore, and I signed onto the whaling ship Pequod. On the deck I met a tattooed harpooner named Queequeg, who became my dearest friend.",
+        "The captain of the Pequod was Ahab, a tall man with a scarred face and a leg carved from whalebone. He had lost his leg to a great white whale called Moby Dick, and revenge burned in his heart.",
+        "Ahab gathered the crew and nailed a gold coin to the mast. 'Whoever first sights the white whale,' he cried, 'shall have this coin!' The men cheered, but I saw madness in the captain's eyes.",
+        "For months we hunted whales across the wide oceans, and the sea took its toll. Men were lost and boats were smashed. But Ahab never rested. His one thought, his one dream, was the white whale.",
+        "At last the lookout cried, 'There she blows!' And there was Moby Dick, white as milk, rising from the deep. Ahab laughed and ordered the boats into the water, chasing the whale that had taken his leg.",
+        "Moby Dick fought back with terrible power. It smashed the boats and sank the Pequod into the waves. All the crew drowned, and only I, Ishmael, floated on an empty coffin, rescued by a passing ship. I alone lived to tell the tale."
+      ],
+      thPages: [
+        "เรียกฉันว่าอิชมาเอล ฉันออกทะเลเพื่อหนีความเศร้าของฝั่ง และลงนามบนเรือล่าปลาวาฬเพควอด บนดาดฟ้าฉันได้พบคนฉมวกที่สักเต็มตัวชื่อคิวควีก ซึ่งกลายเป็นเพื่อนรักของฉัน",
+        "กัปตันของเพควอดคืออาฮับ ชายร่างสูงที่มีใบหน้าเป็นรอยแผลเป็นและขาข้างหนึ่งแกะสลักจากกระดูกวาฬ เขาสูญเสียขาให้กับวาฬขาวยักษ์ชื่อโมบี ดิค และการแก้แค้นก็ลุกโชนในหัวใจของเขา",
+        "อาฮับรวบรวมลูกเรือและตอกเหรียญทองบนเสากระโดง 'ใครเห็นวาฬขาวเป็นคนแรก' เขาร้อง 'จะได้เหรียญนี้!' ลูกเรือส่งเสียงเชียร์ แต่ฉันเห็นความบ้าคลั่งในดวงตาของกัปตัน",
+        "เป็นเวลาหลายเดือนที่เราล่าปลาวาฬข้ามมหาสมุทรกว้าง และทะเลก็เก็บเกี่ยวความเสียหาย ลูกเรือสูญหาย และเรือถูกทุบแตก แต่อาฮับไม่เคยพักผ่อน ความคิดเดียวของเขา ความฝันเดียวของเขา คือวาฬขาว",
+        "ในที่สุดคนเฝ้ายามก็ร้อง 'วาฬพ่นน้ำ!' และโมบี ดิคก็อยู่ที่นั่น ขาวราวกับนม ลอยขึ้นจากห้วงลึก อาฮับหัวเราะและสั่งเรือลงน้ำ ไล่ตามวาฬที่เอาขาของเขาไป",
+        "โมบี ดิคต่อสู้กลับด้วยพลังอันน่ากลัว มันทุบเรือแตกและจมเพควอดลงสู่คลื่น ลูกเรือทั้งหมดจมน้ำตาย และมีเพียงฉัน อิชมาเอล ที่ลอยบนโลงศพเปล่า ได้รับการช่วยเหลือจากเรือที่แล่นผ่าน ฉันเพียงคนเดียวที่รอดชีวิตมาเล่าเรื่องราว"
+      ]
+    },
+    {
+      id: "cur-cls-jane-eyre", level: "B2", genre: "classic",
+      title: "Jane Eyre",
+      pages: [
+        "I am Jane Eyre, an orphan raised by an unkind aunt who treated me as an unwanted burden. At last she sent me to a charity school, where cold walls and strict rules were my daily bread.",
+        "I grew up to be a quiet, plain governess, and I found a post at the great house of Thornfield, caring for a small girl named Adele. The master of the house, Mr. Rochester, was a dark and restless man.",
+        "Mr. Rochester and I spoke often, and slowly I came to love him. He was proud and wild, but he understood me. One night he declared his love and asked me to marry him. I was filled with joy.",
+        "But on our wedding day, a terrible secret was revealed. Mr. Rochester was already married — to a mad woman locked in the attic of Thornfield. My heart broke, and I fled the house that very night.",
+        "I wandered hungry and lost until the Rivers family took me in. They became my kin, and when an unknown relative left me a fortune, I shared it with them. But in my heart, I still remembered Thornfield.",
+        "I returned to Thornfield at last, and found it a blackened ruin — a fire had burned it down. Mr. Rochester, blind and wounded, had tried to save his mad wife and lost everything. I found him, and I took his hand. Where there is love, I told him, there is light."
+      ],
+      thPages: [
+        "ฉันคือเจน ไอร์ เด็กกำพร้าที่ถูกเลี้ยงดูโดยป้าที่ไร้เมตตาซึ่งปฏิบัติต่อฉันราวกับภาระที่ไม่พึงประสงค์ ในที่สุดเธอก็ส่งฉันไปโรงเรียนการกุศล ที่ซึ่งกำแพงเย็นและกฎเกณฑ์เคร่งครัดเป็นอาหารประจำวันของฉัน",
+        "ฉันเติบโตเป็นผู้ปกครองที่เงียบขรึมและหน้าตาธรรมดา และได้ตำแหน่งที่คฤหาสน์ใหญ่ธอร์นฟิลด์ ดูแลเด็กหญิงตัวเล็กชื่ออเดล นายใหญ่ของบ้าน มิสเตอร์โรเชสเตอร์ เป็นชายที่มืดมนและกระสับกระส่าย",
+        "มิสเตอร์โรเชสเตอร์กับฉันพูดคุยกันบ่อย และค่อยๆ ฉันก็รักเขา เขาหยิ่งและป่าเถื่อน แต่เขาเข้าใจฉัน คืนหนึ่งเขาประกาศความรักและขอฉันแต่งงาน ฉันเต็มไปด้วยความยินดี",
+        "แต่ในวันแต่งงาน ความลับอันน่ากลัวก็ถูกเปิดเผย มิสเตอร์โรเชสเตอร์แต่งงานแล้ว — กับหญิงวิกลจริตที่ถูกขังอยู่ในห้องใต้หลังคาของธอร์นฟิลด์ หัวใจของฉันแตกสลาย และฉันหนีออกจากบ้านในคืนนั้นเอง",
+        "ฉันเร่ร่อนหิวโหยและหลงทางจนครอบครัวริเวอร์สรับฉันไว้ พวกเขากลายเป็นญาติของฉัน และเมื่อญาติที่ไม่รู้จักทิ้งมรดกให้ฉัน ฉันแบ่งมันกับพวกเขา แต่ในใจฉัน ฉันยังคงคิดถึงธอร์นฟิลด์",
+        "ในที่สุดฉันก็กลับมาที่ธอร์นฟิลด์ และพบว่ามันกลายเป็นซากปรักหักพังที่ดำคล้ำ — ไฟไหม้มันราบ มิสเตอร์โรเชสเตอร์ ตาบอดและบาดเจ็บ พยายามช่วยภรรยาที่วิกลจริตของเขาและสูญเสียทุกอย่าง ฉันพบเขา และฉันจับมือของเขา ที่ซึ่งมีความรัก ฉันบอกเขา ที่นั่นมีแสงสว่าง"
+      ]
+    },
+    {
+      id: "cur-cls-peter-pan", level: "A2", genre: "classic",
+      title: "Peter Pan",
+      pages: [
+        "The three Darling children — Wendy, John, and Michael — lived in London with their father and mother and their dog Nana. One night a strange boy flew through their window. His name was Peter Pan.",
+        "Peter taught the children to fly by thinking lovely thoughts and sprinkling them with fairy dust from his friend Tinker Bell. 'Follow me to Neverland!' he cried, and they flew away through the night sky.",
+        "In Neverland, the children met the Lost Boys, the pirates of Captain Hook, and the beautiful mermaids who sang in the lagoon. Wendy became a mother to them all, telling stories by the fire.",
+        "Captain Hook, who hated Peter for cutting off his hand and feeding it to a crocodile, captured the children. The crocodile, which had swallowed a clock, ticked as it followed Hook everywhere.",
+        "Peter rescued his friends from the pirate ship in a daring battle. He fought Hook himself, and Hook, who feared the ticking crocodile, fell into the sea and was swallowed by the beast.",
+        "The children flew home to London, where their mother agreed to adopt the Lost Boys. Wendy grew up, but she never forgot Peter, who promised to return every spring. And so, in the nursery window, a boy's shadow still waited."
+      ],
+      thPages: [
+        "เด็กสามคนของครอบครัวดาร์ลิ่ง — เวนดี้ จอห์น และไมเคิล — อาศัยอยู่ในลอนดอนกับพ่อแม่และสุนัขนานา คืนหนึ่งเด็กชายแปลกหน้าบินผ่านหน้าต่างของพวกเขา ชื่อของเขาคือปีเตอร์แพน",
+        "ปีเตอร์สอนเด็กๆ ให้บินด้วยการคิดความสุขและโรยฝุ่นนางฟ้าจากทิงเกอร์เบลล์เพื่อนของเขา 'ตามฉันไปเนเวอร์แลนด์!' เขาร้อง และพวกเขาก็บินหนีไปผ่านท้องฟ้ายามค่ำคืน",
+        "ในเนเวอร์แลนด์ เด็กๆ พบเด็กหลงทาง โจรสลัดของกัปตันฮุค และนางเงือกสวยงามที่ร้องเพลงในทะเลสาบ เวนดี้กลายเป็นแม่ของพวกเขาทั้งหมด เล่านิทานข้างกองไฟ",
+        "กัปตันฮุค ผู้เกลียดปีเตอร์ที่ตัดมือของเขาและโยนให้จระเข้กิน จับเด็กๆ ไว้ จระเข้ที่กลืนนาฬิกาเข้าไป เดินดักดักตามฮุคไปทุกที่",
+        "ปีเตอร์ช่วยเพื่อนๆ ของเขาจากเรือโจรสลัดในการต่อสู้ที่กล้าหาญ เขาสู้กับฮุคด้วยตัวเอง และฮุค ผู้กลัวจระเข้ที่เดินดักดัก ตกลงไปในทะเลและถูกสัตว์ร้ายกลืน",
+        "เด็กๆ บินกลับบ้านที่ลอนดอน ที่ซึ่งแม่ของพวกเขาตกลงรับเลี้ยงเด็กหลงทาง เวนดี้โตขึ้น แต่เธอไม่เคยลืมปีเตอร์ ผู้สัญญาว่าจะกลับมาทุกฤดูใบไม้ผลิ และในหน้าต่างห้องเด็กเล็ก เงาของเด็กชายคนหนึ่งยังคงรออยู่"
+      ]
+    },
+    {
+      id: "cur-fairy-snow-queen", level: "A2", genre: "fairy",
+      title: "The Snow Queen",
+      pages: [
+        "In a little town lived two friends, Kai and Gerda. They were poor, but they were happy, and they shared everything — even the rose bush that grew between their two windows.",
+        "One winter, a splinter of the evil mirror flew into Kai's eye and pierced his heart. He became cold and cruel. Then the Snow Queen appeared and kissed him, and he forgot Gerda and followed her into the frozen north.",
+        "Gerda refused to believe Kai was lost. She set out in the spring, alone and determined. Along the way she met an old witch with a lovely garden, a clever crow, and a kind prince and princess who helped her on her journey.",
+        "Gerda rode north through the snow with a gentle reindeer. They crossed the frozen plains and came at last to the palace of the Snow Queen, where ice shone like crystal and the wind sang a lonely song.",
+        "Inside the palace, Gerda found Kai, cold and still, trying to spell a word with blocks of ice. He did not remember her. But Gerda's warm tears fell on his chest, melted the splinter in his heart, and woke him from the frozen spell.",
+        "Kai and Gerda flew home on a reindeer, through spring and summer, until they reached their little town. The rose bush had bloomed, and they sat beneath it, once more children, once more friends — and the Snow Queen never found them again."
+      ],
+      thPages: [
+        "ในเมืองเล็กๆ มีเพื่อนสองคนชื่อไคและเกอร์ดา พวกเขายากจนแต่มีความสุข และแบ่งปันทุกอย่าง — แม้แต่ต้นกุหลาบที่งอกระหว่างหน้าต่างสองบานของพวกเขา",
+        "ฤดูหนาวปีหนึ่ง เศษกระจกวิเศษชิ้นหนึ่งปลิวเข้าตาไคและแทงเข้าไปในหัวใจของเขา เขากลายเป็นคนเย็นชาและโหดร้าย แล้วราชินีหิมะก็ปรากฏตัวและจูบเขา และเขาก็ลืมเกอร์ดาและตามเธอไปสู่แดนเหนืออันหนาวเย็น",
+        "เกอร์ดาปฏิเสธที่จะเชื่อว่าไคสูญหาย เธอออกเดินทางในฤดูใบไม้ผลิ อย่างโดดเดี่ยวและมุ่งมั่น ระหว่างทางเธอพบแม่มดแก่ที่มีสวนสวย กาที่ฉลาด และเจ้าชายกับเจ้าหญิงผู้ใจดีที่ช่วยเหลือเธอในการเดินทาง",
+        "เกอร์ดาขี่เหนือไปทางเหนือท่ามกลางหิมะพร้อมกวางเรนเดียร์ผู้ใจดี พวกเขาข้ามที่ราบน้ำแข็งและมาถึงพระราชวังของราชินีหิมะในที่สุด ที่ซึ่งน้ำแข็งส่องประกายเหมือนคริสตัลและสายลมร้องเพลงอันโดดเดี่ยว",
+        "ในพระราชวัง เกอร์ดาพบไค หนาวเหน็บและนิ่งสงบ กำลังพยายามสะกดคำด้วยก้อนน้ำแข็ง เขาจำเธอไม่ได้ แต่หยาดน้ำตาอันอบอุ่นของเกอร์ดาตกลงบนหน้าอกของเขา ละลายเศษกระจกในหัวใจของเขา และปลุกเขาจากมนต์น้ำแข็ง",
+        "ไคและเกอร์ดาบินกลับบ้านด้วยกวางเรนเดียร์ ผ่านฤดูใบไม้ผลิและฤดูร้อน จนกระทั่งถึงเมืองเล็กๆ ของพวกเขา ต้นกุหลาบเบ่งบาน และพวกเขาก็นั่งอยู่ใต้มัน อีกครั้งในฐานะเด็ก อีกครั้งในฐานะเพื่อน — และราชินีหิมะก็ไม่เคยพบพวกเขาอีกเลย"
+      ]
+    },
+    {
+      id: "cur-fairy-rumpelstiltskin", level: "A1", genre: "fairy",
+      title: "Rumpelstiltskin",
+      pages: [
+        "A poor miller told the king a lie: 'My daughter can spin straw into gold!' The king was greedy, so he locked the girl in a tower full of straw. 'Spin this into gold by morning,' he said, 'or you will die.'",
+        "The poor girl wept. Suddenly, a strange little man appeared. 'What will you give me if I spin your gold?' he asked. 'My necklace,' she said. He took it, spun the straw into gold, and vanished.",
+        "The king was delighted, but his greed grew. He locked the girl in an even larger room of straw. This time the little man asked for her ring, and he spun the gold again while she slept.",
+        "The king was amazed and promised her the throne if she could spin a whole mountain of straw. The little man appeared a third time. 'I will help you,' he said, 'if you promise to give me your first-born child.' The girl, desperate, agreed.",
+        "A year later, the girl was queen and held her first baby. The little man returned and demanded the child. The queen wept and begged. 'Very well,' said the little man. 'If you can guess my name, you may keep your child.'",
+        "The queen sent messengers across the land to collect names. At last, a messenger heard a strange voice singing in a forest: 'The queen will never guess that my name is Rumpelstiltskin!' The queen guessed the name, and the little man, furious, stamped his foot so hard that he vanished forever."
+      ],
+      thPages: [
+        "ช่างสีข้าวผู้ยากจนโกหกกษัตริย์: 'ลูกสาวของฉันปั่นฟางเป็นทองคำได้!' กษัตริย์โลภ จึงขังหญิงสาวในหอคอยที่เต็มไปด้วยฟาง 'ปั่นสิ่งนี้เป็นทองคำให้ได้ภายในเช้า' เขากล่าว 'หรือเจ้าจะตาย'",
+        "หญิงสาวผู้น่าสงสารร้องไห้ ทันใดนั้น ชายตัวเล็กแปลกหน้าก็ปรากฏตัว 'เจ้าจะให้อะไรฉัน ถ้าฉันปั่นทองคำให้เจ้า?' เขาถาม 'สร้อยคอของฉัน' เธอกล่าว เขารับมัน ปั่นฟางเป็นทองคำ แล้วหายไป",
+        "กษัตริย์พอใจมาก แต่ความโลภของเขาก็มากขึ้น เขาขังหญิงสาวในห้องฟางที่ใหญ่กว่าเดิม คราวนี้ชายตัวเล็กขอแหวนของเธอ และเขาก็ปั่นทองคำอีกครั้งในขณะที่เธอหลับ",
+        "กษัตริย์ประหลาดใจและสัญญาว่าจะให้บัลลังก์แก่เธอ ถ้าเธอปั่นภูเขาฟางทั้งหมดได้ ชายตัวเล็กปรากฏตัวเป็นครั้งที่สาม 'ฉันจะช่วยเจ้า' เขากล่าว 'ถ้าเจ้าสัญญาว่าจะยกบุตรคนแรกของเจ้าให้ฉัน' หญิงสาว อย่างสิ้นหวัง ตกลง",
+        "หนึ่งปีต่อมา หญิงสาวเป็นราชินีและอุ้มลูกคนแรกของเธอ ชายตัวเล็กกลับมาและเรียกร้องเด็ก ราชินีร้องไห้และวิงวอน 'เอาล่ะ' ชายตัวเล็กกล่าว 'ถ้าเจ้าทายชื่อฉันได้ เจ้าอาจจะเก็บลูกของเจ้าไว้'",
+        "ราชินีส่งผู้สื่อสารไปทั่วดินแดนเพื่อเก็บชื่อ ในที่สุด ผู้สื่อสารคนหนึ่งได้ยินเสียงแปลกๆ ร้องเพลงในป่า: 'ราชินีจะไม่มีวันเดาว่าฉันชื่อรัมเพลสติลต์สกิน!' ราชินีทายชื่อถูก และชายตัวเล็ก ด้วยความโกรธแค้น กระทืบเท้าอย่างแรงจนหายตัวไปตลอดกาล"
+      ]
+    },
+    {
+      id: "cur-fairy-little-mermaid", level: "A2", genre: "fairy",
+      title: "The Little Mermaid",
+      pages: [
+        "Far out in the deep blue sea lived the Sea King and his six beautiful daughters. The youngest mermaid was the most wonderful of all. She loved to hear stories about the world above the waves.",
+        "When she turned fifteen, she swam to the surface for the first time. She saw a ship and a handsome prince, and she fell in love with him at once. A storm broke the ship, and she saved the prince from drowning.",
+        "The little mermaid took the prince to the shore, where a girl from the palace found him. He never knew who had saved him, and the mermaid returned to the sea with a heavy heart.",
+        "She went to the Sea Witch and traded her voice for legs. 'Every step will feel like knives,' warned the witch, 'and if the prince marries another, you will turn to foam.' The mermaid agreed without a moment's doubt.",
+        "The prince loved the mermaid and took her everywhere, but he never loved her enough to marry her. Then the prince met the girl from the shore — the one he thought had saved him — and he married her.",
+        "On the wedding night, the mermaid's sisters gave her a knife. 'Kill the prince, and you may live!' they cried. But the mermaid could not hurt him. She threw the knife into the sea and rose to the light, where the spirits of the air welcomed her with open arms."
+      ],
+      thPages: [
+        "ไกลออกไปในทะเลสีน้ำเงินเข้ม อาศัยราชาแห่งท้องทะเลและลูกสาวผู้งดงามหกคน นางเงือกน้อยที่สุดคือผู้ที่วิเศษที่สุด เธอชอบฟังเรื่องราวเกี่ยวกับโลกเหนือคลื่น",
+        "เมื่อเธออายุสิบห้า เธอว่ายขึ้นสู่ผิวน้ำเป็นครั้งแรก เธอเห็นเรือและเจ้าชายรูปงาม และตกหลุมรักเขาทันที พายุทำเรือแตก และเธอก็ช่วยเจ้าชายไม่ให้จมน้ำ",
+        "นางเงือกน้อยพาเจ้าชายไปที่ชายฝั่ง ที่ซึ่งหญิงสาวจากพระราชวังพบเขา เขาไม่เคยรู้ว่าใครช่วยเขาไว้ และนางเงือกก็กลับสู่ทะเลด้วยหัวใจที่หนักอึ้ง",
+        "เธอไปหาแม่มดทะเลและแลกเสียงของเธอกับขา 'ทุกย่างก้าวจะเจ็บราวกับถูกมีดบาด' แม่มดเตือน 'และถ้าเจ้าชายแต่งงานกับคนอื่น เจ้าจะกลายเป็นฟองคลื่น' นางเงือกตกลงโดยไม่ลังเลแม้แต่น้อย",
+        "เจ้าชายรักนางเงือกและพาเธอไปทุกที่ แต่เขาไม่เคยรักเธอมากพอที่จะแต่งงาน แล้วเจ้าชายก็ได้พบหญิงสาวจากชายฝั่ง — คนที่เขาคิดว่าช่วยเขาไว้ — และเขาก็แต่งงานกับเธอ",
+        "ในคืนแต่งงาน พี่สาวของนางเงือกยื่นมีดให้เธอ 'ฆ่าเจ้าชาย แล้วเจ้าจะมีชีวิตอยู่!' พวกเธอร้อง แต่บางเงือกทำร้ายเขาไม่ได้ เธอโยนมีดลงทะเลและลอยขึ้นสู่แสง ที่ซึ่งวิญญาณแห่งอากาศต้อนรับเธอด้วยอ้อมแขนที่เปิดกว้าง"
+      ]
+    },
+    {
+      id: "cur-ghost-carmilla", level: "B2", genre: "ghost",
+      title: "Carmilla",
+      pages: [
+        "My name is Laura, and I live with my father in a lonely castle in the mountains of Styria. One night, a carriage crashed near our gates, and from the wreck they carried a beautiful girl, pale as moonlight, named Carmilla.",
+        "Carmilla was sweet and gentle, and she became my dearest companion. But there was something strange about her. She slept all day, she never ate, and she spoke of a childhood she could not remember.",
+        "Then I fell ill. I grew weak and pale, and strange dreams filled my sleep. I dreamed of a cold kiss on my throat, and I woke each morning more tired than before. My father sent for the great doctor, Dr. Spielberg.",
+        "The doctor examined me and shook his head. 'She is losing blood,' he said darkly. 'Something is feeding on her at night.' He studied Carmilla, and his face grew grave. 'I have seen this sickness before — in a village that lost three girls.'",
+        "One of Carmilla's portraits, painted long ago, showed a woman who looked exactly like her. The doctor was sure now. Carmilla was a vampire, and she had been feeding on me as she had fed on countless victims for centuries.",
+        "The villagers surrounded the castle and found Carmilla's grave. They opened it and drove a stake through the pale figure that lay within. The next morning, the sickness left my body. I have lived to tell this story, but I will never forget the beautiful, terrible face of Carmilla."
+      ],
+      thPages: [
+        "ฉันชื่อลอร่า และอาศัยอยู่กับพ่อในปราสาทอันโดดเดี่ยวบนภูเขาของสติเรีย คืนหนึ่ง รถม้าชนใกล้ประตูของเรา และจากซากรถ พวกเขาอุ้มหญิงสาวงดงาม ผิวขาวราวแสงจันทร์ ชื่อคาร์มิลลา",
+        "คาร์มิลลาเป็นคนหวานและอ่อนโยน และกลายเป็นเพื่อนที่รักที่สุดของฉัน แต่มีบางอย่างแปลกเกี่ยวกับเธอ เธอนอนทั้งวัน ไม่เคยกิน และพูดถึงวัยเด็กที่เธอจำไม่ได้",
+        "แล้วฉันก็ป่วย ฉันอ่อนแอและหน้าซีด และความฝันแปลกๆ เติมเต็มการนอนของฉัน ฉันฝันถึงจูบเย็นบนลำคอ และตื่นขึ้นทุกเช้าด้วยความเหนื่อยกว่าที่เคย พ่อส่งคนไปตามหมอผู้ยิ่งใหญ่ ดร.สปีลเบิร์ก",
+        "หมอตรวจฉันและส่ายหัว 'เธอเสียเลือด' เขากล่าวอย่างมืดมน 'มีบางอย่างกำลังดูดเลือดเธอในตอนกลางคืน' เขาศึกษาคาร์มิลลา และใบหน้าของเขาก็เคร่งเครียด 'ฉันเคยเห็นโรคนี้มาก่อน — ในหมู่บ้านที่สูญเสียเด็กสาวสามคน'",
+        "ภาพเหมือนของคาร์มิลลาหนึ่งภาพ ที่วาดไว้นานแล้ว แสดงผู้หญิงที่หน้าตาเหมือนเธอเป๊ะ หมอมั่นใจแล้ว คาร์มิลลาคือแวมไพร์ และเธอได้ดูดเลือดฉันเช่นเดียวกับที่เธอดูดเลือดเหยื่อนับไม่ถ้วนมานานหลายศตวรรษ",
+        "ชาวบ้านล้อมปราสาทและพบหลุมศพของคาร์มิลลา พวกเขาเปิดมันและตอกหลักผ่านร่างซีดเผือกที่นอนอยู่ข้างใน เช้าวันรุ่งขึ้น โรคร้ายจากร่างกายของฉัน ฉันรอดชีวิตมาเล่าเรื่องนี้ แต่ฉันจะไม่มีวันลืมใบหน้าที่งดงามและน่าสะพรึงกลัวของคาร์มิลลา"
+      ]
+    },
+    {
+      id: "cur-ghost-whistle-lady", level: "B1", genre: "ghost",
+      title: "The Whistling Lady",
+      pages: [
+        "The old train station of Millbrook had been closed for years. People said you could still hear a whistle at midnight — the whistle of a lady who waited for a train that never came.",
+        "A curious reporter named Sam came to Millbrook to write about the legend. He stayed in the station house with only a lantern, and at midnight, he heard it: a soft, sad whistle echoing through the empty hall.",
+        "Sam followed the sound to the old platform. There, under the last lamp, stood a woman in a long coat, her face hidden. 'Can I help you?' Sam asked. She did not turn. 'I am waiting for my husband,' she whispered.",
+        "'He was a conductor on this line,' she said. 'He promised to come home on the midnight train, but it was delayed by snow, and he never returned. I have waited here every night since.'",
+        "Sam checked the old records and found her story. The woman had waited for her husband for forty years, then died alone. But her love had not died. 'She still believes he will come,' Sam thought, and his heart ached.",
+        "The next night, Sam brought a white rose and placed it on the platform. The lady smiled through her tears. 'Thank you,' she said. 'Now I can rest.' She faded like morning mist, and the station has been silent ever since."
+      ],
+      thPages: [
+        "สถานีรถไฟเก่าของมิลบรูกปิดมานานหลายปี ผู้คนบอกว่ายังได้ยินเสียงผิวปากตอนเที่ยงคืน — เสียงผิวปากของหญิงสาวที่รอรถไฟที่ไม่เคยมา",
+        "นักข่าวที่อยากรู้อยากเห็นชื่อแซมมาที่มิลบรูกเพื่อเขียนเรื่องราวเกี่ยวกับตำนาน เขาพักในตัวสถานีด้วยตะเกียงเพียงดวงเดียว และตอนเที่ยงคืน เขาก็ได้ยินมัน: เสียงผิวปากที่อ่อนโยนและเศร้า ก้องสะท้อนผ่านห้องโถงว่างเปล่า",
+        "แซมตามเสียงไปที่ชานชาลาเก่า ที่นั่น ใต้โคมไฟดวงสุดท้าย มีหญิงสาวในเสื้อคลุมยาวยืนอยู่ ใบหน้าถูกซ่อน 'ให้ฉันช่วยไหม?' แซมถาม เธอไม่หันมา 'ฉันกำลังรอสามีของฉัน' เธอกระซิบ",
+        "'เขาเป็นพนักงานขับรถไฟบนเส้นนี้' เธอกล่าว 'เขาสัญญาว่าจะกลับบ้านด้วยรถไฟเที่ยงคืน แต่รถไฟดีเลย์เพราะหิมะ และเขาไม่เคยกลับมา ฉันรอที่นี่ทุกคืนตั้งแต่นั้นมา'",
+        "แซมตรวจบันทึกเก่าและพบเรื่องราวของเธอ หญิงสาวรอสามีมาสี่สิบปี แล้วก็ตายอย่างโดดเดี่ยว แต่ความรักของเธอไม่ตาย 'เธอยังคงเชื่อว่าเขาจะมา' แซมคิด และหัวใจของเขาเจ็บปวด",
+        "คืนถัดมา แซมนำดอกกุหลาบขาวมาวางบนชานชาลา หญิงสาวยิ้มทั้งน้ำตา 'ขอบคุณ' เธอกล่าว 'ตอนนี้ฉันพักได้แล้ว' เธอจางหายเหมือนหมอกยามเช้า และสถานีก็เงียบสงบตั้งแต่นั้นมา"
+      ]
+    },
+    {
+      id: "cur-ghost-green-door", level: "B2", genre: "ghost",
+      title: "The Green Door",
+      pages: [
+        "Every building on Oak Street had a green door except one — Number Thirteen, whose door was painted black. Nobody in the neighborhood could remember a time when that door had been green.",
+        "New neighbors, the Thomases, moved into Number Thirteen. The first night, Mr. Thomas dreamed of a green door at the end of a long hall. In the dream, someone on the other side was knocking, softly, patiently.",
+        "The next night, the dream returned, clearer this time. The knocking grew louder, and a voice called his name. Mrs. Thomas begged him to forget the dream, but he could not. He began to search the house.",
+        "Behind a wall in the basement, he found it: a green door, locked with a heavy iron latch. Mr. Thomas touched it, and the wood was warm. 'Who is in there?' he whispered. From behind the door came a faint answer: 'Someone who waits.'",
+        "He opened the door and found a small, dusty room with a single photograph on the wall — a picture of a family standing before a green door. In the corner sat an old woman, who looked at him and smiled. 'You came,' she said.",
+        "She told him the story of a house that had been built over another house, a century ago. The old family still lived below, unseen. 'You are kind,' she said. 'Tell the others. We are still here, and we are still waiting to be remembered.' Mr. Thomas painted the door green, and it has been green ever since."
+      ],
+      thPages: [
+        "ทุกอาคารบนถนนโอ๊คมีประตูสีเขียว ยกเว้นหนึ่งหลัง — บ้านเลขที่สิบสาม ที่ประตูทาสีดำ ไม่มีใครในย่านนี้จำได้ว่าครั้งไหนประตูบานนั้นเคยเป็นสีเขียว",
+        "ครอบครัวใหม่ ครอบครัวโธมัส ย้ายเข้าไปในบ้านเลขที่สิบสาม คืนแรก มิสเตอร์โธมัสฝันเห็นประตูสีเขียวที่ปลายโถงยาว ในความฝัน มีคนอีกฝั่งกำลังเคาะประตู เบาๆ อย่างอดทน",
+        "คืนถัดมา ความฝันกลับมา ชัดเจนขึ้นคราวนี้ เสียงเคาะดังขึ้น และเสียงเรียกชื่อเขา มิสซิสโธมัสอ้อนวอนให้เขาลืมความฝัน แต่เขาทำไม่ได้ เขาเริ่มค้นหาทั่วบ้าน",
+        "หลังกำแพงในห้องใต้ดิน เขาพบมัน: ประตูสีเขียว ล็อกด้วยสลักเหล็กหนัก มิสเตอร์โธมัสแตะมัน และไม้ก็อุ่น 'ใครอยู่ในนั้น?' เขากระซิบ จากหลังประตูมีเสียงตอบแผ่วเบา: 'คนที่กำลังรอ'",
+        "เขาเปิดประตูและพบห้องเล็กๆ ที่เต็มไปด้วยฝุ่น มีรูปถ่ายใบเดียวบนผนัง — รูปของครอบครัวหนึ่งยืนอยู่หน้าประตูสีเขียว ที่มุมห้องมีหญิงชราคนหนึ่งนั่งอยู่ มองเขาและยิ้ม 'คุณมาแล้ว' เธอกล่าว",
+        "เธอเล่าเรื่องของบ้านที่ถูกสร้างทับบ้านอีกหลัง เมื่อศตวรรษก่อน ครอบครัวเก่ายังคงอาศัยอยู่เบื้องล่าง ที่มองไม่เห็น 'คุณใจดี' เธอกล่าว 'บอกคนอื่นด้วย เรายังอยู่ที่นี่ และเรายังคงรอการถูกจดจำ' มิสเตอร์โธมัสทาสีประตูเป็นสีเขียว และมันก็เป็นสีเขียวตั้งแต่นั้นมา"
+      ]
+    },
+    {
+      id: "cur-ghost-pier-music", level: "B2", genre: "ghost",
+      title: "The Music at the Old Pier",
+      pages: [
+        "The old pier of Harborview had stood empty for years, its wooden planks rotting in the salt wind. Local children said that on foggy nights, you could hear music drifting across the water — old songs no one played anymore.",
+        "A young musician named Nina came to Harborview to rest and write new songs. The first foggy night, she heard the music too, soft and sweet, coming from the end of the pier. She walked out, lantern in hand.",
+        "At the end of the pier, a shadowy figure played an old piano that had long been lost to the sea. The player was a woman, young and pale, who did not seem to see Nina. 'Your song,' Nina said softly. 'It is beautiful.'",
+        "The woman looked up, surprised. 'You can hear me?' she asked. She told Nina her story: she had been a pianist on a steamship that sank in the storm eighty years ago. Every night since, she played for the passengers who never came home.",
+        "Nina listened, and her heart was moved. 'Let me play with you,' she said. She found an old guitar and played beside the ghost, song after song, until the fog began to lift and the first light touched the sea.",
+        "The ghost smiled for the first time in eighty years. 'Thank you,' she said. 'Now I can rest.' She faded into the morning mist, and the piano vanished with her. But Nina wrote down every song they had played, and the music of the old pier lived on in her hands."
+      ],
+      thPages: [
+        "ท่าเรือเก่าของฮาร์เบอร์วิวร้างมานานหลายปี ไม้กระดานผุพังในสายลมเค็ม เด็กๆ ในท้องถิ่นเล่าว่าในคืนที่มีหมอก คุณจะได้ยินเสียงดนตรีลอยข้ามน้ำ — เพลงเก่าๆ ที่ไม่มีใครเล่นอีกแล้ว",
+        "นักดนตรีสาวชื่อนีน่ามาที่ฮาร์เบอร์วิวเพื่อพักผ่อนและเขียนเพลงใหม่ คืนที่มีหมอกครั้งแรก เธอได้ยินเสียงดนตรีด้วยเช่นกัน นุ่มนวลและไพเราะ มาจากปลายท่าเรือ เธอเดินออกไป ถือตะเกียงในมือ",
+        "ที่ปลายท่าเรือ ร่างเงามัวๆ เล่นเปียโนเก่าที่สูญหายไปในทะเลนานแล้ว ผู้เล่นคือหญิงสาว หน้าตาอ่อนเยาว์และซีด ซึ่งดูเหมือนไม่เห็นนีน่า 'เพลงของคุณ' นีน่ากล่าวเบาๆ 'มันสวยงาม'",
+        "หญิงสาวมองขึ้น ด้วยความประหลาดใจ 'คุณได้ยินฉัน?' เธอถาม เธอเล่าเรื่องของเธอ: เธอเคยเป็นนักเปียโนบนเรือกลไฟที่จมในพายุเมื่อแปดสิบปีก่อน ทุกคืนตั้งแต่นั้น เธอเล่นเพลงให้ผู้โดยสารที่ไม่เคยกลับบ้าน",
+        "นีน่าฟัง และหัวใจของเธอก็ถูกสัมผัส 'ให้ฉันเล่นกับคุณ' เธอกล่าว เธอพบกีตาร์เก่าและเล่นข้างๆ ผี อย่างเพลงแล้วเพลงเล่า จนหมอกเริ่มจางและแสงแรกสัมผัสทะเล",
+        "ผียิ้มเป็นครั้งแรกในรอบแปดสิบปี 'ขอบคุณ' เธอกล่าว 'ตอนนี้ฉันพักได้แล้ว' เธอจางหายไปในหมอกยามเช้า และเปียโนก็หายไปพร้อมกับเธอ แต่นีน่าเขียนเพลงทั้งหมดที่พวกเขาเล่นลงไป และดนตรีของท่าเรือเก่าก็ยังคงมีชีวิตอยู่ในมือของเธอ"
+      ]
+    },
+    {
+      id: "cur-classic-don-quixote", level: "B1", genre: "classic",
+      title: "Don Quixote",
+      pages: [
+        "In a village of La Mancha, an old gentleman named Alonso Quijano read so many tales of knights that he went mad. He decided to become a knight himself, took the name Don Quixote, and rode out on his thin horse Rocinante.",
+        "He needed a lady to protect, so he chose a farm girl named Dulcinea and promised to fight for her honor. He needed a squire too, so he persuaded a simple farmer, Sancho Panza, to follow him with promises of an island to rule.",
+        "On the road, they came upon tall windmills. 'Those are giants!' cried Don Quixote. 'Their arms are swinging!' He charged at the windmill with his lance, and the spinning blade lifted him into the air and dropped him.",
+        "Sancho laughed and helped him up. 'I told you they were windmills,' he said. But Don Quixote was sure an evil wizard had turned the giants into windmills to mock him. Onward he rode, chasing adventures that existed only in his mind.",
+        "He fought a flock of sheep, mistaking them for an army, and he freed prisoners who thanked him by stealing his donkey. Every defeat, Sancho noticed, was blamed on enchanters. Yet the old knight's heart never lost its fire.",
+        "At last his friends brought him home, and the old man slept and woke as plain Alonso Quijano. 'I was mad,' he said, 'but I was happy.' He died peacefully, and the world remembered the knight who had taught us that dreams are worth dreaming, even if they end."
+      ],
+      thPages: [
+        "ในหมู่บ้านแห่งลามันชา สุภาพบุรุษชรานามอัลอนโซ กิฮาโนอ่านนิทานอัศวินมากมายจนสติคลั่ง เขาตัดสินใจเป็นอัศวินด้วยตัวเอง ใช้ชื่อว่าดอนกิโฮเต้ และขี่ม้าผอมบางของเขาชื่อโรซินันเตออกไป",
+        "เขาต้องการหญิงสาวให้ปกป้อง จึงเลือกสาวชาวนาชื่อดุลซิเนียและสัญญาว่าจะต่อสู้เพื่อเกียรติของเธอ เขาต้องการมหาดเล็กด้วย จึงชักชวนชาวนาที่ซื่อๆ ชื่อซานโช ปานซา ให้ติดตามเขาด้วยคำสัญญาว่าจะมอบเกาะให้ปกครอง",
+        "ระหว่างทาง พวกเขาเจอกังหันลมสูง 'พวกนั้นคือยักษ์!' ดอนกิโฮเต้ร้อง 'แขนของพวกมันกำลังแกว่ง!' เขาวิ่งเข้าชนกังหันด้วยหอก และใบพัดที่หมุนก็ยกเขาขึ้นไปในอากาศแล้วปล่อยเขาตกลงมา",
+        "ซานโชหัวเราะและช่วยเขาลุก 'ฉันบอกแล้วว่ามันคือกังหันลม' เขากล่าว แต่ดอนกิโฮเต้แน่ใจว่าพ่อมดชั่วร้ายเปลี่ยนยักษ์เป็นกังหันลมเพื่อล้อเลียนเขา เขาขี่ม้าต่อไป ไล่ล่าการผจญภัยที่มีอยู่เพียงในความคิดของเขา",
+        "เขาต่อสู้กับฝูงแกะ โดยเข้าใจผิดว่ามันคือกองทัพ และปลดปล่อยนักโทษที่ขอบคุณเขาด้วยการขโมยลาของเขา ทุกความพ่ายแพ้ ซานโชสังเกต ถูกตำหนิว่ามาจากนักเวทมนตร์ แต่หัวใจของอัศวินชราไม่เคยสูญเสียไฟ",
+        "ในที่สุด เพื่อนๆ ของเขาก็พาเขากลับบ้าน และชายชราก็นอนหลับและตื่นขึ้นในฐานะอัลอนโซ กิฮาโนธรรมดา 'ฉันบ้า' เขากล่าว 'แต่ฉันมีความสุข' เขาตายอย่างสงบ และโลกก็จดจำอัศวินผู้สอนเราว่าความฝันนั้นมีค่าที่จะฝัน แม้ว่ามันจะจบลงก็ตาม"
+      ]
+    }
+  ];
+
+  // Merge curated stories (multi-page = long book) into the main list
+  (function () {
+    CURATED_STORIES.forEach(function (cs) {
+      const text = cs.pages.join(" ");
+      const thText = cs.thPages.join(" ");
+      ALL_STORIES.push({
+        id: cs.id, level: cs.level, genre: cs.genre, title: cs.title,
+        text: text, thText: thText,
+        pages: cs.pages, thPages: cs.thPages
+      });
+    });
+  })();
+
+  /* -------- Graded Reader helpers (progress / saved words / quiz / SOTD) -------- */
+
+  function storyWordCount(s) { return (s.text || "").trim().split(/\s+/).length; }
+  function storyReadMins(s) { return Math.max(1, Math.round(storyWordCount(s) / 200)); }
+
+  function isStoryRead(id) { return !!storyRead[id]; }
+  function markStoryRead(id) {
+    if (!storyRead[id]) {
+      storyRead[id] = todayStr();
+      save(K_STORY_READ, storyRead);
+    }
+  }
+
+  function storyProgressFor(level) {
+    const pool = ALL_STORIES.filter(function (s) { return s.level === level; });
+    const done = pool.filter(function (s) { return isStoryRead(s.id); }).length;
+    return { done: done, total: pool.length };
+  }
+
+  function renderStoryProgress() {
+    const wrap = $("storyProgress");
+    if (!wrap) return;
+    const levels = ["A1", "A2", "B1", "B2", "C1", "C2"];
+    const html = levels.map(function (lvl) {
+      const p = storyProgressFor(lvl);
+      const pct = p.total ? Math.round(p.done / p.total * 100) : 0;
+      return '<div style="display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px;">' +
+        '<span style="width:30px;font-weight:700;color:var(--primary);">' + lvl + "</span>" +
+        '<div class="day-mini-bar" style="flex:1;"><div class="day-mini-fill" style="width:' + pct + '%;"></div></div>' +
+        '<span style="width:52px;text-align:right;color:var(--muted);">' + p.done + "/" + p.total + " · " + pct + "%</span>" +
+        "</div>";
+    }).join("");
+    wrap.style.display = "block";
+    wrap.innerHTML = '<div style="font-weight:700;margin-bottom:4px;color:var(--text);">' + svgIcon("chart", "ico sm") + " " + t("stories.progressTitle") + "</div>" + html;
+  }
+
+  function storyGenre(s) { return s.genre || "article"; }
+
+  function storyGenreLabel(g) {
+    if (g === "fairy") return t("stories.genreFairy");
+    if (g === "ghost") return t("stories.genreGhost");
+    if (g === "adventure") return t("stories.genreAdventure");
+    if (g === "scifi") return t("stories.genreScifi");
+    if (g === "mystery") return t("stories.genreMystery");
+    if (g === "classic") return t("stories.genreClassic");
+    return t("stories.genreArticle");
+  }
+  function storyGenreIcon(g) {
+    if (g === "fairy") return "sparkle";
+    if (g === "ghost") return "moon";
+    if (g === "adventure") return "compass";
+    if (g === "scifi") return "bolt";
+    if (g === "mystery") return "eye";
+    if (g === "classic") return "quill";
+    return "book";
+  }
+
+  function storyOfTheDay() {
+    let pool = ALL_STORIES;
+    if (currentActiveLevelFilter !== "All") pool = pool.filter(function (s) { return s.level === currentActiveLevelFilter; });
+    if (currentGenreFilter !== "All") pool = pool.filter(function (s) { return storyGenre(s) === currentGenreFilter; });
+    if (!pool.length) return null;
+    return pool[daySeed(todayStr() + currentActiveLevelFilter + currentGenreFilter) % pool.length];
+  }
+
+  // Featured card for Story of the Day — spans the full grid width.
+  function sotdCardHtml(s) {
+    return '<div class="story-card sotd-card" data-story-id="' + s.id + '">' +
+      '<div class="sotd-badge">' + svgIcon("sparkle", "ico sm") + " " + t("stories.sotd") + "</div>" +
+      '<div class="sotd-body">' +
+      '<h4>' + esc(s.title) + "</h4>" +
+      '<p>' + esc(s.text) + "</p>" +
+      '<div class="sotd-meta">' +
+      '<span class="badge" style="background:var(--primary);color:#fff;">' + s.level + "</span>" +
+      '<span class="sotd-genre">' + svgIcon(storyGenreIcon(s.genre), "ico sm") + " " + storyGenreLabel(s.genre) + "</span>" +
+      '<span>' + svgIcon("clock", "ico sm") + " ~" + storyReadMins(s) + " " + t("stories.minutes") + "</span>" +
+      (s.pages ? '<span>' + svgIcon("book", "ico sm") + " " + s.pages.length + " " + t("stories.pages") + "</span>" : "") +
+      "</div>" +
+      "</div>" +
+      '<button class="btn btn-sm btn-primary" data-sotd-read>' + t("stories.readNow") + "</button>" +
+      "</div>";
+  }
+
+  /* Save a word from a story into the per-story saved list. */
+  function toggleStoryWord(storyId, item) {
+    if (!storyWords[storyId]) storyWords[storyId] = [];
+    const arr = storyWords[storyId];
+    const idx = arr.indexOf(item.id);
+    if (idx === -1) arr.push(item.id);
+    else arr.splice(idx, 1);
+    save(K_STORY_WORDS, storyWords);
+    renderStorySavedWords(storyId);
+  }
+  function storySavedItems(storyId) {
+    const arr = storyWords[storyId] || [];
+    return arr.map(function (id) {
+      return ITEMS.find(function (i) { return i.id === id; }) || ALL_ITEMS.find(function (i) { return i.id === id; });
+    }).filter(Boolean);
+  }
+  function renderStorySavedWords(storyId) {
+    const panel = $("storySavedWords");
+    const listBox = $("storySavedList");
+    const reviewBtn = $("storyReviewSaved");
+    if (!panel || !listBox) return;
+    const items = storySavedItems(storyId);
+    panel.classList.remove("hidden");
+    if (!items.length) {
+      listBox.innerHTML = '<p class="hint" style="margin:0;">' + t("stories.noSaved") + "</p>";
+      if (reviewBtn) reviewBtn.classList.add("hidden");
+      return;
+    }
+    if (reviewBtn) reviewBtn.classList.remove("hidden");
+    listBox.innerHTML = items.map(function (i) {
+      return '<span class="badge-sm" style="margin:3px 4px 3px 0;display:inline-flex;align-items:center;gap:5px;">' +
+        esc(i.word) + '<span style="color:var(--muted);font-weight:400;">' + (i.th || "") + "</span></span>";
+    }).join("");
+    if (reviewBtn) reviewBtn.onclick = function () { reviewWeakSpots(items); };
+  }
+
+  /* Build a small comprehension quiz from a story. */
+  function buildStoryQuiz(story) {
+    const qs = [];
+    const sameLevel = ALL_STORIES.filter(function (s) { return s.level === story.level && s.id !== story.id; });
+    const distractors = shuffle(sameLevel).slice(0, 3).map(function (s) { return s.title; });
+    qs.push({ q: t("stories.qTopic"), options: shuffle([story.title].concat(distractors)), answer: story.title });
+    const target = storyTargetSet(story.level);
+    const words = (story.text.match(/[a-zA-Z]+/g) || []).map(function (w) { return w.toLowerCase(); });
+    const seen = {};
+    const vocab = [];
+    words.forEach(function (w) {
+      if (seen[w] || !target[w]) return;
+      seen[w] = true; vocab.push(target[w]);
+    });
+    shuffle(vocab).slice(0, 2).forEach(function (item) {
+      const wTh = item.th || item.translation || "";
+      if (!wTh) return;
+      const others = Object.keys(target).map(function (k) { return target[k].th || target[k].translation || ""; }).filter(function (x) { return x && x !== wTh; });
+      qs.push({ q: t("stories.qMeaning").replace("{w}", item.word), options: shuffle([wTh].concat(shuffle(others).slice(0, 3))), answer: wTh });
+    });
+    return qs;
+  }
+
+  function renderStoryQuiz(story) {
+    const wrap = $("storyQuiz");
+    const box = $("storyQuizBox");
+    if (!wrap || !box) return;
+    const qs = buildStoryQuiz(story);
+    if (!qs.length) return;
+    wrap.classList.remove("hidden");
+    box.innerHTML = '<button class="btn btn-primary" id="storyQuizStart">' + t("stories.quizTitle") + " →</button>";
+    $("storyQuizStart").onclick = function () {
+      let qi = 0, score = 0;
+      const renderQ = function () {
+        if (qi >= qs.length) {
+          const perfect = score === qs.length;
+          awardXp(perfect ? 20 : 10, "story-quiz:" + story.id);
+          toast(t("stories.quizResult").replace("{c}", score).replace("{t}", qs.length), perfect ? "ok" : "info");
+          box.innerHTML = '<div style="font-size:15px;font-weight:600;color:' + (perfect ? "var(--good)" : "var(--text)") + ';">' +
+            svgIcon(perfect ? "trophy" : "book", "ico sm") + " " + t("stories.quizResult").replace("{c}", score).replace("{t}", qs.length) + "</div>" +
+            '<button class="btn" id="storyQuizRetry" style="margin-top:10px;">' + svgIcon("refresh", "ico sm") + " " + t("stories.quizTitle") + "</button>";
+          const retry = $("storyQuizRetry");
+          if (retry) retry.onclick = function () { renderStoryQuiz(story); };
+          return;
+        }
+        const q = qs[qi];
+        box.innerHTML = '<div style="font-weight:700;margin-bottom:10px;font-size:15px;color:var(--text);">' + (qi + 1) + ". " + esc(q.q) + "</div>" +
+          q.options.map(function (opt) {
+            return '<button class="chip story-q-opt" data-opt="' + esc(opt) + '" style="display:block;width:100%;text-align:left;margin:6px 0;">' + esc(opt) + "</button>";
+          }).join("");
+        box.querySelectorAll(".story-q-opt").forEach(function (btn) {
+          btn.onclick = function () {
+            const correct = btn.dataset.opt === q.answer;
+            if (correct) score++;
+            btn.classList.add(correct ? "active" : "err");
+            box.querySelectorAll(".story-q-opt").forEach(function (b) {
+              if (b !== btn) b.style.opacity = "0.5";
+              if (b.dataset.opt === q.answer) b.classList.add("active");
+            });
+            setTimeout(function () { qi++; renderQ(); }, 900);
+          };
+        });
+      };
+      renderQ();
+    };
+  }
+
+  function storyTargetSet(level) {
+    try {
+      const items = (window.CefrSelector && window.CefrSelector.getItemsForLevel) ? window.CefrSelector.getItemsForLevel(level) : [];
+      const set = {};
+      items.forEach(function (i) { set[i.word.toLowerCase()] = i; });
+      return set;
+    } catch (e) { return {}; }
+  }
+
+  /* -------- Shared story-word rendering + tooltip (used by body & book pages) -------- */
+  let bookPageIdx = 0;
+  let bookStory = null;
+
+  function storyWordsHtml(text, story) {
+    const target = storyTargetSet(story.level);
+    const saved = storyWords[story.id] || [];
+    const sentences = text.split(/([.!?]+\s+)/).map(function (part, i, arr) {
+      return (i % 2 === 0) ? part + (arr[i + 1] || "") : "";
+    }).filter(Boolean);
+    return sentences.map(function (sentence) {
+      const words = sentence.split(" ").map(function (w) {
+        const clean = w.replace(/[^a-zA-Z]/g, "").toLowerCase();
+        const isTarget = target[clean] || target[clean.replace(/s$/, "")] || target[clean.replace(/ies$/, "y")] || target[clean.replace(/es$/, "")];
+        const isSaved = saved.some(function (id) {
+          const it = ITEMS.find(function (i) { return i.id === id; }) || ALL_ITEMS.find(function (i) { return i.id === id; });
+          return it && (it.word.toLowerCase() === clean || it.word.toLowerCase() === clean.replace(/s$/, ""));
+        });
+        return '<span class="story-word' + (isTarget ? " target" : "") + (isSaved ? " saved" : "") + '" data-word="' + clean + '" title="Click for translation &amp; pronunciation">' + esc(w) + '</span>';
+      }).join(" ");
+      return '<span class="story-line">' + words + "</span>";
+    }).join("");
+  }
+
+  function bindStoryWordClicks(container, story) {
+    container.querySelectorAll(".story-word").forEach(function (span) {
+      span.onclick = function (e) {
+        e.stopPropagation();
+        const cw = span.dataset.word;
+        if (!cw) return;
+        let found = ITEMS.find(function (i) { return i.word.toLowerCase() === cw; }) || COMMON_TH_DICT[cw];
+        if (!found) {
+          const stemIes = cw.replace(/ies$/, "y");
+          const stemEs = cw.replace(/es$/, "");
+          const stemS = cw.replace(/s$/, "");
+          const stemEd = cw.replace(/ed$/, "");
+          const stemIng = cw.replace(/ing$/, "");
+          const stemLy = cw.replace(/ly$/, "");
+
+          found = ITEMS.find(function (i) { return i.word.toLowerCase() === stemIes; }) || COMMON_TH_DICT[stemIes] ||
+                  ITEMS.find(function (i) { return i.word.toLowerCase() === stemEs; }) || COMMON_TH_DICT[stemEs] ||
+                  ITEMS.find(function (i) { return i.word.toLowerCase() === stemS; }) || COMMON_TH_DICT[stemS] ||
+                  ITEMS.find(function (i) { return i.word.toLowerCase() === stemEd; }) || COMMON_TH_DICT[stemEd] ||
+                  ITEMS.find(function (i) { return i.word.toLowerCase() === stemIng; }) || COMMON_TH_DICT[stemIng] ||
+                  ITEMS.find(function (i) { return i.word.toLowerCase() === stemLy; }) || COMMON_TH_DICT[stemLy];
+        }
+
+        let phonetic = "—";
+        let pos = "word";
+        let thMeaning = "";
+
+        if (found) {
+          phonetic = found.phonetic || "—";
+          pos = found.pos || "word";
+          thMeaning = found.th || found.translation || found.exEn || "";
+        } else {
+          pos = guessPartOfSpeech(cw);
+          thMeaning = "คำศัพท์: " + cw + " (" + getPosThai(pos) + ")";
+        }
+
+        try {
+          if ("speechSynthesis" in window) {
+            const u = new SpeechSynthesisUtterance(span.textContent.replace(/[^a-zA-Z]/g, ""));
+            u.lang = "en-US";
+            window.speechSynthesis.speak(u);
+          }
+        } catch (err) {}
+
+        const oldTip = document.getElementById("wordTooltip");
+        if (oldTip) oldTip.remove();
+
+        const rect = span.getBoundingClientRect();
+        const tip = document.createElement("div");
+        tip.id = "wordTooltip";
+        tip.style.cssText = "position:absolute;z-index:9999;background:var(--panel-solid);border:1px solid var(--primary);border-radius:12px;padding:12px 16px;box-shadow:0 10px 25px rgba(0,0,0,0.2);max-width:280px;font-size:14px;animation:fadeIn 0.15s ease;";
+
+        const isSavedWord = found && found.id && (storyWords[story.id] || []).indexOf(found.id) !== -1;
+        let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+          '<strong style="font-size:16px;color:var(--primary);">' + esc(span.textContent) + '</strong>' +
+          '<button id="tipClose" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);padding:0 4px;">&times;</button>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">[' + esc(phonetic) + '] · <em>' + esc(pos) + '</em></div>' +
+          '<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--text);">' + esc(thMeaning) + '</div>';
+
+        if (found && found.id) {
+          html += '<button id="tipDetails" class="btn btn-sm btn-primary" style="width:100%;font-size:12px;padding:5px 8px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:6px;">' + svgIcon("info", "ico sm") + ' <span>' + t("stories.viewDetails") + '</span></button>';
+          html += '<button id="tipSave" class="btn btn-sm" style="width:100%;font-size:12px;padding:5px 8px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
+            svgIcon("bookmark", "ico sm") + ' <span>' + (isSavedWord ? t("stories.unsaved") : t("stories.saveWord")) + '</span></button>';
+        }
+
+        tip.innerHTML = html;
+
+        const scrollX = window.scrollX || window.pageXOffset;
+        const scrollY = window.scrollY || window.pageYOffset;
+        let topPos = rect.bottom + scrollY + 6;
+        let leftPos = rect.left + scrollX;
+
+        if (leftPos + 280 > window.innerWidth) leftPos = window.innerWidth - 300;
+        if (leftPos < 10) leftPos = 10;
+
+        tip.style.top = topPos + "px";
+        tip.style.left = leftPos + "px";
+
+        document.body.appendChild(tip);
+
+        const closeBtn = document.getElementById("tipClose");
+        if (closeBtn) closeBtn.onclick = function () { tip.remove(); };
+
+        const detailsBtn = document.getElementById("tipDetails");
+        if (detailsBtn && found && found.id) {
+          detailsBtn.onclick = function () { tip.remove(); openDetail(found); };
+        }
+
+        const saveBtn = document.getElementById("tipSave");
+        if (saveBtn && found && found.id) {
+          saveBtn.onclick = function () {
+            toggleStoryWord(story.id, found);
+            tip.remove();
+            toast(t("stories.saved"), "ok", "bookmark");
+            if (bookStory && bookStory.id === story.id) renderBookPage();
+            else $("storyBody").innerHTML = storyWordsHtml(story.text, story);
+          };
+        }
+
+        const outsideClick = function (ev) {
+          if (!tip.contains(ev.target) && ev.target !== span) {
+            tip.remove();
+            document.removeEventListener("click", outsideClick);
+          }
+        };
+        setTimeout(function () {
+          document.addEventListener("click", outsideClick);
+        }, 50);
+      };
+    });
+  }
+
+  /* -------- Book reader: page-by-page flip for long (multi-page) stories -------- */
+  let bookMeasuredHeight = 0;
+
+  function bookMeasureHeight() {
+    const story = bookStory;
+    if (!story) return 240;
+    let max = 240;
+    story.pages.forEach(function (pg) {
+      const tmp = document.createElement("div");
+      tmp.style.cssText = "position:absolute;visibility:hidden;left:-9999px;width:" + $("bookFront").offsetWidth + "px;font-size:16px;line-height:2;padding:24px 28px;";
+      tmp.innerHTML = storyWordsHtml(pg, story);
+      document.body.appendChild(tmp);
+      max = Math.max(max, tmp.scrollHeight);
+      document.body.removeChild(tmp);
+    });
+    return max;
+  }
+
+  function bookSheetSnap() {
+    const sheet = $("bookSheet");
+    sheet.style.transition = "none";
+    sheet.classList.remove("flipping", "flipping-back");
+    sheet.style.left = "50%";
+    sheet.style.transformOrigin = "left center";
+    void sheet.offsetWidth;
+    sheet.style.transition = "";
+  }
+
+  function bookCoverHtml(story) {
+    return '<div class="book-cover">' +
+      svgIcon("book", "ico lg") +
+      "<h4>" + esc(story.title) + "</h4>" +
+      '<p>' + story.level + " · " + storyGenreLabel(story.genre) + "</p>" +
+      "</div>";
+  }
+
+  // Two-page spread: the left half shows the cover (spread 0) or the previous page;
+  // the right half (the flip sheet) shows the current page. Each flip advances one page:
+  // forward turns the current right page over the spine revealing the next page underneath;
+  // backward turns the current left page back revealing the previous page underneath.
+  function renderBookPage() {
+    const story = bookStory;
+    if (!story) return;
+    const front = $("bookFront");
+    const back = $("bookBack");
+    const left = $("bookLeft");
+    const right = $("bookRight");
+    const total = story.pages.length;
+
+    if (bookPageIdx === 0) {
+      left.innerHTML = bookCoverHtml(story);
+    } else {
+      left.innerHTML = storyWordsHtml(story.pages[bookPageIdx - 1], story);
+      bindStoryWordClicks(left, story);
+    }
+
+    const currentHtml = storyWordsHtml(story.pages[bookPageIdx], story);
+    front.innerHTML = currentHtml;
+    back.innerHTML = currentHtml;
+    bindStoryWordClicks(front, story);
+    bindStoryWordClicks(back, story);
+    right.innerHTML = "";
+
+    $("bookPageNum").textContent = (bookPageIdx + 1) + " / " + total;
+    const prevBtn = $("bookPrev");
+    const nextBtn = $("bookNext");
+    if (prevBtn) prevBtn.disabled = bookPageIdx === 0;
+    if (nextBtn) nextBtn.disabled = bookPageIdx === total - 1;
+    bookSheetSnap();
+    const vp = $("bookViewport");
+    if (vp) {
+      if (!bookMeasuredHeight) bookMeasuredHeight = bookMeasureHeight();
+      vp.style.height = bookMeasuredHeight + "px";
+    }
+    if (bookPageIdx === total - 1 && !isStoryRead(story.id)) {
+      markStoryRead(story.id);
+      const markBtn = $("storyMarkRead");
+      if (markBtn) markBtn.style.display = "none";
+      renderStoryProgress();
+      renderStoryQuiz(story);
+      toast(t("stories.markedRead"), "ok", "check");
+    }
+  }
+
+  function bookFlip(dir) {
+    const story = bookStory;
+    if (!story) return;
+    const total = story.pages.length;
+    const target = bookPageIdx + dir;
+    if (target < 0 || target >= total) return;
+    const sheet = $("bookSheet");
+    const front = $("bookFront");
+    const back = $("bookBack");
+    const left = $("bookLeft");
+    const right = $("bookRight");
+    const vp = $("bookViewport");
+    const prevBtn = $("bookPrev");
+    const nextBtn = $("bookNext");
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+    bookSheetSnap();
+
+    if (dir === 1) {
+      // Forward: current right page turns over the spine to the left;
+      // the next page is revealed underneath on the right.
+      const turningHtml = storyWordsHtml(story.pages[bookPageIdx], story);
+      front.innerHTML = turningHtml;
+      back.innerHTML = turningHtml;
+      bindStoryWordClicks(front, story);
+      bindStoryWordClicks(back, story);
+      right.innerHTML = storyWordsHtml(story.pages[target], story);
+      bindStoryWordClicks(right, story);
+      sheet.style.left = "50%";
+      sheet.style.transformOrigin = "left center";
+    } else {
+      // Backward: current left page turns back over the spine to the right;
+      // the previous page (or cover) is revealed underneath on the left.
+      const turningHtml = (bookPageIdx === 0) ? bookCoverHtml(story) : storyWordsHtml(story.pages[bookPageIdx - 1], story);
+      front.innerHTML = turningHtml;
+      back.innerHTML = turningHtml;
+      bindStoryWordClicks(front, story);
+      bindStoryWordClicks(back, story);
+      left.innerHTML = (target === 0) ? bookCoverHtml(story) : storyWordsHtml(story.pages[target - 1], story);
+      if (target !== 0) bindStoryWordClicks(left, story);
+      sheet.style.left = "0%";
+      sheet.style.transformOrigin = "right center";
+    }
+    if (vp) vp.style.height = bookMeasuredHeight + "px";
+    void sheet.offsetWidth;
+
+    if (dir === 1) sheet.classList.add("flipping");
+    else sheet.classList.add("flipping-back");
+    setTimeout(function () {
+      bookPageIdx = target;
+      bookSheetSnap();
+      renderBookPage();
+    }, 760);
+  }
+
+  function openStory(story) {
+    const list = $("storiesList");
+    const reader = $("storyReader");
+    const filtersContainer = $("storyFilters");
+    const genreFilters = $("storyGenreFilters");
+    if (!list || !reader) return;
+    currentStory = story;
+    list.classList.add("hidden");
+    reader.classList.remove("hidden");
+    if (filtersContainer) filtersContainer.classList.add("hidden");
+    if (genreFilters) genreFilters.classList.add("hidden");
+
+    $("storyTitle").textContent = story.title + " (" + story.level + ")";
+
+    const thaiBox = $("storyThaiBox");
+    const thaiText = $("storyThaiText");
+    const translateBtn = $("storyTranslateBtn");
+    if (thaiBox) thaiBox.classList.add("hidden");
+    if (thaiText) thaiText.textContent = story.thText;
+    if (translateBtn) {
+      translateBtn.innerHTML = svgIcon("book", "ico sm") + t("stories.translate");
+      translateBtn.onclick = function () {
+        if (thaiBox.classList.contains("hidden")) {
+          thaiBox.classList.remove("hidden");
+          translateBtn.innerHTML = svgIcon("book", "ico sm") + t("stories.hideTranslate");
+        } else {
+          thaiBox.classList.add("hidden");
+          translateBtn.innerHTML = svgIcon("book", "ico sm") + t("stories.translate");
+        }
+      };
+    }
+
+    const markBtn = $("storyMarkRead");
+    if (markBtn) {
+      markBtn.style.display = isStoryRead(story.id) ? "none" : "inline-flex";
+      markBtn.onclick = function () {
+        markStoryRead(story.id);
+        markBtn.style.display = "none";
+        renderStoryProgress();
+        renderStoryQuiz(story);
+        toast(t("stories.markedRead"), "ok", "check");
+      };
+    }
+
+    const isBook = !!(story.pages && story.pages.length > 1);
+    const bodyEl = $("storyBody");
+    const bookEl = $("storyBook");
+    if (isBook) {
+      if (bodyEl) bodyEl.classList.add("hidden");
+      if (bookEl) bookEl.classList.remove("hidden");
+      bookStory = story;
+bookPageIdx = 0;
+      bookMeasuredHeight = 0;
+      if (currentStoryScrollHandler) { window.removeEventListener("scroll", currentStoryScrollHandler); currentStoryScrollHandler = null; }
+      renderBookPage();
+      const prevBtn = $("bookPrev");
+      const nextBtn = $("bookNext");
+      if (prevBtn) prevBtn.onclick = function () { bookFlip(-1); };
+      if (nextBtn) nextBtn.onclick = function () { bookFlip(1); };
+    } else {
+      if (bookEl) bookEl.classList.add("hidden");
+      if (bodyEl) bodyEl.classList.remove("hidden");
+      bookStory = null;
+      bodyEl.innerHTML = storyWordsHtml(story.text, story);
+      bindStoryWordClicks(bodyEl, story);
+
+      // auto-mark read when scrolled to the bottom of the article
+      if (currentStoryScrollHandler) window.removeEventListener("scroll", currentStoryScrollHandler);
+      currentStoryScrollHandler = function () {
+        const readerEl = $("storyReader");
+        if (!currentStory || !readerEl || readerEl.classList.contains("hidden")) return;
+        if (isStoryRead(currentStory.id)) return;
+        const rect = bodyEl.getBoundingClientRect();
+        if (rect.bottom <= window.innerHeight + 8) {
+          markStoryRead(currentStory.id);
+          if (markBtn) markBtn.style.display = "none";
+          renderStoryProgress();
+          renderStoryQuiz(currentStory);
+          toast(t("stories.markedRead"), "ok", "check");
+        }
+      };
+      window.addEventListener("scroll", currentStoryScrollHandler);
+      setTimeout(function () { currentStoryScrollHandler(); }, 60);
+    }
+
+    renderStorySavedWords(story.id);
+    if (isStoryRead(story.id)) renderStoryQuiz(story);
+  }
+
+  function renderStories() {
+    const list = $("storiesList");
+    const reader = $("storyReader");
+    const filtersContainer = $("storyFilters");
+    const genreFilters = $("storyGenreFilters");
+    if (!list || !reader) return;
+
+    list.classList.remove("hidden");
+    reader.classList.add("hidden");
+    if (filtersContainer) filtersContainer.classList.remove("hidden");
+    if (genreFilters) genreFilters.classList.remove("hidden");
+
+    if (genreFilters) {
+      const genreOptions = [
+        { v: "All", label: t("stories.genreAll") },
+        { v: "fairy", label: t("stories.genreFairy") },
+        { v: "ghost", label: t("stories.genreGhost") },
+        { v: "adventure", label: t("stories.genreAdventure") },
+        { v: "scifi", label: t("stories.genreScifi") },
+        { v: "mystery", label: t("stories.genreMystery") },
+        { v: "classic", label: t("stories.genreClassic") },
+        { v: "article", label: t("stories.genreArticle") }
+      ];
+      genreFilters.innerHTML = genreOptions.map(function (g) {
+        const count = (g.v === "All") ? ALL_STORIES.length : ALL_STORIES.filter(function (s) { return storyGenre(s) === g.v; }).length;
+        return '<button class="chip ' + (currentGenreFilter === g.v ? "active" : "") + '" data-filter-genre="' + g.v + '">' +
+          svgIcon(storyGenreIcon(g.v === "All" ? "article" : g.v), "ico sm") +
+          " " + g.label + " (" + count + ")</button>";
+      }).join("");
+      genreFilters.querySelectorAll(".chip").forEach(function (btn) {
+        btn.onclick = function () {
+          currentGenreFilter = btn.dataset.filterGenre;
+          renderStories();
+        };
+      });
+    }
+
+    if (filtersContainer) {
+      const filterOptions = ["All", "A1", "A2", "B1", "B2", "C1", "C2"];
+      filtersContainer.innerHTML = filterOptions.map(function (lvl) {
+        const isActive = (currentActiveLevelFilter === lvl);
+        const count = (lvl === "All") ? ALL_STORIES.length : ALL_STORIES.filter(function (s) { return s.level === lvl; }).length;
+        return '<button class="chip ' + (isActive ? "active" : "") + '" data-filter-lvl="' + lvl + '">' + lvl + " (" + count + ")</button>";
+      }).join("");
+
+      filtersContainer.querySelectorAll(".chip").forEach(function (btn) {
+        btn.onclick = function () {
+          currentActiveLevelFilter = btn.dataset.filterLvl;
+          renderStories();
+        };
+      });
+    }
+
+    renderStoryProgress();
+
+    let filteredStories = (currentActiveLevelFilter === "All") ? ALL_STORIES : ALL_STORIES.filter(function (s) { return s.level === currentActiveLevelFilter; });
+    if (currentGenreFilter !== "All") filteredStories = filteredStories.filter(function (s) { return storyGenre(s) === currentGenreFilter; });
+
+    // Story of the Day featured card at the top of the grid (excluded from the list below)
+    const sotd = storyOfTheDay();
+    let html = "";
+    if (sotd) html += sotdCardHtml(sotd);
+    if (sotd) filteredStories = filteredStories.filter(function (s) { return s.id !== sotd.id; });
+
+    html += filteredStories.map(function (s) {
+      const wc = storyWordCount(s);
+      const mins = storyReadMins(s);
+      const read = isStoryRead(s.id);
+      const isBook = !!(s.pages && s.pages.length > 1);
+      return '<div class="story-card' + (read ? " read" : "") + '" data-story-id="' + s.id + '" style="background:var(--panel-solid);border:1px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+        '<span style="display:flex;gap:6px;align-items:center;">' +
+        '<span class="badge" style="background:var(--primary);color:#fff;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;">' + s.level + '</span>' +
+        (s.genre && s.genre !== "article"
+          ? '<span class="story-genre-badge" data-genre="' + s.genre + '">' + svgIcon(storyGenreIcon(s.genre), "ico sm") + " " + storyGenreLabel(s.genre) + "</span>"
+          : "") +
+        '</span>' +
+        '<span style="font-size:12px;color:var(--muted);">' + (read ? svgIcon("check", "ico sm") + ' ' + t("stories.read") : (isBook ? svgIcon("book", "ico sm") + " " + s.pages.length + " " + t("stories.pages") : t("stories.article"))) + '</span>' +
+        '</div>' +
+        '<h4 style="font-size:18px;font-weight:700;margin:6px 0;">' + esc(s.title) + '</h4>' +
+        '<p style="font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0 0 10px;">' + esc(s.text) + '</p>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);">' +
+        '<span>' + wc + " " + t("stories.wordsCount") + "</span>" +
+        '<span>' + svgIcon("clock", "ico sm") + " ~" + mins + " " + t("stories.minutes") + "</span>" +
+        "</div>" +
+        '</div>';
+    }).join("");
+
+    list.innerHTML = html;
+
+    list.querySelectorAll(".story-card").forEach(function (card) {
+      card.onclick = function () {
+        const story = ALL_STORIES.find(function (s) { return s.id === card.dataset.storyId; });
+        if (!story) return;
+        openStory(story);
+      };
+    });
+
+    const back = $("storyBack");
+    if (back) {
+      back.textContent = t("stories.back");
+      back.onclick = function () {
+        if (currentStoryScrollHandler) { window.removeEventListener("scroll", currentStoryScrollHandler); currentStoryScrollHandler = null; }
+        currentStory = null;
+        renderStories();
+      };
+    }
+  }
+
+  /* ============================================================
+     DICTATION QUIZ (Feature 2) & WRITING JOURNAL (Feature 3)
+     ============================================================ */
+  function renderDictationQuiz() {
+    const audioBtn = $("dictationAudioBtn");
+    const input = $("dictationInput");
+    const submit = $("dictationSubmit");
+    const feedback = $("dictationFeedback");
+    if (!audioBtn || !input || !submit) return;
+
+    let currentDictWord = null;
+
+    function nextWord() {
+      input.value = "";
+      if (feedback) feedback.textContent = "";
+      const candidates = ITEMS;
+      currentDictWord = candidates[Math.floor(Math.random() * candidates.length)];
+      try {
+        if ("speechSynthesis" in window) {
+          const u = new SpeechSynthesisUtterance(currentDictWord.word);
+          u.lang = "en-US";
+          window.speechSynthesis.speak(u);
+        }
+      } catch (e) {}
+    }
+
+    audioBtn.onclick = function () {
+      if (!currentDictWord) nextWord();
+      else {
+        try {
+          if ("speechSynthesis" in window) {
+            const u = new SpeechSynthesisUtterance(currentDictWord.word);
+            u.lang = "en-US";
+            window.speechSynthesis.speak(u);
+          }
+        } catch (e) {}
+      }
+    };
+
+    submit.onclick = function () {
+      if (!currentDictWord) { nextWord(); return; }
+      const typed = input.value.trim().toLowerCase();
+      if (typed === currentDictWord.word.toLowerCase()) {
+        if (feedback) {
+          feedback.innerHTML = '<span style="color:var(--success);">' + svgIcon("check", "ico sm") + ' Correct! The word was: <b>' + esc(currentDictWord.word) + '</b></span>';
+        }
+        awardXp(15);
+        fireConfetti(32);
+        setTimeout(nextWord, 1500);
+      } else {
+        if (feedback) {
+          feedback.innerHTML = '<span style="color:var(--danger);">' + svgIcon("cross", "ico sm") + ' Incorrect. Try again or listen closely!</span>';
+        }
+      }
+    };
+
+    input.onkeydown = function (e) {
+      if (e.key === "Enter") submit.click();
+    };
+
+    nextWord();
+  }
+
+
+
+  /* ============================================================
+     REAL PUSH NOTIFICATIONS VIA SERVICE WORKER
+     ============================================================ */
+  function startReminderScheduler() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().then(function (perm) {
+        if (perm === "granted") {
+          toast("Push notifications enabled successfully!", "ok", "bell");
+        }
+      });
+    } else if (Notification.permission === "granted") {
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(function (reg) {
+          reg.showNotification("Vocab Trainer Reminder", {
+            body: "Your daily vocabulary review is ready! Keep your streak alive.",
+            icon: "assets/img/icon-192.png"
+          });
+        });
+      }
+    }
+  }
+
   /* Expose i18n API so other modules (auth.js, etc.) can use the shared
      translation system without duplicating string tables. */
-  window.VocabApp = { t: t, applyI18n: applyI18n, setLang: setLang };
+  window.VocabApp = {
+    t: t,
+    applyI18n: applyI18n,
+    setLang: setLang,
+    showView: showView,
+    onCefrLevelChange: function(newLevel) {
+      if (window.CefrSelector && window.CefrSelector.onCefrLevelChange) {
+        window.CefrSelector.onCefrLevelChange(newLevel);
+      }
+    },
+    toast: toast
+  };
 })();

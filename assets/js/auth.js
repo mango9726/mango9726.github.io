@@ -11,7 +11,7 @@
 
   // URL ของ backend API
   const isGitHubPages = window.location.hostname.endsWith(".github.io") || window.location.hostname === "github.io";
-  const API_BASE = isGitHubPages ? "" : (window.location.port === "8000" ? "http://localhost:3001" : "");
+  const API_BASE = "";
 
   /* ============================================================
      FIREBASE MODE — Google Login + Firestore sync ข้ามเครื่อง
@@ -112,7 +112,7 @@
           '<label>' + esc(t("auth.username")) + ': <strong>' + esc(username) + '</strong></label>' +
           '<label>' + esc(t("auth.password")) + ': <strong>' + esc(autoPassword) + '</strong></label>' +
         '</div>' +
-        '<p class="google-credential-warning">' + esc(t("auth.googlePasswordWarning")) + '</p>' +
+        '<p class="google-credential-warning"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l9 16H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/></svg></span> ' + esc(t("auth.googlePasswordWarning")) + '</p>' +
         '<button class="btn btn-primary btn-sm" id="googleCredentialOk">' + esc(t("auth.ok")) + '</button>' +
       '</div>';
     document.body.appendChild(toast);
@@ -136,7 +136,7 @@
       "auth/too-many-requests": "ลองหลายครั้งเกินไป — รอสักครู่แล้วลองใหม่",
       "auth/network-request-failed": "เครือข่ายขัดข้อง — ตรวจสอบอินเทอร์เน็ต",
       "auth/operation-not-allowed": "ยังไม่ได้เปิดใช้งาน Email/Password ใน Firebase Console → Authentication → Sign-in method",
-      "auth/unauthorized-domain": "⚠️ Domain นี้ยังไม่ได้เพิ่มใน Firebase Authorized domains\nไปที่ Firebase Console → Authentication → Settings → Authorized domains → เพิ่ม domain นี้",
+      "auth/unauthorized-domain": "Domain นี้ยังไม่ได้เพิ่มใน Firebase Authorized domains\nไปที่ Firebase Console → Authentication → Settings → Authorized domains → เพิ่ม domain นี้",
       "auth/popup-closed-by-user": "ปิดหน้าต่างล็อกอินก่อนเสร็จ — ลองอีกครั้ง",
       "auth/popup-blocked": "เบราว์เซอร์บล็อก popup — อนุญาต popup แล้วลองอีกครั้ง"
     };
@@ -180,36 +180,106 @@
     try {
       const doc = await window.firebaseDb.collection("vocab_data").doc(user.userId).get();
       if (doc.exists) {
-        return doc.data().data || {};
+        const d = doc.data();
+        return { data: d.data || {}, syncMeta: d.syncMeta || {} };
       }
-      return {};
+      return { data: {}, syncMeta: {} };
     } catch (e) {
       console.warn("[firebase] fetchData error:", e.message);
       return null;
     }
   }
 
+  // --- Firebase Firestore: weekly leaderboard (all users) ---
+  async function fetchLeaderboard() {
+    if (!isFirebaseMode()) return null;
+    try {
+      const snap = await window.firebaseDb.collection("vocab_data").get();
+      const me = getUser();
+      const rows = [];
+      snap.forEach(function (doc) {
+        const d = doc.data();
+        if (!d || !d.username) return;
+        rows.push({
+          username: d.username,
+          userId: doc.id,
+          weeklyXp: d.weeklyXp || 0,
+          totalXp: d.totalXp || 0,
+          isMe: !!me && me.userId === doc.id
+        });
+      });
+      rows.sort(function (a, b) { return b.weeklyXp - a.weeklyXp; });
+      return rows;
+    } catch (e) {
+      console.warn("[firebase] fetchLeaderboard error:", e.message);
+      return null;
+    }
+  }
+
   // --- Firebase Firestore: บันทึกข้อมูล ---
   let firebaseSyncTimer = null;
-  async function firebaseSaveData(data) {
+  const SYNC_META_KEY = "vocab_sync_meta_v1";
+  const LAST_SYNC_KEY = "vocab_last_sync_v1";
+
+  function setLastSyncTime(ts) {
+    try { SecureStore.save(LAST_SYNC_KEY, ts || Date.now()); } catch (e) {}
+  }
+  function getLastSyncTime() {
+    try { return SecureStore.load(LAST_SYNC_KEY, 0) || 0; } catch (e) { return 0; }
+  }
+
+  /** Sum of XP earned in the trailing 7 days from a vocab_game_v1 JSON string. */
+  function weeklyXpFromGame(gameJson) {
+    try {
+      const g = JSON.parse(gameJson || "{}");
+      const byDay = g.xpByDay || {};
+      const today = new Date();
+      let sum = 0;
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+        sum += (byDay[k] || 0);
+      }
+      return sum;
+    } catch (e) { return 0; }
+  }
+
+  async function firebaseSaveData(data, immediate) {
     const user = getUser();
     if (!user) return;
-    // debounce 2 วินาที
+    // Stamp per-key sync metadata before sending (used for conflict resolution on pull).
+    const now = Date.now();
+    const metaPaths = {};
+    try {
+      const localMeta = SecureStore.load(SYNC_META_KEY, {}) || {};
+      Object.keys(data || {}).forEach(function (k) {
+        localMeta[k] = now;
+        metaPaths["syncMeta." + k] = now;
+      });
+      SecureStore.save(SYNC_META_KEY, localMeta);
+    } catch (e) {}
+    // debounce 2 วินาที (ยกเว้น immediate force-sync)
     if (firebaseSyncTimer) clearTimeout(firebaseSyncTimer);
     return new Promise(function (resolve) {
-      firebaseSyncTimer = setTimeout(async function () {
+      const run = async function () {
         try {
-          await window.firebaseDb.collection("vocab_data").doc(user.userId).set({
+          await window.firebaseDb.collection("vocab_data").doc(user.userId).set(Object.assign({
             data: data,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            username: user.username
-          }, { merge: true });
+            username: user.username,
+            weeklyXp: weeklyXpFromGame(data.vocab_game_v1),
+            totalXp: parseInt((JSON.parse(data.vocab_game_v1 || "{}").xp || 0), 10)
+          }, metaPaths), { merge: true });
+          setLastSyncTime(now);
           resolve(true);
         } catch (e) {
           console.warn("[firebase] saveData error:", e.message);
           resolve(false);
         }
-      }, 2000);
+      };
+      if (immediate) { run(); }
+      else { firebaseSyncTimer = setTimeout(run, 2000); }
     });
   }
 
@@ -249,13 +319,19 @@
 
   async function isBackendAvailable() {
     if (isGitHubPages) return false;
+    if (window.location.port === "8000" || window.location.protocol === "file:") return false;
+    if (window.location.port === "3001") return true;
     if (backendOnline !== null) return backendOnline;
     if (backendCheckPromise) return backendCheckPromise;
     backendCheckPromise = (async function () {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(function () { controller.abort(); }, 1500);
         const res = await fetch(API_BASE + "/api/me", {
-          headers: { "Authorization": "Bearer ping" }
+          headers: { "Authorization": "Bearer ping" },
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         const ct = res.headers.get("content-type") || "";
         // ต้องเป็น JSON response (ไม่ใช่ HTML fallback จาก static host)
         backendOnline = ct.indexOf("application/json") !== -1 && (res.status === 401 || res.ok);
@@ -427,6 +503,10 @@
     saveStaticTokens(tokens);
     setToken(token);
     setUser({ username, userId });
+    // Initialize CEFR system for new user
+    if (window.CefrSelector && window.CefrSelector.onLogin) {
+      window.CefrSelector.onLogin();
+    }
     return { token, username, userId };
   }
 
@@ -470,6 +550,10 @@
     saveStaticTokens(tokens);
     setToken(token);
     setUser({ username, userId: user.userId });
+    // Initialize CEFR system on login
+    if (window.CefrSelector && window.CefrSelector.onLogin) {
+      window.CefrSelector.onLogin();
+    }
     return { token, username, userId: user.userId };
   }
 
@@ -481,19 +565,60 @@
     "vocab_reviews_v1", "vocab_history_v1", "vocab_learned_v1", "vocab_game_v1"
   ];
 
-  async function syncBackendDataToLocal(userId) {
-    if (!userId) return;
+  async function syncBackendDataToLocal(userId, opts) {
+    if (!userId) return false;
     try {
-      const data = await fetchData();
-      if (!data || Object.keys(data).length === 0) return;
+      const res = await fetchData();
+      // Firebase returns {data, syncMeta}; other modes return a flat key->JSON map.
+      const data = res && res.data ? res.data : res;
+      const remoteMeta = (res && res.syncMeta) || {};
+      if (!data || Object.keys(data).length === 0) { setLastSyncTime(); return false; }
+      let localMeta = {};
+      try { localMeta = SecureStore.load(SYNC_META_KEY, {}) || {}; } catch (e) {}
+      let changed = false;
       SYNC_KEYS.forEach(function (key) {
-        if (data[key] != null) {
+        if (data[key] == null) return;
+        const remoteT = remoteMeta[key] || 0;
+        const localT = localMeta[key] || 0;
+        // Newer-wins per key; if local is newer keep local (it'll be pushed next save).
+        if (remoteT >= localT) {
           try { SecureStore.save(key, JSON.parse(data[key])); } catch (e) {}
+          localMeta[key] = remoteT;
+          changed = true;
         }
       });
+      if (changed) {
+        try { SecureStore.save(SYNC_META_KEY, localMeta); } catch (e) {}
+      }
+      setLastSyncTime();
+      if (changed && opts && opts.notify) {
+        try { window.dispatchEvent(new Event("vocab:synced")); } catch (e) {}
+      }
+      return changed;
     } catch (e) {
       console.warn("[auth] syncBackendDataToLocal failed:", e.message);
+      return false;
     }
+  }
+
+  /** Force a full pull+merge then push local state back to the cloud. */
+  async function syncNow() {
+    const user = getUser();
+    if (!user) return false;
+    const changed = await syncBackendDataToLocal(user.userId, { notify: true });
+    if (isLoggedIn()) {
+      const payload = {};
+      SYNC_KEYS.forEach(function (k) {
+        try { payload[k] = JSON.stringify(SecureStore.load(k, null)); } catch (e) {}
+      });
+      if (isFirebaseMode()) {
+        if (firebaseSyncTimer) clearTimeout(firebaseSyncTimer);
+        await firebaseSaveData(payload, true);
+      } else {
+        await saveData(payload);
+      }
+    }
+    return changed;
   }
 
   /* ============================================================
@@ -504,6 +629,10 @@
     if (isFirebaseMode()) {
       await firebaseLogout();
       clearUserDataFromLocal();
+      // Reset CEFR system on logout
+      if (window.CefrSelector && window.CefrSelector.onLogout) {
+        window.CefrSelector.onLogout();
+      }
       location.reload();
       return;
     }
@@ -519,6 +648,10 @@
     }
     clearUserDataFromLocal();
     clearAuth();
+    // Reset CEFR system on logout
+    if (window.CefrSelector && window.CefrSelector.onLogout) {
+      window.CefrSelector.onLogout();
+    }
     location.reload();
   }
 
@@ -1121,7 +1254,7 @@
             </div>
             <div class="profile-row">
               <span class="profile-label"><span class="ico" data-icon="status"></span> ${esc(t("auth.status"))}</span>
-              <span class="profile-value profile-status">✓ ออนไลน์</span>
+              <span class="profile-value profile-status"><span class="ico" data-icon="status"></span> ออนไลน์</span>
             </div>
             <div class="profile-row">
               <span class="profile-label"><span class="ico" data-icon="sync"></span> ${esc(t("auth.sync"))}</span>
@@ -1169,6 +1302,9 @@
     isLoggedIn: isLoggedIn,
     getToken: getToken,
     getUser: getUser,
+    getLastSyncTime: getLastSyncTime,
+    syncNow: syncNow,
+    fetchLeaderboard: fetchLeaderboard,
     register: register,
     login: login,
     logout: logout,
@@ -1213,6 +1349,8 @@
             setToken("firebase:" + user.uid);
             setUser({ username: displayName, userId: user.uid, provider: "google" });
             console.log("[firebase] onAuthStateChanged: ล็อกอินแล้ว —", displayName);
+            // Pull latest cloud data on every app open (B2) — merge per key, then notify app.
+            syncBackendDataToLocal(user.uid, { notify: true });
             // Sync กับ backend เพื่อสร้าง local account
             syncGoogleWithBackend(user);
             updateSidebarAuthBtn();

@@ -2,7 +2,7 @@
  * App-shell precache + runtime cache. Music is large, so it is cached
  * lazily on first play with an LRU cap instead of being precached.
  */
-const VERSION = "vocab-trainer-v3";
+const VERSION = "vocab-trainer-v4";
 const SHELL_CACHE = VERSION + "-shell";
 const RUNTIME_CACHE = VERSION + "-runtime";
 const MUSIC_CAP = 14; // max cached music tracks
@@ -16,6 +16,23 @@ const SHELL = [
   "assets/css/mini-player.css",
   "assets/js/app.js",
   "assets/js/vocab-data.js",
+  "assets/js/vocab-extra-a1.js",
+  "assets/js/vocab-extra-a2.js",
+  "assets/js/vocab-extra-b1.js",
+  "assets/js/vocab-extra-b2.js",
+  "assets/js/vocab-extra-c1.js",
+  "assets/js/vocab-extra-c2.js",
+  "assets/js/vocab-extra-colloc.js",
+  "assets/js/vocab-extra-colloc-b.js",
+  "assets/js/vocab-extra-colloc-c1.js",
+  "assets/js/vocab-extra-colloc-c2.js",
+  "assets/js/vocab-th-extra.js",
+  "assets/js/vocab-i18n.js",
+  "assets/js/vocab-fsrs.js",
+  "assets/js/vocab-csv.js",
+  "assets/js/cefr.js",
+  "assets/js/cefr-selector.js",
+  "assets/js/placement.js",
   "assets/js/mini-player.js",
   "assets/js/boot.js",
   "assets/img/favicon.svg",
@@ -109,4 +126,34 @@ self.addEventListener("fetch", function (e) {
 
 self.addEventListener("message", function (e) {
   if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
+});
+
+self.addEventListener("push", function (e) {
+  const data = e.data ? e.data.json() : { title: "Vocab Trainer", body: "Time to review your vocabulary and keep your streak alive!" };
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "assets/img/icon-192.png",
+      badge: "assets/img/icon-192.png",
+      tag: "vocab-reminder"
+    })
+  );
+});
+
+self.addEventListener("notificationclick", function (e) {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (clientList) {
+      if (clientList.length > 0) {
+        let client = clientList[0];
+        for (let i = 0; i < clientList.length; i++) {
+          if (clientList[i].focused) {
+            client = clientList[i];
+          }
+        }
+        return client.focus();
+      }
+      return clients.openWindow("./");
+    })
+  );
 });

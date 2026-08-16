@@ -1496,28 +1496,38 @@
     renderDailyQuests();
   }
 
-  /* ---------- Plan day (วันของแผน 360 วัน) ----------
-     คำนวณอัตโนมัติจากวันที่ของ Day 1 ในข้อมูล
+  /* ---------- Plan day (วันของแผนตามระดับ CEFR ปัจจุบัน) ----------
+     แผนเรียนอิงตามระดับที่ผู้ใช้ได้จาก Placement Test หรือเลือกเอง:
+     Day 1 ของแผน = วันแรกของระดับนั้น (เช่น B1 → คำศัพท์วันแรกของ B1)
+     วันนับแบบสัมพัทธ์ 1..maxDays ของระดับ (ITEMS ถูกกรอง+remap เป็น Day 1..N)
+     วันเริ่มต้นแผนเก็บใน settings.planStartDate (ตั้งเมื่อเปลี่ยนระดับ)
      ถ้าผู้ใช้ปรับเองจะเก็บใน settings.planDayOverride              */
+  function currentCefrLevel() {
+    if (window.CefrSelector && window.CefrSelector.getEffectiveCefrLevel) {
+      try { return window.CefrSelector.getEffectiveCefrLevel(); } catch (e) {}
+    }
+    return (window.getCefrLevel && window.getCefrLevel()) || "A1";
+  }
+  function planMaxDays() {
+    // จำนวนวันจริงของระดับปัจจุบัน (นับจากวันสัมพัทธ์ใน ITEMS ที่กรองแล้ว)
+    const set = {};
+    ITEMS.forEach(function (i) { set[Number(i.day)] = true; });
+    const keys = Object.keys(set).map(Number).filter(function (n) { return n >= 1 && n <= 360; });
+    if (keys.length) return Math.max.apply(null, keys);
+    const lv = currentCefrLevel();
+    const days = (window.cefrDaysForLevel && window.cefrDaysForLevel(lv)) || [];
+    return days.length || 60;
+  }
   function day1Date() { return VOCAB_DAYS["1"] ? VOCAB_DAYS["1"].date : null; }
   function computePlanDay() {
-    // ถ้าผู้ใช้ทำ Placement Test แล้ว → เริ่มนับวันจาก Day 1 ของระดับ CEFR ที่ผู้ใช้เลือก/ทดสอบได้
-    if (window.hasTakenPlacementTest && window.hasTakenPlacementTest()) {
-      const level = window.getCefrLevel() || "A1";
-      const targetLevel = level;
-
-      const targetDays = window.cefrDaysForLevel ? window.cefrDaysForLevel(targetLevel) : [];
-      let startDayNum = targetDays.length ? targetDays[0] : 1;
-      let maxDays = targetDays.length || 60;
-
-      const dStart = (VOCAB_DAYS[String(startDayNum)] && VOCAB_DAYS[String(startDayNum)].date) || day1Date();
-      const diff = Math.floor((new Date(todayStr() + "T00:00:00") - new Date(dStart + "T00:00:00")) / 86400000);
+    const maxDays = planMaxDays();
+    // ถ้ามีวันเริ่มต้นแผน (ตั้งเมื่อทำ Placement Test / เปลี่ยนระดับ) → นับจากวันนั้น
+    const base = settings.planStartDate || day1Date();
+    if (base) {
+      const diff = Math.floor((new Date(todayStr() + "T00:00:00") - new Date(base + "T00:00:00")) / 86400000);
       return Math.max(1, Math.min(1 + Math.max(0, diff), maxDays));
     }
-    const d1 = day1Date();
-    if (!d1) return 1;
-    const diff = Math.floor((new Date(todayStr() + "T00:00:00") - new Date(d1 + "T00:00:00")) / 86400000);
-    return Math.max(1, diff + 1);
+    return 1;
   }
   function currentPlanDay() { return settings.planDayOverride ? settings.planDayOverride : computePlanDay(); }
 
@@ -1623,7 +1633,7 @@
      เสียง + confetti + วงแหวนกระพริบ + สั่น (haptic)
      ============================================================ */
   const REDUCED_MOTION = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function soundOn() { return settings.sound !== false; }
+  function soundOn() { return !!settings && settings.sound !== false; }
   // Effects intensity (user setting, layered on top of the OS reduced-motion flag):
   //  fxSpectacle -> confetti + glow; fxSubtle -> ring flash + ripple + count-up + chart line.
   function fxSpectacle() { return !REDUCED_MOTION && settings.effects === "full"; }
@@ -3233,34 +3243,46 @@
 
   function renderTasks() {
     const cp = currentPlanDay();
-    $("tasksToday").textContent = "Today is Day " + cp + " of the 360-day plan";
+    const lv = currentCefrLevel();
+    const lvName = (window.CEFR_LEVELS && window.CEFR_LEVELS[lv])
+      ? (settings.lang === "th" ? window.CEFR_LEVELS[lv].th : window.CEFR_LEVELS[lv].name)
+      : lv;
+    $("tasksToday").textContent = settings.lang === "th"
+      ? "วันนี้คือ Day " + cp + " ของแผนระดับ " + lvName + " (" + planMaxDays() + " วัน)"
+      : "Today is Day " + cp + " of your " + lvName + " plan (" + planMaxDays() + " days)";
     const list = $("tasksList");
     list.innerHTML = "";
 
-    // งานใหม่: ถ้ามีคำสำหรับวันนี้
-    if (VOCAB_DAYS[String(cp)]) {
+    // งานใหม่: ถ้ามีคำสำหรับวันนี้ (ในระดับปัจจุบัน — ใช้ ITEMS ที่กรอง+remap แล้ว)
+    const todayItems = itemsForDay(cp);
+    if (todayItems.length) {
+      const topic = (todayItems[0] && todayItems[0].topic) || "";
       const nc = taskCard(
         svgIcon("sparkle") + "Learn new words",
-        "Day " + cp + " · " + (VOCAB_DAYS[String(cp)].topic || ""),
+        "Day " + cp + " · " + topic,
         "New-word quiz",
         function () { launchQuizForDay(cp, "tasks"); },
-        "Word count: " + itemsForDay(cp).length + " items"
+        "Word count: " + todayItems.length + " items"
       );
       nc.style.animationDelay = "0ms";
       list.appendChild(nc);
     }
 
-    // งานทบทวน: วันก่อนหน้าที่ถึงกำหนด
+    // งานทบทวน: วันก่อนหน้าในระดับเดียวกันที่ถึงกำหนด
+    const daySet = {};
+    ITEMS.forEach(function (i) { daySet[Number(i.day)] = true; });
     let dueCount = 0, k = 0;
-    Object.keys(VOCAB_DAYS).map(Number).sort(function (a, b) { return a - b; }).forEach(function (d) {
+    Object.keys(daySet).map(Number).sort(function (a, b) { return a - b; }).forEach(function (d) {
       if (d >= cp) return; // เฉพาะวันที่ผ่านมา
       const r = getReview(d);
       if (r.nextDue <= cp) {
         dueCount++;
+        const dayItems = itemsForDay(d);
+        const topic = (dayItems[0] && dayItems[0].topic) || "";
         const meta = "Reviewed " + (r.done || 0) + " times · Next: Day " + r.nextDue;
         const rc = taskCard(
           svgIcon("refresh") + "Review",
-          "Day " + d + " · " + (VOCAB_DAYS[String(d)].topic || ""),
+          "Day " + d + " · " + topic,
           "Take a quiz",
           function () { launchQuizForDay(d, "tasks"); },
           meta
@@ -3270,7 +3292,7 @@
       }
     });
 
-    if (dueCount === 0 && !VOCAB_DAYS[String(cp)]) {
+    if (dueCount === 0 && !todayItems.length) {
       list.appendChild(el("p", "hint", svgIcon("check", "ico sm") + " Nothing to do today If you haven't added words for Day " + cp + " yet, tell Claude: \"Day " + cp + ", [topic or random]\" to add new words"));
     } else if (dueCount === 0) {
       list.appendChild(el("p", "hint", svgIcon("party", "ico sm") + " Nothing to review today — you've finished the new words. Take a break!"));
@@ -3508,7 +3530,7 @@
       t("info.mastered") + " " + mastered + " words\n" +
       t("info.days") + " " + Object.keys(VOCAB_DAYS).length + " days\n" +
       t("info.total") + " " + ITEMS.length + " entries";
-    $("planDayLabel").textContent = "Day " + (settings.planDayOverride || computePlanDay());
+    $("planDayLabel").textContent = "Day " + (settings.planDayOverride || computePlanDay()) + " / " + planMaxDays() + " · " + currentCefrLevel() + " plan";
     // Cloud sync row (only when logged in to a cloud account)
     const syncRow = $("syncRow");
     const syncBtn = $("syncNowBtn");
@@ -5542,7 +5564,7 @@
     };
     $("planDayPlus").onclick = function () {
       let base = settings.planDayOverride || computePlanDay();
-      base = base + 1; settings.planDayOverride = base;
+      base = Math.min(planMaxDays(), base + 1); settings.planDayOverride = base;
       save(K_SETTINGS, settings); renderSettings(); if (tasksActive()) renderTasks();
     };
     $("planDayAuto").onclick = function () {
@@ -8072,6 +8094,12 @@ bookPageIdx = 0;
     setLang: setLang,
     showView: showView,
     onCefrLevelChange: function(newLevel) {
+      // ระดับเปลี่ยน = แผนเรียนใหม่เริ่มนับวันใหม่จากวันนี้ (Day 1 ของระดับใหม่)
+      if (newLevel && settings && typeof settings === "object") {
+        settings.planStartDate = todayStr();
+        delete settings.planDayOverride;
+        try { save(K_SETTINGS, settings); } catch (e) {}
+      }
       if (window.CefrSelector && window.CefrSelector.onCefrLevelChange) {
         window.CefrSelector.onCefrLevelChange(newLevel);
       }

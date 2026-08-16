@@ -50,6 +50,13 @@
       return false;
     } catch (e) {
       console.warn("[firebase] redirect result error:", e.message || e.code);
+      if (window.VocabApp && window.VocabApp.toast) {
+        try {
+          window.VocabApp.toast(firebaseErrorMessage(e), "err", "alert");
+        } catch (err2) {
+          console.warn("[firebase] redirect error toast failed:", err2);
+        }
+      }
       return false;
     }
   }

@@ -2180,14 +2180,18 @@
         // onAuthStateChanged จะยืนยัน session ใหม่ (ล็อกอินเพิ่งสำเร็จไปแป๊บเดียว), และ
         // (2) ธง vocab_oauth_pending ที่ค้างจากครั้งก่อน (ผู้ใช้กดลองหลายครั้ง)
         let pending = false;
-        let pendingAt = 0;
+        let pendingAt = -Infinity;
         try {
           const raw = sessionStorage.getItem("vocab_oauth_pending");
           pending = !!raw;
-          try { pendingAt = (JSON.parse(raw || "{}").t) || 0; } catch (e2) { pendingAt = 0; }
+          try {
+            const parsed = JSON.parse(raw || "{}");
+            if (parsed && typeof parsed.t === "number") { pendingAt = parsed.t; }
+          } catch (e2) { pendingAt = -Infinity; }
         } catch (e) { pending = false; }
         if (pending) {
-          const isFresh = Date.now() - pendingAt < 60000; // ภายใน 60 วิ ถือว่าเพิ่งลองจริง
+          // flag ที่ parse ไม่ได้ (เช่น "1" จากโค้ดเก่า) หรือไม่มี timestamp → ถือว่าเก่าเสมอ
+          const isFresh = pendingAt > 0 && Date.now() - pendingAt < 60000; // ภายใน 60 วิ ถือว่าเพิ่งลองจริง
           if (!isFresh) {
             // ธงค้างจากการลองเก่า — ล้างออกเงียบ ๆ อย่าแจ้งเตือนซ้ำตอนเปิดเว็บปกติ
             try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}

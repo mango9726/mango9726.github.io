@@ -29,7 +29,15 @@
 
     // ใช้ redirect เสมอ (เปิดหน้า Google เต็มหน้า — ทำงานได้ทุกที่)
     console.log("[firebase] เริ่ม Google Sign-in แบบ redirect");
-    await window.firebaseAuth.signInWithRedirect(provider);
+    // ตั้งธงก่อน redirect เพื่อตรวจจับกรณี "กลับมาจาก Google แต่ไม่มี session"
+    try { sessionStorage.setItem("vocab_oauth_pending", "1"); } catch (e) {}
+    try {
+      await window.firebaseAuth.signInWithRedirect(provider);
+    } catch (e) {
+      // redirect ไม่สำเร็จ (เช่น domain ไม่ผ่าน) — ล้างธง ไม่ให้แจ้งเตือนซ้ำตอนเปิดเว็บ
+      try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e2) {}
+      throw e;
+    }
     // หลัง redirect กลับมา firebaseCheckRedirectResult จะทำงาน
     return { redirecting: true };
   }
@@ -41,6 +49,7 @@
       const result = await window.firebaseAuth.getRedirectResult();
       if (result && result.user) {
         const user = result.user;
+        try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
         setToken("firebase:" + user.uid);
         setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
         // Sync กับ backend เพื่อสร้างบัญชี locally ที่ login ด้วย username/password ได้
@@ -49,6 +58,7 @@
       }
       return false;
     } catch (e) {
+      try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e2) {}
       console.warn("[firebase] redirect result error:", e.message || e.code);
       if (window.VocabApp && window.VocabApp.toast) {
         try {
@@ -2129,7 +2139,26 @@
 
     // ถ้า Firebase mode — ใช้ onAuthStateChanged เป็นหลัก (เชื่อถือได้กว่า getRedirectResult)
     if (isFirebaseMode()) {
-      // ตรวจสอบ redirect result ก่อน (มาจาก Google Sign-in แบบ redirect)
+      // ลงทะเบียน listener ทันที (ไม่รอ getRedirectResult) เพื่อไม่พลาด session
+      // ที่ Firebase persist ไว้แล้วแม้ getRedirectResult จะค้างหรือตอบ null
+      window.firebaseAuth.onAuthStateChanged(function (user) {
+        if (user) {
+          const displayName = user.displayName || user.email || "User";
+          setToken("firebase:" + user.uid);
+          setUser({ username: displayName, userId: user.uid, provider: "google" });
+          console.log("[firebase] onAuthStateChanged: ล็อกอินแล้ว —", displayName);
+          try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
+          // Pull latest cloud data on every app open (B2) — merge per key, then notify app.
+          syncBackendDataToLocal(user.uid, { notify: true });
+          // Sync กับ backend เพื่อสร้าง local account
+          syncGoogleWithBackend(user);
+          updateSidebarAuthBtn();
+        } else {
+          console.log("[firebase] onAuthStateChanged: ยังไม่ล็อกอิน");
+        }
+      });
+
+      // ตรวจสอบ redirect result (มาจาก Google Sign-in แบบ redirect)
       firebaseCheckRedirectResult().then(function (redirectOk) {
         if (redirectOk) {
           console.log("[firebase] redirect login สำเร็จ");
@@ -2145,22 +2174,20 @@
           return;
         }
 
-        // ใช้ onAuthStateChanged ตรวจสอบสถานะล็อกอิน (ทำงานเสมอ ไม่พลาด)
-        window.firebaseAuth.onAuthStateChanged(function (user) {
-          if (user) {
-            const displayName = user.displayName || user.email || "User";
-            setToken("firebase:" + user.uid);
-            setUser({ username: displayName, userId: user.uid, provider: "google" });
-            console.log("[firebase] onAuthStateChanged: ล็อกอินแล้ว —", displayName);
-            // Pull latest cloud data on every app open (B2) — merge per key, then notify app.
-            syncBackendDataToLocal(user.uid, { notify: true });
-            // Sync กับ backend เพื่อสร้าง local account
-            syncGoogleWithBackend(user);
-            updateSidebarAuthBtn();
-          } else {
-            console.log("[firebase] onAuthStateChanged: ยังไม่ล็อกอิน");
+        // Redirect กลับมาแล้วแต่ไม่มี session — แจ้งผู้ใช้ (เฉพาะเมื่อมี redirect ที่ค้างอยู่จริง)
+        let pending = false;
+        try { pending = !!sessionStorage.getItem("vocab_oauth_pending"); } catch (e) {}
+        if (pending) {
+          try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
+          console.warn("[firebase] redirect กลับมาแต่ไม่มี session — hostname:", window.location.hostname, "href:", window.location.href);
+          if (!getUser() && window.VocabApp && window.VocabApp.toast) {
+            try {
+              window.VocabApp.toast(t("auth.googleRedirectEmpty"), "err", "alert");
+            } catch (err2) {
+              console.warn("[firebase] redirect-empty toast failed:", err2);
+            }
           }
-        });
+        }
       });
     }
 

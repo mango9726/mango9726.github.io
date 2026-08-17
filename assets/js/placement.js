@@ -595,11 +595,11 @@
       <div class="placement-intro" role="region" aria-label="Placement Test Introduction">
         <div class="placement-badge">${svgIcon("test")} Placement Test</div>
         <h3>ค้นหาระดับภาษาอังกฤษของคุณ</h3>
-        <p>ตอบคำถามแบบ Adaptive (ไม่เกิน 35 ข้อ) เพื่อประเมินคำศัพท์ตามมาตรฐาน CEFR (A1–C2)</p>
-        <p class="placement-hint">ระบบปรับความยากตามคำตอบของคุณ — แม่นยำกว่าและเร็วกว่าแบบทดสอบแบบเดิม</p>
+        <p>ตอบคำถามไม่เกิน 35 ข้อ เพื่อประเมินคำศัพท์ตามระดับ CEFR (A1–C2)</p>
+        <p class="placement-hint">ระบบปรับความยากตามคำตอบของคุณ</p>
         <div class="placement-features">
-          <div class="feature">${svgIcon("spark")}<span>Adaptive IRT v3 (3PL)</span></div>
-          <div class="feature">${svgIcon("target")}<span>Response-Time Scoring</span></div>
+          <div class="feature">${svgIcon("spark")}<span>ปรับความยากอัตโนมัติ</span></div>
+          <div class="feature">${svgIcon("target")}<span>คำนึงถึงเวลาที่ใช้ตอบ</span></div>
           <div class="feature">${svgIcon("clock")}<span>3–5 นาที</span></div>
           <div class="feature">${svgIcon("brain")}<span>120 คำถาม, 6 ระดับ</span></div>
         </div>

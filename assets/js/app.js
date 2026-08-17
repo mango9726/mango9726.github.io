@@ -3925,7 +3925,7 @@
     const ret = predictRetention(item);
     const level = isMastered(item) ? "Mastered" : ((p.reps || 0) > 0 ? "Learning" : "New");
     $("detailProgress").innerHTML =
-      "<div class=\"dp-label\">" + level + " · Memory strength <b>" + ret + "%</b></div>" +
+      "<div class=\"dp-label\">" + level + " · You remember <b>" + ret + "%</b></div>" +
       "<div class=\"dp-bar\"><div class=\"dp-fill\" data-w=\"" + ret + "%\"></div></div>";
     applyInlineStyles($("detailProgress"));
 
@@ -3935,7 +3935,7 @@
     $("detailMeta").innerHTML =
       "Seen: <b>" + (p.seen || 0) + "</b> · Streak: <b>" + (p.reps || 0) + "</b> correct · Forgotten: <b>" + (p.lapses || 0) + "</b>" +
       (pronBest ? " · Pron best: <b>" + pronBest + "%</b>" : "") + "<br>" +
-      "Next review: <b>" + esc(nextDue) + "</b> · Stability: <b>" + (p.st || 0).toFixed(1) + "d</b> · From <b>Day " + item.day + "</b>" + (item.topic ? " (" + esc(item.topic) + ")" : "");
+      "Next review: <b>" + esc(nextDue) + "</b> · Memorized: <b>" + (p.st || 0).toFixed(1) + "d</b> · From <b>Day " + item.day + "</b>" + (item.topic ? " (" + esc(item.topic) + ")" : "");
 
     // mnemonic / memory aid
     const mnem = $("detailMnemonic");

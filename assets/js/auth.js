@@ -30,7 +30,8 @@
     // ใช้ redirect เสมอ (เปิดหน้า Google เต็มหน้า — ทำงานได้ทุกที่)
     console.log("[firebase] เริ่ม Google Sign-in แบบ redirect");
     // ตั้งธงก่อน redirect เพื่อตรวจจับกรณี "กลับมาจาก Google แต่ไม่มี session"
-    try { sessionStorage.setItem("vocab_oauth_pending", "1"); } catch (e) {}
+    // (เก็บ timestamp ไว้ด้วย เพื่อแยก "เพิ่งลองจริง" ออกจาก "ธงค้างจากการลองก่อนหน้า")
+    try { sessionStorage.setItem("vocab_oauth_pending", JSON.stringify({ t: Date.now() })); } catch (e) {}
     try {
       await window.firebaseAuth.signInWithRedirect(provider);
     } catch (e) {
@@ -2175,18 +2176,36 @@
         }
 
         // Redirect กลับมาแล้วแต่ไม่มี session — แจ้งผู้ใช้ (เฉพาะเมื่อมี redirect ที่ค้างอยู่จริง)
+        // กัน false-positive สองกรณี: (1) getRedirectResult() อาจตอบ null ก่อนที่
+        // onAuthStateChanged จะยืนยัน session ใหม่ (ล็อกอินเพิ่งสำเร็จไปแป๊บเดียว), และ
+        // (2) ธง vocab_oauth_pending ที่ค้างจากครั้งก่อน (ผู้ใช้กดลองหลายครั้ง)
         let pending = false;
-        try { pending = !!sessionStorage.getItem("vocab_oauth_pending"); } catch (e) {}
+        let pendingAt = 0;
+        try {
+          const raw = sessionStorage.getItem("vocab_oauth_pending");
+          pending = !!raw;
+          try { pendingAt = (JSON.parse(raw || "{}").t) || 0; } catch (e2) { pendingAt = 0; }
+        } catch (e) { pending = false; }
         if (pending) {
-          try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
-          console.warn("[firebase] redirect กลับมาแต่ไม่มี session — hostname:", window.location.hostname, "href:", window.location.href);
-          if (!getUser() && window.VocabApp && window.VocabApp.toast) {
-            try {
-              window.VocabApp.toast(t("auth.googleRedirectEmpty"), "err", "alert");
-            } catch (err2) {
-              console.warn("[firebase] redirect-empty toast failed:", err2);
-            }
+          const isFresh = Date.now() - pendingAt < 60000; // ภายใน 60 วิ ถือว่าเพิ่งลองจริง
+          if (!isFresh) {
+            // ธงค้างจากการลองเก่า — ล้างออกเงียบ ๆ อย่าแจ้งเตือนซ้ำตอนเปิดเว็บปกติ
+            try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
+            return;
           }
+          // ลองอีกครั้งหลัง onAuthStateChanged น่าจะยืนยันเสร็จ (กัน race) แล้วค่อยตัดสิน
+          setTimeout(function () {
+            if (getUser()) return; // ล็อกอินสำเร็จไปแล้ว — ไม่แจ้งเตือน
+            try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
+            console.warn("[firebase] redirect กลับมาแต่ไม่มี session — hostname:", window.location.hostname, "href:", window.location.href);
+            if (window.VocabApp && window.VocabApp.toast) {
+              try {
+                window.VocabApp.toast(t("auth.googleRedirectEmpty"), "err", "alert");
+              } catch (err2) {
+                console.warn("[firebase] redirect-empty toast failed:", err2);
+              }
+            }
+          }, 1500);
         }
       });
     }

@@ -21,26 +21,41 @@
     return !!(window.FIREBASE_CONFIGURED && window.firebaseAuth && window.firebaseDb);
   }
 
-  // --- Google Sign-in (ใช้ redirect เป็นหลัก — เสถียรบน static host) ---
+  // --- Google Sign-in (popup เป็นหลัก — เสถียรบน GitHub Pages; redirect เป็น fallback) ---
   async function signInWithGoogle() {
     if (!isFirebaseMode()) throw new Error("Firebase not configured");
     const provider = window.googleProvider || new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
-    // ใช้ redirect เสมอ (เปิดหน้า Google เต็มหน้า — ทำงานได้ทุกที่)
-    console.log("[firebase] เริ่ม Google Sign-in แบบ redirect");
-    // ตั้งธงก่อน redirect เพื่อตรวจจับกรณี "กลับมาจาก Google แต่ไม่มี session"
-    // (เก็บ timestamp ไว้ด้วย เพื่อแยก "เพิ่งลองจริง" ออกจาก "ธงค้างจากการลองก่อนหน้า")
-    try { sessionStorage.setItem("vocab_oauth_pending", JSON.stringify({ t: Date.now() })); } catch (e) {}
+    // พยายามใช้ popup ก่อน: ได้ผลลัพธ์ทันที ไม่ต้องรอ redirect กลับมา
+    // (redirect บน static host อย่าง GitHub Pages มีปัญหาเรื่อง navigation ถูกขวางบ่อย)
     try {
-      await window.firebaseAuth.signInWithRedirect(provider);
+      console.log("[firebase] เริ่ม Google Sign-in แบบ popup");
+      const result = await window.firebaseAuth.signInWithPopup(provider);
+      if (result && result.user) {
+        const user = result.user;
+        setToken("firebase:" + user.uid);
+        setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
+        try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
+        syncGoogleWithBackend(user);
+        return { redirecting: false, user: user };
+      }
+      throw new Error("Popup sign-in ไม่ได้ผล");
     } catch (e) {
-      // redirect ไม่สำเร็จ (เช่น domain ไม่ผ่าน) — ล้างธง ไม่ให้แจ้งเตือนซ้ำตอนเปิดเว็บ
-      try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e2) {}
+      // popup ถูกเบราว์เซอร์บล็อก — fallback ไปใช้ redirect
+      if (e && (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user")) {
+        console.log("[firebase] popup ถูกบล็อก — fallback เป็น redirect");
+        try { sessionStorage.setItem("vocab_oauth_pending", JSON.stringify({ t: Date.now() })); } catch (e2) {}
+        try {
+          await window.firebaseAuth.signInWithRedirect(provider);
+        } catch (e3) {
+          try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e4) {}
+          throw e3;
+        }
+        return { redirecting: true };
+      }
       throw e;
     }
-    // หลัง redirect กลับมา firebaseCheckRedirectResult จะทำงาน
-    return { redirecting: true };
   }
 
   // --- ตรวจสอบผลลัพธ์จาก redirect (เรียกตอนเริ่มแอป) ---

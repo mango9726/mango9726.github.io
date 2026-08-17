@@ -2189,11 +2189,17 @@
             if (parsed && typeof parsed.t === "number") { pendingAt = parsed.t; }
           } catch (e2) { pendingAt = -Infinity; }
         } catch (e) { pending = false; }
+
+        // เช็คว่าหน้านี้เพิ่งกลับมาจากหน้า auth handler ของ Firebase (OAuth redirect) จริงไหม
+        // ใช้ document.referrer กันกรณีโหลดเว็บ/รีเฟรชธรรมดา แต่ flag ยังค้างจากครั้งก่อน
+        const cameFromAuth = /(?:firebaseapp\.com|google\.com|firebaseio\.com)/.test(document.referrer || "");
+
         if (pending) {
           // flag ที่ parse ไม่ได้ (เช่น "1" จากโค้ดเก่า) หรือไม่มี timestamp → ถือว่าเก่าเสมอ
           const isFresh = pendingAt > 0 && Date.now() - pendingAt < 60000; // ภายใน 60 วิ ถือว่าเพิ่งลองจริง
-          if (!isFresh) {
-            // ธงค้างจากการลองเก่า — ล้างออกเงียบ ๆ อย่าแจ้งเตือนซ้ำตอนเปิดเว็บปกติ
+          if (!isFresh || !cameFromAuth) {
+            // ธงค้างจากการลองเก่า หรือไม่ได้กลับมาจาก Google (เปิดเว็บ/รีเฟรชธรรมดา)
+            // ล้างออกเงียบ ๆ อย่าแจ้งเตือนซ้ำตอนเปิดเว็บปกติ
             try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
             return;
           }

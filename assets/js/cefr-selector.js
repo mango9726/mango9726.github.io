@@ -250,7 +250,7 @@
                 aria-checked="${isActive}"
                 ${!isLoggedIn ? "disabled" : ""}
                 title="${info.label} — ${wordLabel(info.wordCount)}">
-          <span class="cefr-chip-level" style="background:${info.color}">${level}</span>
+          <span class="cefr-chip-level" style="color:${info.color}">${level}</span>
           <span class="cefr-chip-count">${info.wordCount}</span>
           ${isSelected && isLoggedIn ? '<span class="cefr-chip-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg></span>' : ""}
         </button>
@@ -275,14 +275,16 @@
     // Show current effective level
     const currentInfo = getLevelInfo(currentLevel);
     html += `
-      <div class="cefr-current-display">
+      <div class="cefr-current-display" style="--lv-color:${currentInfo.color}">
         <span class="cefr-current-label" data-i18n="cefr.currentLevel">ระดับปัจจุบัน:</span>
-        <span class="cefr-current-badge" style="background:${currentInfo.color}">
-          ${currentInfo.level} — ${currentInfo.label}
-        </span>
-        ${isLoggedIn && settings.selectedCefrLevel
-          ? `<button class="btn btn-sm btn-secondary" id="cefrClearSelection" data-i18n="cefr.clearSelection">ใช้ระดับจากแบบทดสอบแทน</button>`
-          : ""}
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <span class="cefr-current-badge" style="color:${currentInfo.color}">
+            ${currentInfo.level} — ${currentInfo.label}
+          </span>
+          ${isLoggedIn && settings.selectedCefrLevel
+            ? `<button class="btn btn-sm btn-secondary" id="cefrClearSelection" data-i18n="cefr.clearSelection">ใช้ระดับจากแบบทดสอบแทน</button>`
+            : ""}
+        </div>
       </div>
     `;
 
@@ -374,7 +376,7 @@
     let html = `
       <div class="cefr-badge-current" style="--lv-color:${info.color}">
         <div class="cefr-badge-main">
-          <span class="cefr-badge-level" style="background:${info.color}">${info.level}</span>
+          <span class="cefr-badge-level" style="color:${info.color}">${info.level}</span>
           <div class="cefr-badge-info">
             <span class="cefr-badge-name">${info.label}</span>
             <span class="cefr-badge-count">${wordLabel(info.wordCount)}</span>
@@ -429,7 +431,7 @@
         <button class="cefr-modal-chip ${isActive ? "active" : ""} ${isSelected ? "selected" : ""}"
                 data-level="${level}"
                 ${!isLoggedIn ? "disabled" : ""}>
-          <span class="cefr-modal-chip-level" style="background:${info.color}">${level}</span>
+          <span class="cefr-modal-chip-level" style="color:${info.color}">${level}</span>
           <div class="cefr-modal-chip-info">
             <span class="cefr-modal-chip-name">${info.label}</span>
             <span class="cefr-modal-chip-count">${wordLabel(info.wordCount)}</span>

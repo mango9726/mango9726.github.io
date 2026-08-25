@@ -61,6 +61,8 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+/* Global horizontal-scroll guard: clip (not hidden) so position:sticky keeps working */
+html, body { overflow-x: clip; }
 body {
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", "Leelawadee UI", sans-serif;
   background: var(--bg-grad) fixed;
@@ -541,46 +543,71 @@ body {
 
 /* ===================== CEFR Level Panel ===================== */
 .cefr-panel {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+  background: var(--panel-solid);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.cefr-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--text);
 }
 .cefr-badge-row {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
 }
 .cefr-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 999px;
-  border: 2px solid var(--border);
-  background: var(--panel-solid);
+  border: 1px solid var(--border);
+  background: transparent;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--text);
 }
 .cefr-badge:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow);
+  border-color: var(--lv-color, var(--primary));
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--lv-color, var(--primary)) 20%, transparent);
+  color: var(--lv-color, var(--primary));
 }
 .cefr-badge.active {
   border-color: var(--lv-color, var(--primary));
-  background: color-mix(in srgb, var(--lv-color, var(--primary)) 12%, transparent);
+  background: color-mix(in srgb, var(--lv-color, var(--primary)) 10%, transparent);
   color: var(--lv-color, var(--primary));
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--lv-color, var(--primary)) 25%, transparent);
 }
 .cefr-badge .cb-level {
   font-weight: 900;
   letter-spacing: 0.5px;
+  background: linear-gradient(135deg, var(--lv-color, var(--primary)), var(--text));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .cefr-badge .cb-name {
   color: var(--muted);
   font-size: 0.8rem;
+  font-weight: 600;
 }
 .cefr-badge.active .cb-name {
-  color: inherit;
+  color: var(--lv-color, var(--primary));
 }
 
 /* ===================== CEFR Level Selector ===================== */
@@ -619,19 +646,17 @@ body {
 }
 .cefr-chip.selected {
   border-color: var(--lv-color, var(--primary));
-  background: var(--lv-color, var(--primary));
-  color: #fff;
+  background: transparent;
+  color: var(--lv-color, var(--primary));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--lv-color, var(--primary)) 20%, transparent);
 }
 .cefr-chip .cefr-chip-level {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
   font-weight: 900;
-  font-size: 0.75rem;
-  color: #fff;
+  font-size: 0.85rem;
+  background: transparent;
 }
 .cefr-chip .cefr-chip-count {
   font-size: 0.7rem;
@@ -691,29 +716,37 @@ body {
   transform: translateX(20px);
 }
 .cefr-current-display {
-  margin-top: 16px;
-  padding: 16px;
-  background: var(--panel-solid);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--lv-color, var(--primary)) 12%, var(--panel)), var(--panel));
+  border: 1px solid color-mix(in srgb, var(--lv-color, var(--primary)) 30%, var(--border));
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
 }
 .cefr-current-label {
   font-size: 13px;
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 700;
   display: block;
   margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 /* ===================== CEFR Badge Main / Current Card ===================== */
 .cefr-badge-current {
   position: relative;
-  padding: 20px 22px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  box-shadow: var(--shadow);
+  padding: 24px;
+  background: transparent;
+  border: 1.5px solid color-mix(in srgb, var(--lv-color, var(--primary)) 40%, var(--border));
+  border-radius: 22px;
+  box-shadow: 0 12px 36px -8px color-mix(in srgb, var(--lv-color, var(--primary)) 15%, rgba(0,0,0,0.1));
   overflow: hidden;
   transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+}
+.cefr-badge-current:hover {
+  transform: translateY(-2px);
+  border-color: var(--lv-color, var(--primary));
+  box-shadow: 0 16px 42px -6px color-mix(in srgb, var(--lv-color, var(--primary)) 25%, rgba(0,0,0,0.15));
 }
 .cefr-badge-current::before {
   content: "";
@@ -721,26 +754,29 @@ body {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 6px;
+  width: 5px;
   background: var(--lv-color, var(--primary));
+  box-shadow: 0 0 14px var(--lv-color, var(--primary));
 }
 .cefr-badge-main {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 .cefr-badge-level {
   display: inline-grid;
   place-items: center;
-  min-width: 50px;
-  height: 50px;
-  padding: 0 12px;
-  border-radius: 14px;
-  color: #fff;
-  font-size: 1.25rem;
+  min-width: 60px;
+  height: 60px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: transparent;
+  border: 2px solid var(--lv-color, var(--primary));
+  color: var(--lv-color, var(--primary));
+  font-size: 1.5rem;
   font-weight: 900;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--lv-color, var(--primary)) 40%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--lv-color, var(--primary)) 30%, transparent);
 }
 .cefr-badge-info {
   display: flex;
@@ -748,26 +784,26 @@ body {
   gap: 4px;
 }
 .cefr-badge-name {
-  font-size: 1.1rem;
-  font-weight: 750;
+  font-size: 1.3rem;
+  font-weight: 850;
   color: var(--text);
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
 }
 .cefr-badge-count {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--muted);
-  background: color-mix(in srgb, var(--lv-color, var(--primary)) 12%, var(--panel-solid));
-  padding: 3px 10px;
-  border-radius: 999px;
-  width: fit-content;
-  border: 1px solid color-mix(in srgb, var(--lv-color, var(--primary)) 22%, var(--border));
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--lv-color, var(--primary));
+  background: transparent;
+  padding: 0;
+  border: none;
 }
 .cefr-progress-mini {
-  margin-top: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border);
 }
 .cefr-progress-bar {
   height: 6px;
@@ -777,24 +813,44 @@ body {
 }
 .cefr-progress-fill {
   height: 100%;
-  background: var(--grad);
+  background: var(--lv-color, var(--grad));
   border-radius: 999px;
-  transition: width 0.5s ease;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px var(--lv-color, var(--primary));
 }
 .cefr-progress-text {
   display: block;
-  font-size: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--muted);
-  margin-top: 6px;
+  margin-top: 8px;
 }
 .cefr-progress-maxed {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--good);
-  font-weight: 600;
-  margin-top: 12px;
+  font-weight: 700;
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .cefr-change-btn {
-  margin-top: 12px;
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--lv-color, var(--primary));
+  color: var(--lv-color, var(--primary));
+  transition: all 0.2s;
+}
+.cefr-change-btn:hover {
+  background: var(--lv-color, var(--primary));
+  color: #fff;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--lv-color, var(--primary)) 35%, transparent);
 }
 
 /* CEFR Modal */
@@ -841,19 +897,17 @@ body {
 }
 .cefr-modal-chip.selected {
   border-color: var(--lv-color, var(--primary));
-  background: var(--lv-color, var(--primary));
-  color: #fff;
+  background: transparent;
+  color: var(--lv-color, var(--primary));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--lv-color, var(--primary)) 20%, transparent);
 }
 .cefr-modal-chip-level {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
   font-weight: 900;
-  font-size: 0.85rem;
-  color: #fff;
+  font-size: 0.95rem;
+  background: transparent;
   flex-shrink: 0;
 }
 .cefr-modal-chip-info {
@@ -1280,9 +1334,10 @@ h2 .ico-tile, .panel-head h2 .ico-tile, .wotd-label .ico { margin-right: 9px; ve
 @keyframes ripple { to { transform: scale(1); opacity: 0; } }
 
 /* ===================== Fields & Chips (clickable selections) ===================== */
-.controls { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-end; }
-.field { display: flex; flex-direction: column; gap: 9px; }
+.controls { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-end; width: 100%; }
+.field { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
 .field.grow { flex: 1; min-width: 240px; }
+.controls .chip-group { max-width: 100%; }
 .field-label { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0.2px; }
 .chip-group { display: flex; gap: 9px; flex-wrap: wrap; }
 .chip-group.scroll { max-height: 146px; overflow-y: auto; padding: 6px 4px 10px 4px; margin: -4px; }
@@ -1346,7 +1401,35 @@ select:focus, input[type="text"]:focus { outline: none; border-color: var(--prim
 .story-word.target { background: rgba(245,158,11,0.16); font-weight: 600; }
 .story-word.saved { background: rgba(22,163,74,0.18); }
 .story-card.read { border-color: rgba(22,163,74,0.35) !important; }
+.story-card {
+  position: relative;
+  overflow: hidden;
+}
 .story-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.story-hover-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--lvl-color, var(--primary));
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  opacity: 0;
+  transform: translateY(-6px) scale(0.96);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 5;
+}
+.story-card:hover .story-hover-badge {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
 .story-q-opt.err { background: rgba(239,68,68,0.14) !important; border-color: var(--danger, #ef4444) !important; color: var(--danger, #ef4444); }
 .story-saved .badge-sm { display: inline-flex; align-items: center; margin: 3px 4px 3px 0; }
 .story-sotd .ico { vertical-align: -3px; }
@@ -1537,6 +1620,11 @@ select:focus, input[type="text"]:focus { outline: none; border-color: var(--prim
 .task-title { font-size: 16px; font-weight: 700; margin-top: 2px; }
 .task-meta { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
 .task-card .btn { white-space: nowrap; }
+/* "Mark today as done" card */
+.task-done-card { border-color: var(--good); box-shadow: 0 8px 22px rgba(34,197,94,0.12); }
+.task-done-card.done { background: rgba(34,197,94,0.07); }
+.task-done-card.done .task-badge { color: var(--good); background: none; -webkit-background-clip: initial; background-clip: initial; }
+.task-done-card .btn { white-space: nowrap; }
 
 /* ===================== Result ===================== */
 .result {
@@ -2607,7 +2695,20 @@ input:focus:not(:focus-visible),
 [data-theme="dark"] .btn-grade.easy:hover { background: rgba(16,185,129,0.18); }
 
 /* Memory Strength panel */
-.memory-panel2 .ms-wrap { display: flex; align-items: center; gap: 22px; margin: 8px 0 18px; flex-wrap: wrap; }
+.memory-panel2 {
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.memory-panel2 h2 {
+  margin-bottom: 2px !important;
+}
+.memory-panel2 .hint {
+  margin-bottom: 4px !important;
+  text-align: left !important;
+}
+.memory-panel2 .ms-wrap { display: flex; align-items: center; gap: 24px; margin: 8px 0 16px; flex-wrap: wrap; }
 .ms-gauge {
   --val: 0%;
   width: 118px; height: 118px; flex-shrink: 0; border-radius: 50%;
@@ -2625,7 +2726,7 @@ input:focus:not(:focus-visible),
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, calc(-50% + 20px));
   display: block; font-size: 11px; color: var(--muted); font-weight: 600; z-index: 1; text-align: center;
 }
-.ms-dist { flex: 1; min-width: 160px; position: relative; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.ms-dist { flex: 1; min-width: 180px; position: relative; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start; text-align: left; }
 .ms-bar {
   display: flex; height: 16px; border-radius: 999px; overflow: hidden;
   background: var(--border); box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.08);
@@ -2634,7 +2735,7 @@ input:focus:not(:focus-visible),
 .ms-bar .s-strong { background: linear-gradient(90deg, #22c55e, #16a34a); }
 .ms-bar .s-medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
 .ms-bar .s-weak   { background: linear-gradient(90deg, #ef4444, #f87171); }
-.ms-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.ms-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); text-align: left; }
 .ms-legend b { color: var(--text); font-weight: 700; margin-right: 3px; }
 .ms-legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
 .ms-legend .s-strong { background: #16a34a; }
@@ -2642,11 +2743,11 @@ input:focus:not(:focus-visible),
 .ms-legend .s-weak   { background: #ef4444; }
 .ms-dist.is-empty .ms-bar { visibility: hidden; }
 .ms-empty {
-  position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
-  font-size: 11px; color: var(--muted); text-align: center; padding: 0 10px; line-height: 1.3;
+  position: relative; inset: auto; display: none; align-items: center; justify-content: flex-start;
+  font-size: 12px; color: var(--muted); text-align: left; padding: 4px 0; line-height: 1.4;
 }
-.ms-dist.is-empty .ms-empty { display: flex; }
-.ms-btn { margin-top: 4px; }
+.ms-dist.is-empty .ms-empty { display: block; }
+.ms-btn { margin-top: 6px; }
 .badge-sm {
   display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 7px;
   margin-left: 6px; border-radius: 999px; background: rgba(255,255,255,0.22); font-size: 12px; font-weight: 700;
@@ -2708,6 +2809,13 @@ input:focus:not(:focus-visible),
   .container { padding: 78px 16px 100px; }
   .hero { padding: 22px; }
   .nav-btn, .nav-sub-btn, .chip, .btn { min-height: 44px; }
+}
+/* Tablet / small-laptop hero: stack the side column under the main content
+   so the greeting + actions aren't squeezed next to a fixed 224px column */
+@media (max-width: 900px) {
+  .hero { flex-direction: column; }
+  .hero-side { width: 100%; flex-direction: row; align-items: stretch; }
+  .hero-side .streak-card, .hero-side .wotd { flex: 1; min-width: 0; }
 }
 @media (max-width: 640px) {
   .grade-actions { grid-template-columns: repeat(2, 1fr); }
@@ -2817,6 +2925,12 @@ input:focus:not(:focus-visible),
   .icon-btn { min-width: 44px; min-height: 44px; }
   .menu-toggle { width: 44px; height: 44px; top: 10px; left: 10px; }
   .container { padding: 70px 12px 90px; }
+  /* Story cards: let header/meta rows wrap so a card never forces its grid
+     track wider than the viewport (was overflowing ~14px at 320px) */
+  .story-card { min-width: 0; }
+  .story-card > div { flex-wrap: wrap; row-gap: 6px; }
+  .story-card h4 { overflow-wrap: anywhere; }
+  .sotd-meta { flex-wrap: wrap; row-gap: 6px; }
 }
 
 /* ============================================================
@@ -3084,6 +3198,36 @@ html[data-accent="mono"][data-theme="dark"] {
 .sw-lock .ico { width:14px; height:14px; }
 
 /* --- Boss Rush: home panel + view --- */
+.boss-panel {
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.boss-panel .panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.boss-panel .hint {
+  text-align: left !important;
+  margin-bottom: 4px !important;
+}
+.heatmap-panel {
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.heatmap-panel .hint {
+  text-align: left !important;
+  margin-bottom: 4px !important;
+}
+.heatmap {
+  position: relative;
+  margin-top: 4px;
+}
 .boss-tag {
   font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px;
   background:var(--grad-soft); color:var(--primary);

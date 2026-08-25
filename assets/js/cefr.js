@@ -1,12 +1,12 @@
 /* ============================================================
-   CEFR LEVELS — กำหนดระดับภาษาของแต่ละวัน (ระดับละ 60 วัน)
+   CEFR LEVELS — กำหนดระดับภาษาของแต่ละวัน (A1-A2: 60 วัน, B1-C2: 90 วัน)
    ------------------------------------------------------------
    A1 Beginner        : Day 1–60 (60 days, 600 words)
    A2 Elementary      : Day 61–120 (60 days, 600 words)
-   B1 Intermediate    : Day 121–180 (60 days, 600 words)
-   B2 Upper-Int.      : Day 181–240 (60 days, 600 words)
-   C1 Advanced        : Day 241–300 (60 days, 600 words)
-   C2 Expert          : Day 301–360 (60 days, 600 words)
+   B1 Intermediate    : Day 121–210 (90 days, 900 words)
+   B2 Upper-Int.      : Day 211–300 (90 days, 900 words)
+   C1 Advanced        : Day 301–390 (90 days, 900 words)
+   C2 Expert          : Day 391–480 (90 days, 900 words)
    ============================================================ */
 
 const CEFR_LEVELS = {
@@ -26,19 +26,19 @@ window.CEFR_ORDER = CEFR_ORDER;
 /* Map day number -> CEFR level */
 function cefrLevelForDay(day) {
   const n = Number(day);
-  if (n >= 301 && n <= 360) return "C2";
-  if (n >= 241 && n <= 300) return "C1";
-  if (n >= 181 && n <= 240) return "B2";
-  if (n >= 121 && n <= 180) return "B1";
+  if (n >= 391 && n <= 480) return "C2";
+  if (n >= 301 && n <= 390) return "C1";
+  if (n >= 211 && n <= 300) return "B2";
+  if (n >= 121 && n <= 210) return "B1";
   if (n >= 61 && n <= 120) return "A2";
   if (n >= 1 && n <= 60) return "A1";
   return null;
 }
 
 /* First day of each CEFR level with actual vocabulary */
-const CEFR_START_DAY = { A1: 1, A2: 61, B1: 121, B2: 181, C1: 241, C2: 301 };
+const CEFR_START_DAY = { A1: 1, A2: 61, B1: 121, B2: 211, C1: 301, C2: 391 };
 /* Last day of each CEFR level */
-const CEFR_END_DAY = { A1: 60, A2: 120, B1: 180, B2: 240, C1: 300, C2: 360 };
+const CEFR_END_DAY = { A1: 60, A2: 120, B1: 210, B2: 300, C1: 390, C2: 480 };
 const CEFR_PROGRESS_PATH = { from: "A1", to: "A2", startDay: 1, endDay: 60, totalDays: 60 };
 
 window.CEFR_START_DAY = CEFR_START_DAY;

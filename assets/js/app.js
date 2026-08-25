@@ -299,6 +299,7 @@
     if (settings.hideAllMeanings == null) settings.hideAllMeanings = false;
     if (!settings.hiddenMeanings || typeof settings.hiddenMeanings !== "object") settings.hiddenMeanings = {};
     if (!settings.studiedDays || !Array.isArray(settings.studiedDays)) settings.studiedDays = [];
+    if (!settings.dayDone || typeof settings.dayDone !== "object") settings.dayDone = {};
     // Gate the mini-player boot flag on the user's preference (read by mini-player.js init).
     window.MINI_PLAYER_ENABLED = settings.showMiniPlayer !== false;
     reviews = load(K_REVIEWS, {});
@@ -1512,7 +1513,7 @@
     // จำนวนวันจริงของระดับปัจจุบัน (นับจากวันสัมพัทธ์ใน ITEMS ที่กรองแล้ว)
     const set = {};
     ITEMS.forEach(function (i) { set[Number(i.day)] = true; });
-    const keys = Object.keys(set).map(Number).filter(function (n) { return n >= 1 && n <= 360; });
+    const keys = Object.keys(set).map(Number).filter(function (n) { return n >= 1 && n <= 480; });
     if (keys.length) return Math.max.apply(null, keys);
     const lv = currentCefrLevel();
     const days = (window.cefrDaysForLevel && window.cefrDaysForLevel(lv)) || [];
@@ -1598,6 +1599,51 @@
     reviews[d] = r;
     save(K_REVIEWS, reviews);
     awardXp(15, "daily-task"); // ทำ Daily Task เสร็จ +15 XP
+  }
+
+  /* ---------- "Mark today as done" (เรียนเสร็จแล้ว) ----------
+     ผู้ใช้กดปุ่มบอกว่าเรียนวันนี้เสร็จแล้ว → จองวันนี้ว่าเรียนแล้ว,
+     พาคำของวันนี้เข้าสู่รอบทบทวน (FSRS seen) และบันทึกทบทวนวันนี้
+     เพื่อให้คำวันนี้กลับมาทบทวนในวันถัดไปตาม GAPS. */
+  function isDayDone() {
+    return settings.dayDone && settings.dayDone[currentPlanDay()] === todayStr();
+  }
+  function markDayDone() {
+    const cp = currentPlanDay();
+    const items = itemsForDay(cp);
+    if (!items.length) { toast(t("tasks.noneToMark"), "err"); return; }
+    settings.dayDone[cp] = todayStr();
+    save(K_SETTINGS, settings);
+    // พาคำของวันนี้เข้ารอบทบทวน (ไม่บังคับให้ตอบถูก): ตั้ง FSRS ว่าเห็นแล้ว + due วันถัดไป
+    let seeded = 0;
+    items.forEach(function (item) {
+      const p = getP(item.id);
+      if (!p.seen) {
+        p.seen = (p.seen || 0) + 1;
+        p.lastReview = todayStr();
+        p.due = addDays(todayStr(), 1);
+        p.st = p.st || 0; p.d = p.d || 5; p.reps = p.reps || 0; p.lapses = p.lapses || 0;
+        progress[item.id] = p;
+        seeded++;
+      }
+    });
+    if (seeded) save(K_PROGRESS, progress);
+    recordReview(cp); // นับทบทวนวันนี้ → คำวันนี้จะกลับมาอีกครั้งตาม GAPS
+    bumpStreak();
+    toast(t("tasks.doneToast").replace("{n}", items.length), "ok", "check");
+    if (tasksViewActive()) renderTasks();
+    homeDirty = true;
+  }
+  function unmarkDayDone() {
+    delete settings.dayDone[currentPlanDay()];
+    save(K_SETTINGS, settings);
+    toast(t("tasks.unmarkedToast"), "ok", "refresh");
+    if (tasksViewActive()) renderTasks();
+    homeDirty = true;
+  }
+  function tasksViewActive() {
+    const t = $("view-tasks");
+    return t && t.classList.contains("active");
   }
 
   /* ---------- Speech ---------- */
@@ -2275,7 +2321,7 @@
     if (cefrFilter !== "all" && window.cefrDaysForLevel) {
       allowedDays = window.cefrDaysForLevel(cefrFilter);
     } else {
-      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 360; }).sort(function (a, b) { return a - b; });
+      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 480; }).sort(function (a, b) { return a - b; });
     }
 
     const c = $("browseDay"); if (!c) return;
@@ -2299,7 +2345,7 @@
     if (cefrFilter !== "all" && window.cefrDaysForLevel) {
       allowedDays = window.cefrDaysForLevel(cefrFilter);
     } else {
-      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 360; }).sort(function (a, b) { return a - b; });
+      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 480; }).sort(function (a, b) { return a - b; });
     }
     const studied = settings.studiedDays || [];
     const set = {};
@@ -2364,7 +2410,16 @@
     settings.gameSources[gameKey] = Object.assign({}, getGameSource(gameKey), patch);
     save(K_SETTINGS, settings);
   }
-  function gameSourceMaxDay(level) { return level === "all" ? 360 : 60; }
+  function gameSourceMaxDay(level) {
+    if (level === "all") return 480;
+    if (level === "A1" || level === "A2") return 60;
+    if (level === "B1" || level === "B2" || level === "C1" || level === "C2") return 90;
+    if (level === "current") {
+      const lvl = currentCefrLevel();
+      return (lvl === "A1" || lvl === "A2") ? 60 : 90;
+    }
+    return 480;
+  }
   function gameSourceBase(level) {
     if (level === "current") return ITEMS;
     if (level === "all") return ALL_ITEMS;
@@ -3111,7 +3166,15 @@
     const items = itemsForDay(dayNum);
     if (!items.length) { toast("No words for this Day", "err"); return; }
     showView("quiz"); // UI ข้อสอบอยู่ในหน้า quiz
-    launchQuiz(items, "sentence", function () { recordReview(dayNum); }, retView || "tasks", true);
+    launchQuiz(items, "sentence", function () {
+      recordReview(dayNum);
+      // ถ้าทำ quiz ของวันนี้เสร็จ → ถือว่าเรียนวันนี้เสร็จแล้วโดยอัตโนมัติ
+      if (dayNum === currentPlanDay() && !isDayDone()) {
+        settings.dayDone[dayNum] = todayStr();
+        save(K_SETTINGS, settings);
+        if (tasksViewActive()) renderTasks();
+      }
+    }, retView || "tasks", true);
   }
 
   function launchQuiz(items, mode, onEnd, retView, useCount) {
@@ -3253,8 +3316,29 @@
     const list = $("tasksList");
     list.innerHTML = "";
 
-    // งานใหม่: ถ้ามีคำสำหรับวันนี้ (ในระดับปัจจุบัน — ใช้ ITEMS ที่กรอง+remap แล้ว)
+    // การ์ด "เรียนเสร็จแล้ววันนี้" — กดบอกว่าระบบได้เรียนวันนี้ครบแล้ว
+    const todayDone = isDayDone();
     const todayItems = itemsForDay(cp);
+    const doneCard = el("div", "task-card task-done-card" + (todayDone ? " done" : ""));
+    if (todayDone) {
+      doneCard.appendChild(el("div", "task-badge", svgIcon("check") + " " + t("tasks.doneBadge")));
+      doneCard.appendChild(el("div", "task-title", t("tasks.doneTitle")));
+      doneCard.appendChild(el("div", "task-meta", t("tasks.doneMeta")));
+      const undoBtn = el("button", "btn", svgIcon("refresh", "ico sm") + " " + t("tasks.undoDone"));
+      undoBtn.onclick = function () { unmarkDayDone(); };
+      doneCard.appendChild(undoBtn);
+    } else {
+      doneCard.appendChild(el("div", "task-badge", svgIcon("sparkle") + " " + t("tasks.markDone")));
+      doneCard.appendChild(el("div", "task-title", t("tasks.markDoneHint")));
+      doneCard.appendChild(el("div", "task-meta", t("tasks.markDoneMeta")));
+      const btn = el("button", "btn btn-primary", svgIcon("check", "ico sm") + " " + t("tasks.markDoneBtn"));
+      btn.onclick = function () { markDayDone(); };
+      doneCard.appendChild(btn);
+    }
+    doneCard.style.animationDelay = "0ms";
+    list.appendChild(doneCard);
+
+    // งานใหม่: ถ้ามีคำสำหรับวันนี้ (ในระดับปัจจุบัน — ใช้ ITEMS ที่กรอง+remap แล้ว)
     if (todayItems.length) {
       const topic = (todayItems[0] && todayItems[0].topic) || "";
       const nc = taskCard(
@@ -4000,10 +4084,23 @@
     // pronunciation practice inside modal
     const pbox = $("pronResult");
     pbox.className = "pron-feedback hidden"; pbox.innerHTML = "";
-    $("detailPron").textContent = "Tap, then say this word";
+    $("detailPron").textContent = currentLang() === "th" ? "แตะ แล้วพูดคำนี้" : "Tap, then say this word";
     attachMic($("detailPron"), null, pbox, function () { return item.word; }, function (result) {
       recordAnswer(item, result.score >= 70);
     });
+
+    const sbtn = $("detailSentencePron");
+    if (sbtn) {
+      if (item.exEn) {
+        sbtn.style.display = "";
+        sbtn.textContent = currentLang() === "th" ? "พูดประโยคตัวอย่าง" : "Speak Example Sentence";
+        attachMic(sbtn, null, pbox, function () { return item.exEn; }, function (result) {
+          recordAnswer(item, result.score >= 70);
+        });
+      } else {
+        sbtn.style.display = "none";
+      }
+    }
 
     detailLastFocus = document.activeElement;
     const ov = $("detailModal");
@@ -5856,34 +5953,35 @@
   }
 
   function getArticleText(lvl, topic, n) {
+    const t = topic.toLowerCase();
     if (lvl === "A1") {
-      return "This is a short story about " + topic.toLowerCase() + ". Every day, we learn new things and practice English vocabulary. The sun shines brightly, and people are happy. We read books, talk with friends, and enjoy our simple daily life. Learning English is wonderful and helps us grow every single day.";
+      return "Every day is full of small moments: the morning sun, a warm meal, time with family and friends. " + t + " is part of that simple daily life. When we notice these little things, the day feels brighter. Learning English helps us talk about our world and share it with more people.";
     } else if (lvl === "A2") {
-      return "Today we explore the fascinating theme of " + topic.toLowerCase() + ". Life presents various opportunities to discover new places, meet interesting people, and gain valuable experiences. Through consistent practice and curiosity, we build confidence, improve our skills, and prepare for exciting adventures ahead.";
+      return "Life is made of small everyday things: a trip to the market, a chat with a friend, a meal at home. " + t + " is one of those things. When we stop and pay attention, an ordinary day feels richer. Trying something new, meeting someone, or learning one more word in English can turn a routine day into a good one.";
     } else if (lvl === "B1") {
-      return "When considering " + topic.toLowerCase() + ", individuals often encounter diverse perspectives and challenges. Balancing personal ambition with daily responsibilities requires dedication, strategic planning, and continuous self-reflection. By embracing new opportunities and maintaining a positive mindset, we achieve meaningful progress and personal fulfillment.";
+      return "People talk about " + t + " more often than we might think. It comes up in everyday choices: how we spend our time, how we balance work and rest, and how we talk to the people around us. There is no single right answer, but a little planning and a calm mind usually help. Learning to handle it well is part of growing, both in life and in language.";
     } else if (lvl === "B2") {
-      return "The complexities surrounding " + topic.toLowerCase() + " demand rigorous analysis and comprehensive understanding. Modern society navigates rapid transformations across technological, economic, and cultural domains. Stakeholders must evaluate systemic impacts, foster collaborative innovations, and implement sustainable strategies to address contemporary challenges effectively.";
+      return "Daily life keeps bringing us back to " + t + ", even when we do not notice. It shows up in the routines we follow, the decisions we make, and the way we adapt when things change. Taking a closer look helps us see the habits and pressures behind it. With honest reflection and steady effort, we can turn even an ordinary concern into a chance to improve.";
     } else if (lvl === "C1") {
-      return "An in-depth examination of " + topic.toLowerCase() + " reveals profound epistemological and structural dynamics. Contemporary paradigms necessitate critical discourse, sophisticated methodological frameworks, and nuanced interdisciplinary inquiry. Intellectual rigor and foresight remain paramount in addressing multifaceted global phenomena and institutional evolution.";
+      return "It is easy to treat " + t + " as a distant idea, yet it shapes how people actually live and work. It influences choices, habits, and the way institutions and individuals respond to change. Understanding it means looking past surface impressions and noticing the patterns underneath. Such thinking is demanding, but it is also what makes daily experience clearer and more meaningful.";
     } else {
-      return "Rigorous ontological and metatheoretical inquiry into " + topic.toLowerCase() + " unveils intricate webs of conceptual presuppositions. Transcendental reflection and deconstructive analysis challenge foundational dogmas, compelling a radical reconfiguration of theoretical paradigms, intersubjective realities, and the limits of human cognition.";
+      return "It is easy to see " + t + " as something far from ordinary life, but it is closer than it looks. It shapes routines, expectations, and the quiet assumptions people rarely stop to question. A serious look at it means moving beyond slogans and examining the structures that hold it together. This kind of reflection is uncomfortable, yet it is precisely what turns daily experience into real understanding.";
     }
   }
 
   function getArticleThai(lvl, topic, n) {
     if (lvl === "A1") {
-      return "นี่คือเรื่องสั้นเกี่ยวกับ " + topic + " ทุกๆ วันเราเรียนรู้สิ่งใหม่และฝึกฝนคำศัพท์ภาษาอังกฤษ พระอาทิตย์ส่องแสงสว่างสดใสและผู้คนมีความสุข เราอ่านหนังสือ พูดคุยกับเพื่อน และมีความสุขกับชีวิตประจำวันอันเรียบง่าย การเรียนภาษาอังกฤษเป็นเรื่องที่ยอดเยี่ยมและช่วยให้เราเติบโตขึ้นทุกวัน";
+      return "ทุกๆ วันเต็มไปด้วยช่วงเวลาสำคัญเล็กๆ น้อยๆ เช่น แสงแดดยามเช้า อาหารอุ่นๆ และเวลากับครอบครัวและเพื่อนฝูง " + topic + " เป็นส่วนหนึ่งของชีวิตประจำวันอันเรียบง่ายนั้น เมื่อเราสังเกตเห็นสิ่งเล็กๆ เหล่านี้ วันของเราก็สดใสขึ้น การเรียนภาษาอังกฤษช่วยให้เราพูดคุยเกี่ยวกับโลกของเราและแบ่งปันกับผู้คนมากขึ้น";
     } else if (lvl === "A2") {
-      return "วันนี้เราสำรวจหัวข้อที่น่าสนใจเกี่ยวกับ " + topic + " ชีวิตมอบโอกาสต่างๆ มากมายในการค้นพบสถานที่ใหม่ๆ พบปะผู้คนที่น่าสนใจ และได้รับประสบการณ์ที่มีค่า ผ่านการฝึกฝนอย่างสม่ำเสมอและความอยากรู้อยากเห็น เราสร้างความมั่นใจ พัฒนาทักษะ และเตรียมพร้อมสำหรับการผจญภัยที่น่าตื่นเต้นข้างหน้า";
+      return "ชีวิตประกอบด้วยสิ่งเล็กๆ ในชีวิตประจำวัน เช่น การไปตลาด การพูดคุยกับเพื่อน และการทานอาหารที่บ้าน " + topic + " ก็เป็นหนึ่งในสิ่งเหล่านั้น เมื่อเราหยุดและใส่ใจ วันธรรมดาๆ ก็ดูมีคุณค่ามากขึ้น การลองสิ่งใหม่ๆ เจอคนใหม่ๆ หรือเรียนรู้คำศัพท์ภาษาอังกฤษเพิ่มอีกหนึ่งคำ ก็ทำให้วันซ้ำซากกลายเป็นวันที่ดีได้";
     } else if (lvl === "B1") {
-      return "เมื่อพิจารณาถึง " + topic + " บุคคลมักพบกับมุมมองและความท้าทายที่หลากหลาย การสร้างความสมดุลระหว่างความทะเยอทะยานส่วนตัวและความรับผิดชอบประจำวันต้องอาศัยความทุ่มเท การวางแผนเชิงกลยุทธ์ และการไตร่ตรองตนเองอย่างต่อเนื่อง การเปิดรับโอกาสใหม่ๆ และการรักษาทัศนคติเชิงบวกช่วยให้เราบรรลุความก้าวหน้าที่มีความหมายและความสมบูรณ์ในชีวิต";
+      return "ผู้คนพูดถึง " + topic + " บ่อยกว่าที่เราคิด มันปรากฏขึ้นในการตัดสินใจในชีวิตประจำวัน เช่น วิธีใช้เวลา วิธีถ่วงดุลระหว่างงานกับเวลาพัก และวิธีพูดคุยกับคนรอบข้าง ไม่มีคำตอบเดียวที่ถูกต้อง แต่การวางแผนเล็กๆ น้อยๆ และจิตใจที่สงบมักช่วยได้ การเรียนรู้ที่จะรับมือกับมันได้ดีเป็นส่วนหนึ่งของการเติบโต ทั้งในชีวิตและในภาษา";
     } else if (lvl === "B2") {
-      return "ความซับซ้อนที่อยู่รอบ " + topic + " เรียกร้องการวิเคราะห์อย่างเข้มงวดและความเข้าใจที่ครอบคลุม สังคมสมัยใหม่นำทางผ่านการเปลี่ยนแปลงอย่างรวดเร็วในด้านเทคโนโลยี เศรษฐกิจ และวัฒนธรรม ผู้มีส่วนเกี่ยวข้องต้องประเมินผลกระทบเชิงระบบ ส่งเสริมการนวัตกรรมร่วมกัน และดำเนินกลยุทธ์ที่ยั่งยืนเพื่อรับมือกับความท้าทายร่วมสมัยอย่างมีประสิทธิภาพ";
+      return "ชีวิตประจำวันพาเรากลับมาสู่ " + topic + " อยู่เสมอ แม้บางครั้งเราไม่ทันสังเกต มันปรากฏในกิจวัตรที่เราทำ การตัดสินใจที่เราเลือก และวิธีที่เราปรับตัวเมื่อสิ่งต่างๆ เปลี่ยนไป การมองให้ลึกลงไปช่วยให้เราเห็นนิสัยและแรงกดดันที่อยู่เบื้องหลัง ด้วยการไตร่ตรองอย่างจริงใจและความพยายามอย่างต่อเนื่อง เราสามารถเปลี่ยนแม้แต่ความกังวลธรรมดาๆ ให้เป็นโอกาสในการพัฒนาตนเอง";
     } else if (lvl === "C1") {
-      return "การตรวจสอบเชิงลึกเกี่ยวกับ " + topic + " เผยให้เห็นถึงพลวัตทางญาณวิทยาและโครงสร้างเชิงลึก กระบวนการร่วมสมัยเรียกร้องการอภิปรายเชิงวิพากษ์ กรอบระเบียบวิธีที่ซับซ้อน และการสอบถามข้ามสาขาวิชา ความเข้มงวดทางปัญญาและการมองการณ์ไกลยังคงมีความสำคัญสูงสุดในการจัดการกับปรากฏการณ์ระดับโลกและวิวัฒนาการของสถาบัน";
+      return "เราอาจมองว่า " + topic + " เป็นแนวคิดที่ไกลตัว แต่จริงๆ แล้วมันหล่อหลอมการดำเนินชีวิตและการทำงานของผู้คนทุกวัน มันมีอิทธิพลต่อทางเลือก นิสัย และวิธีที่องค์กรและปัจเจกบุคคลตอบสนองต่อการเปลี่ยนแปลง การจะเข้าใจมันต้องมองข้ามภาพภายนอกและสังเกตแบบแผนที่ซ่อนอยู่เบื้องหลัง การคิดแบบนี้ต้องใช้ความพยายาม แต่ก็ทำให้ประสบการณ์ในชีวิตประจำวันชัดเจนและมีความหมายมากขึ้น";
     } else {
-      return "การสอบถามเชิงอภิปรัชญาและเมทาทฤษฎีเกี่ยวกับ " + topic + " เผยให้เห็นเครือข่ายที่ซับซ้อนของข้อสมมติฐานเชิงแนวคิด การสะท้อนกลับเชิงอภิปรัชญาและการวิเคราะห์แบบรื้อสร้างท้าทายหลักคำสอนที่ตั้งไว้ บังคับให้ต้องมีการกำหนดค่าใหม่ทางทฤษฎี ความเป็นจริงระหว่างอัตวิสัย และขีดจำกัดของการรับรู้ของมนุษย์";
+      return "เรามักมองว่า " + topic + " เป็นสิ่งที่ไกลจากชีวิตธรรมดา แต่จริงๆ แล้วมันอยู่ใกล้กว่าที่คิด มันหล่อหลอมกิจวัตร ความคาดหวัง และสมมติฐานเงียบๆ ที่ผู้คนไม่ค่อยหยุดตั้งคำถาม การมองอย่างจริงจังหมายถึงการก้าวข้ามคำขวัญและพิจารณาโครงสร้างที่ยึดมันไว้ด้วยกัน การไตร่ตรองแบบนี้อาจไม่สบายใจ แต่ก็คือสิ่งที่เปลี่ยนประสบการณ์ในชีวิตประจำวันให้กลายเป็นความเข้าใจที่แท้จริง";
     }
   }
 
@@ -6152,28 +6250,28 @@
       id: "cur-fairy-tortoise-hare", level: "A1", genre: "fairy",
       title: "The Tortoise and the Hare",
       pages: [
-        "A fast hare laughed at a slow tortoise. 'You are so slow!' he said. The tortoise smiled and said, 'Let us have a race.' The hare laughed loudly and agreed.",
-        "The race began. The hare ran very fast and soon he was far ahead. He felt sure he would win, so he stopped to rest under a big tree and fell asleep.",
-        "The tortoise walked slowly and steadily. He never stopped. When the hare woke up, the tortoise was near the finish line. The slow and steady tortoise won the race."
+        "A fast hare laughed at a slow tortoise. 'You're so slow!' he said. The tortoise just smiled and said, 'Let's have a race, then.' The hare laughed loudly and agreed.",
+        "The race started. The hare ran fast and was soon way ahead. He was sure he would win, so he stopped to rest under a big tree and fell asleep.",
+        "The tortoise kept walking, slowly but steadily, and never stopped. When the hare woke up, the tortoise was almost at the finish line. The slow and steady tortoise won the race."
       ],
       thPages: [
-        "กระต่ายที่ว่องไวหัวเราะเยาะเต่าที่เชื่องช้า 'เจ้าเชื่องช้าจัง!' เขากล่าว เต่ายิ้มและพูดว่า 'มาแข่งกันเถอะ' กระต่ายหัวเราะเสียงดังและตกลง",
-        "การแข่งขันเริ่มขึ้น กระต่ายวิ่งเร็วมากและในไม่ช้าก็领先มาก เขามั่นใจว่าจะชนะ จึงหยุดพักใต้ต้นไม้ใหญ่และหลับไป",
-        "เต่าเดินช้าๆ แต่สม่ำเสมอ เขาไม่เคยหยุด เมื่อกระต่ายตื่นขึ้น เต่าก็อยู่ใกล้เส้นชัย เต่าที่ช้าแต่สม่ำเสมอชนะการแข่งขัน"
+        "กระต่ายที่วิ่งเร็วหัวเราะเยาะเต่าที่เชื่องช้า 'เจ้าเชื่องช้าจัง!' มันพูด เต่ายิ้มแล้วตอบว่า 'งั้นมาแข่งกันเถอะ' กระต่ายหัวเราะเสียงดังแล้วตกลง",
+        "การแข่งขันเริ่มขึ้น กระต่ายวิ่งเร็วมากและนำหน้าไปไกล มันมั่นใจว่าจะชนะ จึงแวะพักใต้ต้นไม้ใหญ่แล้วหลับไป",
+        "เต่าเดินต่อไปเรื่อยๆ ช้าๆ แต่สม่ำเสมอ และไม่เคยหยุด เมื่อกระต่ายตื่นขึ้น เต่าก็เกือบถึงเส้นชัยแล้ว เต่าที่ช้าแต่สม่ำเสมอจึงชนะการแข่งขัน"
       ]
     },
     {
       id: "cur-fairy-lion-mouse", level: "A1", genre: "fairy",
       title: "The Lion and the Mouse",
       pages: [
-        "A lion was sleeping in the forest when a little mouse ran over his nose. The lion woke up and caught the mouse. 'Please let me go,' said the mouse. 'One day I will help you.' The lion laughed but let him go.",
-        "Later, the lion was caught in a hunter's net. He roared, but he could not escape. The little mouse heard the lion's roar and came running. He chewed through the net with his sharp teeth.",
-        "The lion was free. 'Thank you, little mouse,' he said. 'You saved my life.' From that day, the lion and the mouse were friends. Even the smallest friend can be a great help."
+        "A lion was sleeping in the forest when a little mouse ran right over his nose. The lion woke up and caught him. 'Please let me go,' said the mouse. 'One day I'll help you.' The lion laughed at the idea but let him go.",
+        "Later, the lion got caught in a hunter's net. He roared and struggled, but he couldn't escape. The little mouse heard his roar and came running. He chewed through the net with his sharp teeth.",
+        "The lion was free. 'Thank you, little mouse,' he said. 'You saved my life.' From that day on, the lion and the mouse were friends. Even the smallest friend can be a huge help."
       ],
       thPages: [
-        "สิงโตกำลังนอนหลับอยู่ในป่าเมื่อหนูตัวเล็กวิ่งข้ามจมูกของมัน สิงโตตื่นขึ้นและจับหนูได้ 'กรุณาปล่อยฉันเถอะ' หนูกล่าว 'สักวันหนึ่งฉันจะช่วยคุณ' สิงโตหัวเราะแต่ก็ปล่อยเขาไป",
-        "ต่อมา สิงโตติดอยู่ในตาข่ายของนายพราน มันคำรามแต่หนีไม่พ้น หนูตัวเล็กได้ยินเสียงคำรามของสิงโตจึงวิ่งมา มันแทะตาข่ายด้วยฟันอันแหลมคม",
-        "สิงโตเป็นอิสระ 'ขอบใจนะหนูน้อย' มันกล่าว 'เจ้าช่วยชีวิตฉัน' ตั้งแต่วันนั้น สิงโตและหนูก็เป็นเพื่อนกัน แม้แต่เพื่อนที่เล็กที่สุดก็ช่วยได้มาก"
+        "สิงโตกำลังนอนหลับอยู่ในป่าเมื่อหนูตัวเล็กวิ่งข้ามจมูกของมันพอดี สิงโตตื่นขึ้นและจับหนูได้ 'ได้โปรดปล่อยฉันเถอะ' หนูพูด 'สักวันหนึ่งฉันจะช่วยคุณ' สิงโตหัวเราะกับความคิดนั้นแต่ก็ปล่อยหนูไป",
+        "ต่อมา สิงโตติดตาข่ายของนายพราน มันคำรามและดิ้นรน แต่ก็หนีไม่พ้น หนูตัวเล็กได้ยินเสียงคำรามของสิงโตจึงวิ่งมา มันแทะตาข่ายด้วยฟันอันแหลมคม",
+        "สิงโตเป็นอิสระ 'ขอบใจมากนะหนูน้อย' มันพูด 'เจ้าช่วยชีวิตฉันไว้' ตั้งแต่วันนั้นเป็นต้นมา สิงโตกับหนูก็เป็นเพื่อนกัน แม้แต่เพื่อนที่ตัวเล็กที่สุดก็ช่วยได้มหาศาล"
       ]
     },
     {
@@ -6181,17 +6279,17 @@
       title: "Cinderella",
       pages: [
         "Cinderella lived with her cruel stepmother and two stepsisters. They made her do all the housework while they wore beautiful clothes. Cinderella was kind, but she was sad and tired.",
-        "One day the king invited every young woman to a grand ball at the palace. The stepsisters were excited, but they told Cinderella she could not go. She had no dress and too much work to do.",
+        "One day the king invited every young woman to a grand ball at the palace. The stepsisters were thrilled, but they told Cinderella she couldn't go. She had no dress and far too much work to do.",
         "Suddenly a kind fairy appeared. She waved her magic wand and turned a pumpkin into a golden carriage. She gave Cinderella a beautiful glass slipper, and she smiled: 'But you must leave the ball before midnight.'",
         "At the ball, Cinderella danced with the prince all night. She was the most beautiful woman there. But at midnight the clock began to strike, and she ran away, losing one glass slipper on the stairs.",
         "The prince searched the whole kingdom for the girl who fit the slipper. It fitted only Cinderella. The prince married her, and they lived happily ever after."
       ],
       thPages: [
-        "ซินเดอเรลล่าอาศัยอยู่กับแม่เลี้ยงที่โหดร้ายและพี่สาวเลี้ยงสองคน พวกเธอบังคับให้เธอทำงานบ้านทั้งหมดในขณะที่พวกเธอสวมเสื้อผ้าสวยงาม ซินเดอเรลล่าใจดี แต่เธอเศร้าและเหนื่อย",
-        "วันหนึ่งกษัตริย์เชิญหญิงสาวทุกคนไปงานบอลใหญ่ที่พระราชวัง พี่สาวเลี้ยงตื่นเต้นมาก แต่พวกเธอบอกว่าซินเดอเรลล่าไปไม่ได้ เธอไม่มีชุดและมีงานมากเกินไป",
-        "ทันใดนั้นนางฟ้าผู้ใจดีก็ปรากฏตัว นางโบกไม้กายสิทธิ์เปลี่ยนฟักทองเป็นรถม้าสีทอง นางมอบรองเท้าแก้วแสนสวยให้ซินเดอเรลล่าและยิ้ม: 'แต่เจ้าต้องกลับก่อนเที่ยงคืน'",
-        "ในงานบอล ซินเดอเรลล่าเต้นรำกับเจ้าชายตลอดทั้งคืน เธอเป็นหญิงสาวที่สวยที่สุดที่นั่น แต่เมื่อเที่ยงคืนนาฬิกาเริ่มตี เธอจึงวิ่งหนีไป และทำรองเท้าแก้วหายหนึ่งข้างบนบันได",
-        "เจ้าชายค้นหาทั่วราชอาณาจักรเพื่อหาหญิงสาวที่ใส่รองเท้าแก้วได้ รองเท้าเหมาะกับซินเดอเรลล่าเท่านั้น เจ้าชายแต่งงานกับเธอ และพวกเขาก็ใช้ชีวิตอย่างมีความสุขตลอดไป"
+        "ซินเดอเรลล่าอาศัยอยู่กับแม่เลี้ยงที่โหดร้ายและพี่สาวเลี้ยงสองคน พวกเธอบังคับให้เธอทำงานบ้านทั้งหมด ขณะที่ตัวเองสวมเสื้อผ้าสวยๆ ซินเดอเรลล่าเป็นคนใจดี แต่เธอเศร้าและเหนื่อยมาก",
+        "วันหนึ่งกษัตริย์เชิญหญิงสาวทุกคนไปงานบอลใหญ่ที่พระราชวัง พี่สาวเลี้ยงดีใจสุดขีด แต่พวกเธอบอกว่าซินเดอเรลล่าไปไม่ได้ เพราะเธอไม่มีชุดและมีงานล้นมือ",
+        "ทันใดนั้นนางฟ้าผู้ใจดีก็ปรากฏตัว นางโบกไม้กายสิทธิ์เปลี่ยนฟักทองเป็นรถม้าสีทอง และมอบรองเท้าแก้วแสนสวยให้ซินเดอเรลล่าพร้อมกับยิ้มว่า 'แต่เจ้าต้องกลับก่อนเที่ยงคืน'",
+        "ในงานบอล ซินเดอเรลล่าเต้นรำกับเจ้าชายตลอดทั้งคืน เธอสวยที่สุดในงาน แต่เมื่อเที่ยงคืนนาฬิกาเริ่มตี เธอจึงวิ่งหนีไป และทำรองเท้าแก้วหายหนึ่งข้างบนบันได",
+        "เจ้าชายค้นหาทั่วราชอาณาจักรเพื่อหาหญิงสาวที่ใส่รองเท้าแก้วได้ รองเท้าเข้ากับซินเดอเรลล่าเท่านั้น เจ้าชายแต่งงานกับเธอ และทั้งสองก็ใช้ชีวิตอย่างมีความสุขตลอดไป"
       ]
     },
     {
@@ -6199,28 +6297,28 @@
       title: "The Haunted House",
       pages: [
         "At the end of the village road stood an old, empty house. Nobody had lived there for years. People said strange things happened at night: lights turned on by themselves, and cold whispers in the dark.",
-        "A curious boy named Tom wanted to see for himself. One evening he opened the creaking door and stepped inside. Dust covered everything, and the air was freezing cold.",
+        "A curious boy named Tom wanted to see for himself. One evening he pushed open the creaking door and stepped inside. Dust covered everything, and the air was freezing cold.",
         "Suddenly a soft voice whispered, 'Please... find my key...' Tom looked around and found a rusty key on the floor. He placed it on the old table. A warm light filled the room, and the voice said, 'Thank you.' The house was calm from that night on."
       ],
       thPages: [
-        "ที่ปลายถนนหมู่บ้านมีบ้านเก่าและว่างเปล่าตั้งอยู่ ไม่มีใครอาศัยมาหลายปี ผู้คนเล่าว่ามีสิ่งแปลกประหลาดเกิดขึ้นในตอนกลางคืน: ไฟเปิดเอง และเสียงกระซิบหนาวเย็นในความมืด",
-        "เด็กชายผู้อยากรู้อยากเห็นชื่อทอมต้องการพิสูจน์ด้วยตัวเอง เย็นวันหนึ่งเขาผลักประตูที่ลั่นดังเอี๊ยดแล้วก้าวเข้าไปข้างใน ฝุ่นปกคลุมทุกสิ่ง และอากาศเย็นเยือก",
-        "ทันใดนั้นเสียงเบาๆ กระซิบว่า 'กรุณา... หากุญแจของฉันให้เจอ...' ทอมมองไปรอบๆ และพบกุญแจสนิมบนพื้น เขาวางไว้บนโต๊ะเก่า แสงอบอุ่นสว่างเต็มห้อง และเสียงนั้นกล่าวว่า 'ขอบใจ' บ้านก็สงบตั้งแต่วันนั้นเป็นต้นมา"
+        "ที่ปลายถนนหมู่บ้านมีบ้านเก่าและว่างเปล่าตั้งอยู่ ไม่มีใครอาศัยมาหลายปี ผู้คนเล่าว่ามีสิ่งแปลกประหลาดเกิดขึ้นในตอนกลางคืน: ไฟเปิดขึ้นเอง และเสียงกระซิบหนาวเย็นในความมืด",
+        "เด็กชายผู้อยากรู้อยากเห็นชื่อทอมอยากพิสูจน์ด้วยตัวเอง เย็นวันหนึ่งเขาผลักประตูที่ลั่นดังเอี๊ยดแล้วก้าวเข้าไปข้างใน ฝุ่นปกคลุมทุกสิ่ง และอากาศเย็นเยือก",
+        "ทันใดนั้นเสียงแผ่วเบาก็กระซิบว่า 'ช่วย... หากุญแจของฉันให้เจอ...' ทอมมองไปรอบๆ และพบกุญแจสนิมบนพื้น เขาวางไว้บนโต๊ะเก่า แสงอบอุ่นสว่างเต็มห้อง และเสียงนั้นพูดว่า 'ขอบใจ' บ้านก็สงบตั้งแต่วันนั้นเป็นต้นมา"
       ]
     },
     {
       id: "cur-ghost-vanishing", level: "B1", genre: "ghost",
       title: "The Vanishing Hitchhiker",
       pages: [
-        "It was a dark, rainy night on the highway. A young driver named Dan saw a woman standing by the road in a white coat. She looked cold and tired, so he stopped and offered her a ride.",
-        "She got in and thanked him quietly. Dan asked her where she was going, but she only pointed forward. 'Do you live around here?' he asked. She did not answer. Dan felt a strange chill.",
+        "It was a dark, rainy night on the highway. A young driver named Dan saw a woman standing by the road in a white coat. She looked cold and tired, so he pulled over and offered her a ride.",
+        "She got in and thanked him quietly. Dan asked where she was going, but she only pointed ahead. 'Do you live around here?' he asked. She didn't answer. Dan felt a strange chill.",
         "When they reached the next town, the woman said, 'Turn left at the old church, please.' Dan did, and when he looked again, she was gone. The door was still closed, and the seat beside him was empty.",
-        "Frightened, Dan went to the church and told the priest. The priest sighed. 'She was my daughter,' he said. 'She disappeared on this road twenty years ago, on a rainy night just like this. You are the third person to bring her home.'"
+        "Frightened, Dan went to the church and told the priest. The priest sighed. 'She was my daughter,' he said. 'She disappeared on this road twenty years ago, on a rainy night just like this. You're the third person to bring her home.'"
       ],
       thPages: [
-        "เป็นคืนที่มืดและฝนตกบนทางหลวง คนขับหนุ่มชื่อแดนเห็นหญิงสาวยืนอยู่ข้างถนนในเสื้อคลุมสีขาว เธอดูหนาวและเหนื่อย เขาจึงจอดและเสนอให้เธอโดยสาร",
-        "เธอขึ้นรถและขอบคุณอย่างเงียบๆ แดนถามว่าเธอจะไปไหน แต่เธอเพียงชี้ไปข้างหน้า 'คุณอยู่แถวนี้หรือ?' เขาถาม เธอไม่ตอบ แดนรู้สึกหนาวสั่นแปลกๆ",
-        "เมื่อถึงเมืองถัดไป หญิงสาวกล่าวว่า 'เลี้ยวซ้ายที่โบสถ์เก่าได้โปรด' แดนทำตาม และเมื่อเขามองอีกครั้ง เธอก็หายไปแล้ว ประตูยังปิดอยู่ และที่นั่งข้างๆ เขาว่างเปล่า",
+        "เป็นคืนที่มืดและฝนตกบนทางหลวง คนขับหนุ่มชื่อแดนเห็นหญิงสาวยืนอยู่ข้างถนนในเสื้อคลุมสีขาว เธอดูหนาวและเหนื่อย เขาจึงจอดข้างทางและชวนเธอขึ้นรถ",
+        "เธอขึ้นรถและขอบคุณอย่างเงียบๆ แดนถามว่าเธอจะไปไหน แต่เธอเพียงชี้ไปข้างหน้า 'คุณอยู่แถวนี้หรือ?' เขาถาม เธอไม่ตอบ แดนรู้สึกหนาวเยือกแปลกๆ",
+        "เมื่อถึงเมืองถัดไป หญิงสาวพูดว่า 'เลี้ยวซ้ายที่โบสถ์เก่าได้โปรด' แดนทำตาม และเมื่อเขามองอีกครั้ง เธอก็หายไปแล้ว ประตูยังปิดอยู่ และที่นั่งข้างๆ เขาว่างเปล่า",
         "แดนตกใจจึงไปที่โบสถ์และเล่าให้บาทหลวงฟัง บาทหลวงถอนหายใจ 'เธอคือลูกสาวของฉัน' เขากล่าว 'เธอหายไปบนถนนสายนี้เมื่อยี่สิบปีก่อน ในคืนที่ฝนตกแบบนี้ คุณเป็นคนที่สามที่พาเธอกลับบ้าน'"
       ]
     },
@@ -6228,14 +6326,14 @@
       id: "cur-ghost-tell-tale", level: "B1", genre: "ghost",
       title: "The Tell-Tale Heart",
       pages: [
-        "I loved the old man. He had done nothing wrong. But his eye was pale blue, like the eye of a vulture, and it made my blood run cold. I decided, at last, to take the old man's life and free myself of that eye forever.",
+        "I loved the old man. He had done nothing wrong. But his eye was pale blue, like the eye of a vulture, and it made my blood run cold. At last I decided to take the old man's life and free myself of that eye forever.",
         "Every night for a week I opened his door, very slowly, and shone a single ray of light onto that vulture eye. When it was closed, I left. But on the eighth night, the eye was open. My rage and fear grew. I heard a low, dull sound — the beating of his heart.",
         "I rushed at him and smothered him in one moment. The beating stopped. I hid his body beneath the floorboards and cleaned every trace of blood. 'Who would suspect anything?' I thought. I was calm and clever.",
         "Then the police came. I smiled and invited them in. I was sure of my plan. But soon I began to hear a faint sound — a low, dull beating. It grew louder and louder under the floor. The officers chatted calmly, but I could not stand it.",
         "I tore up the boards and shouted, 'I admit the deed! It is the beating of his hideous heart!' The sound had come from my own guilt, and it had betrayed me."
       ],
       thPages: [
-        "ฉันรักชายชราคนนั้น เขาไม่ได้ทำผิดอะไร แต่ดวงตาของเขาสีฟ้าจางเหมือนตาของนกแร้ง และมันทำให้เลือดของฉันเย็นฉ่ำ ในที่สุดฉันตัดสินใจจะเอาชีวิตชายชราและปลดปล่อยตัวเองจากตานั้นตลอดไป",
+        "ฉันรักชายชราคนนั้น เขาไม่ได้ทำผิดอะไร แต่ดวงตาของเขาสีฟ้าจางเหมือนตาของนกแร้ง และมันทำให้เลือดของฉันเย็นฉ่ำ ในที่สุดฉันตัดสินใจจะเอาชีวิตชายชราเพื่อปลดปล่อยตัวเองจากตานั้นให้สิ้นซาก",
         "ทุกคืนเป็นเวลาหนึ่งสัปดาห์ ฉันเปิดประตูห้องเขาอย่างช้าๆ และส่องแสงเพียงเส้นเดียวไปที่ตานกแร้งนั้น เมื่อมันหลับตาฉันก็จากไป แต่ในคืนที่แปด ตานั้นเปิดอยู่ ความโกรธและความกลัวของฉันเพิ่มขึ้น ฉันได้ยินเสียงทึบต่ำ — เสียงหัวใจเต้นของเขา",
         "ฉันพุ่งเข้าไปหาเขาและกดปิดปากเขาในชั่วพริบตา เสียงเต้นหยุดลง ฉันซ่อนศพของเขาไว้ใต้พื้นไม้และล้างร่องรอยเลือดทุกจุด 'ใครจะมาสงสัย' ฉันคิด ฉันสงบและฉลาด",
         "แล้วตำรวจก็มา ฉันยิ้มและเชิญพวกเขาเข้ามา ฉันมั่นใจในแผนของฉัน แต่ไม่นานฉันก็เริ่มได้ยินเสียงอู้อี้ — เสียงเต้นทึบต่ำ มันดังขึ้นเรื่อยๆ ใต้พื้น เจ้าหน้าที่พูดคุยอย่างสงบ แต่ฉันทนไม่ไหว",
@@ -6248,16 +6346,16 @@
       pages: [
         "Maya moved into an old apartment in the city center. The rent was cheap, and the room was beautiful. There was only one strange thing: every night at exactly three in the morning, she heard soft whispers coming from behind the wall.",
         "At first she thought it was the neighbors. But the wall led to a narrow, empty hallway. Maya pressed her ear to the plaster and listened. The whispers spoke her name. 'Maya... Maya... come closer...'",
-        "She asked the landlord about the wall. His face turned pale. 'Nobody lived in that room for years,' he said quietly. 'They bricked it up after the accident.' He refused to say anything more.",
-        "That night, Maya could not sleep. At three o'clock the whispers returned. This time, she felt a cold wind through the cracks, and she saw a thin line of light glowing between the bricks. Her hands trembled as she touched the wall.",
+        "She asked the landlord about the wall. His face turned pale. 'Nobody has lived in that room for years,' he said quietly. 'They bricked it up after the accident.' He refused to say anything more.",
+        "That night, Maya couldn't sleep. At three o'clock the whispers returned. This time, she felt a cold wind through the cracks, and she saw a thin line of light glowing between the bricks. Her hands trembled as she touched the wall.",
         "The next morning, a worker came to tear down the wall. Behind it, they found an old diary and a silver locket. The diary's last page read: 'If you can hear me, I am still here. Please let me out.' Maya opened the locket — inside was a photo of a woman who looked exactly like her."
       ],
       thPages: [
         "มายาย้ายเข้าไปในอพาร์ตเมนต์เก่าใจกลางเมือง ค่าเช่าถูกและห้องก็สวยงาม มีเพียงสิ่งแปลกประหลาดอย่างเดียว: ทุกคืนตอนตีสามพอดี เธอได้ยินเสียงกระซิบแผ่วเบามาจากหลังกำแพง",
-        "ตอนแรกเธอคิดว่าเป็นเพื่อนบ้าน แต่กำแพงนั้นอยู่ติดกับทางเดินแคบๆ ที่ว่างเปล่า มายาแนบหูเข้ากับปูนและฟัง เสียงกระซิบเรียกชื่อเธอ 'มายา... มายา... เข้ามาใกล้ๆ...'",
+        "ตอนแรกเธอคิดว่าเป็นเพื่อนบ้าน แต่กำแพงนั้นอยู่ติดกับทางเดินแคบๆ ที่ว่างเปล่า มายาแนบหูเข้ากับปูนแล้วฟัง เสียงกระซิบเรียกชื่อเธอ 'มายา... มายา... เข้ามาใกล้ๆ...'",
         "เธอถามเจ้าของบ้านเกี่ยวกับกำแพงนั้น ใบหน้าของเขาซีด 'ไม่มีใครอาศัยในห้องนั้นมาหลายปีแล้ว' เขาพูดเบาๆ 'พวกเขาปิดด้วยอิฐหลังเกิดอุบัติเหตุ' เขาปฏิเสธที่จะพูดอะไรอีก",
-        "คืนนั้นมายานอนไม่หลับ ตีสามเสียงกระซิบก็กลับมา คราวนี้เธอรู้สึกถึงลมหนาวพัดผ่านรอยแตก และเห็นเส้นแสงบางๆ เรืองแสงระหว่างก้อนอิฐ มือของเธอสั่นเมื่อสัมผัสกำแพง",
-        "เช้าวันถัดมา คนงานมาเพื่อทลายกำแพง หลังกำแพงพวกเขาพบสมุดบันทึกเก่าและสร้อยเงินจี้ หน้าสุดท้ายของบันทึกเขียนว่า 'ถ้าคุณได้ยินฉัน ฉันยังอยู่ที่นี่ โปรดปล่อยฉันออกมา' มายาเปิดจี้ — ข้างในมีรูปผู้หญิงที่หน้าตาเหมือนเธอเป๊ะ"
+        "คืนนั้นมายานอนไม่หลับ ตีสามเสียงกระซิบก็กลับมา คราวนี้เธอรู้สึกถึงลมหนาวพัดผ่านรอยแตก และเห็นเส้นแสงบางๆ เรืองแสงระหว่างก้อนอิฐ มือของเธอสั่นเทาเมื่อสัมผัสกำแพง",
+        "เช้าวันถัดมา คนงานมาเพื่อทลายกำแพง หลังกำแพงพวกเขาพบสมุดบันทึกเก่าและสร้อยเงินจี้ หน้าสุดท้ายของบันทึกเขียนว่า 'ถ้าคุณได้ยินฉัน ฉันยังอยู่ที่นี่ ได้โปรดปล่อยฉันออกมา' มายาเปิดจี้ — ข้างในมีรูปผู้หญิงที่หน้าตาเหมือนเธอเป๊ะ"
       ]
     },
     {
@@ -6265,19 +6363,19 @@
       title: "The Three Little Pigs",
       pages: [
         "Three little pigs left their mother's house to build homes of their own. The first pig was lazy. He built his house quickly from straw. The second pig was a little more careful, so he built his house from sticks.",
-        "The third pig worked the hardest. He built his house from strong red bricks, stone by stone. He did not stop until the walls were thick and the roof was firm.",
+        "The third pig worked the hardest. He built his house from strong red bricks, one by one. He didn't stop until the walls were thick and the roof was firm.",
         "One day a big bad wolf came to the straw house. He knocked and said, 'Little pig, little pig, let me come in!' The pig refused, so the wolf blew the house down. The pig ran to his brother's stick house.",
-        "The wolf followed and blew the stick house down too. Both pigs ran as fast as they could to the brick house of their brother. The wolf knocked, but the third pig said, 'No, you cannot come in!'",
-        "The wolf huffed and puffed, but the brick house did not move. So he climbed onto the roof to come down the chimney. The pigs put a big pot of boiling water in the fireplace.",
+        "The wolf followed and blew the stick house down too. Both pigs ran as fast as they could to their brother's brick house. The wolf knocked, but the third pig said, 'No, you can't come in!'",
+        "The wolf huffed and puffed, but the brick house didn't move. So he climbed onto the roof to come down the chimney. The pigs put a big pot of boiling water in the fireplace.",
         "The wolf came down the chimney and fell straight into the hot pot. He howled, jumped out, and ran away forever. The three little pigs lived safely and happily in their strong brick house."
       ],
       thPages: [
         "ลูกหมูสามตัวออกจากบ้านแม่เพื่อสร้างบ้านของตัวเอง ตัวแรกขี้เกียจ เขาสร้างบ้านจากฟางอย่างรวดเร็ว ตัวที่สองระมัดระวังขึ้นอีกนิด จึงสร้างบ้านจากไม้",
-        "ตัวที่สามขยันที่สุด เขาสร้างบ้านจากอิฐแดงที่แข็งแรงทีละก้อน เขาไม่หยุดจนกว่าผนังจะหนาและหลังคาจะมั่นคง",
-        "วันหนึ่งหมาป่าใจร้ายมาที่บ้านฟาง เขาเคาะแล้วพูดว่า 'หมูน้อย หมูน้อย ให้ฉันเข้าไปหน่อย!' หมูปฏิเสธ หมาป่าจึงเป่าบ้านพังทลาย หมูวิ่งไปหาพี่ที่บ้านไม้",
-        "หมาป่าตามไปและเป่าบ้านไม้พังเช่นกัน หมูสองตัววิ่งเร็วที่สุดเท่าที่จะทำได้ไปที่บ้านอิฐของพี่ชาย หม่าป่าเคาะ แต่ตัวที่สามพูดว่า 'ไม่ เจ้าเข้าไม่ได้!'",
-        "หมาป่าพ่นลมอย่างหนัก แต่บ้านอิฐไม่ขยับ เขาจึงปีนขึ้นไปบนหลังคาเพื่อลงมาทางปล่องไฟ หมูทั้งสามวางหม้อน้ำเดือดใบใหญ่ไว้ในเตาผิง",
-        "หมาป่าลงมาทางปล่องไฟและตกลงไปในหม้อน้ำเดือดพอดี เขาร้องโหยหวน กระโดดออกมาและวิ่งหนีไปตลอดกาล ลูกหมูสามตัวอาศัยอย่างปลอดภัยและมีความสุขในบ้านอิฐที่แข็งแรง"
+        "ตัวที่สามขยันที่สุด เขาสร้างบ้านจากอิฐแดงที่แข็งแรงทีละก้อน เขาไม่ยอมหยุดจนกว่าผนังจะหนาและหลังคาจะมั่นคง",
+        "วันหนึ่งหมาป่าใจร้ายมาที่บ้านฟาง มันเคาะแล้วพูดว่า 'หมูน้อย หมูน้อย ให้ฉันเข้าไปหน่อย!' หมูปฏิเสธ หมาป่าจึงเป่าบ้านพังทลาย หมูวิ่งไปหาพี่ที่บ้านไม้",
+        "หมาป่าตามไปและเป่าบ้านไม้พังเช่นกัน หมูสองตัววิ่งเร็วที่สุดเท่าที่จะทำได้ไปที่บ้านอิฐของพี่ชาย หมาป่าเคาะประตู แต่ตัวที่สามพูดว่า 'ไม่ เจ้าเข้าไม่ได้!'",
+        "หมาป่าพ่นลมอย่างหนัก แต่บ้านอิฐไม่ขยับ มันจึงปีนขึ้นไปบนหลังคาเพื่อลงมาทางปล่องไฟ หมูทั้งสามวางหม้อน้ำเดือดใบใหญ่ไว้ในเตาผิง",
+        "หมาป่าลงมาทางปล่องไฟและตกลงไปในหม้อน้ำเดือดพอดี มันร้องโหยหวน กระโดดออกมาและวิ่งหนีไปตลอดกาล ลูกหมูสามตัวอาศัยอย่างปลอดภัยและมีความสุขในบ้านอิฐที่แข็งแรง"
       ]
     },
     {
@@ -6293,11 +6391,11 @@
       ],
       thPages: [
         "กาลครั้งหนึ่งมีเด็กหญิงผมทองตัวน้อย ทุกคนเรียกเธอว่าโกลดิล็อกส์ เช้าวันหนึ่งเธอเดินเข้าไปในป่าและพบกระท่อมเล็กๆ ประตูเปิดอยู่ เธอจึงเดินเข้าไป",
-        "บนโต๊ะมีโจ๊กสามชาม เธอชิมชามแรก แต่มันร้อนเกินไป เธอชิมชามที่สอง แต่มันเย็นเกินไป ชามที่สามพอดี จึงกินหมด",
+        "บนโต๊ะมีโจ๊กสามชาม เธอชิมชามแรก แต่มันร้อนเกินไป เธอชิมชามที่สอง แต่มันเย็นเกินไป ชามที่สามพอดี เธอจึงกินหมด",
         "แล้วเธอก็เห็นเก้าอี้สามตัว ตัวแรกใหญ่เกินไป ตัวที่สองกว้างเกินไป ตัวที่สามพอดี แต่มันหักอยู่ใต้ตัวเธอ!",
         "โกลดิล็อกส์เหนื่อยจึงเดินขึ้นไปชั้นบน มีเตียงสามเตียง เตียงแรกแข็งเกินไป เตียงที่สองนุ่มเกินไป เตียงที่สามพอดี และเธอก็หลับไปทันที",
-        "ในไม่ช้าหมีสามตัวก็กลับมาบ้าน 'มีคนกินโจ๊กของฉัน!' หมีตัวใหญ่กล่าว 'มีคนกินโจ๊กของฉัน!' หมีตัวกลางกล่าว 'มีคนกินของฉันด้วย!' หมีตัวเล็กก cried",
-        "หมีตัวเล็กพบโกลดิล็อกส์กำลังนอนหลับบนเตียงของเขา เธอตื่นขึ้น เห็นหมีสามตัว และกระโดดออกจากหน้าต่าง เธอวิ่งกลับบ้านตลอดทางและไม่กลับไปที่กระท่อมอีกเลย"
+        "ในไม่ช้าหมีสามตัวก็กลับมาบ้าน 'มีคนกินโจ๊กของฉัน!' หมีตัวใหญ่กล่าว 'มีคนกินโจ๊กของฉัน!' หมีตัวกลางกล่าว 'มีคนกินของฉันด้วย!' หมีตัวเล็กร้องขึ้น",
+        "หมีตัวเล็กพบโกลดิล็อกส์กำลังนอนหลับบนเตียงของมัน เธอตื่นขึ้น เห็นหมีสามตัว และกระโดดออกจากหน้าต่าง เธอวิ่งกลับบ้านตลอดทางและไม่กลับไปที่กระท่อมอีกเลย"
       ]
     },
     {
@@ -6312,12 +6410,12 @@
         "This time he took a magic hen that laid golden eggs and a magic harp that sang by itself. The giant chased him, but Jack chopped down the beanstalk. The giant fell, and Jack lived happily with his mother forever."
       ],
       thPages: [
-        "แจ็คอาศัยอยู่กับแม่ในบ้านหลังเล็ก พวกเขายากจนมาก และวันหนึ่งไม่มีอาหารเหลือเลย แม่ส่งแจ็คไปตลาดเพื่อขายวัวแก่ของพวกเขา",
+        "แจ็คอาศัยอยู่กับแม่ในบ้านหลังเล็ก พวกเขายากจนมาก และวันหนึ่งไม่มีอาหารเหลือเลย แม่จึงส่งแจ็คไปตลาดเพื่อขายวัวแก่ของพวกเขา",
         "ระหว่างทาง แจ็คพบชายชราคนหนึ่ง ชายคนนั้นเสนอถั่ววิเศษห้าเมล็ดแลกกับวัว แจ็คตกลงและวิ่งกลับบ้านอย่างตื่นเต้นกับสมบัติของเขา",
-        "แม่ของเขาโกรธมาก 'ถั่ว?! เจ้าขายวัวแลกกับถั่วเหรอ?' เธอโยนมันออกไปนอกหน้าต่าง คืนนั้นต้นถั่ววิเศษยักษ์งอกขึ้นไปถึงเมฆ",
-        "เช้าวันรุ่งขึ้นแจ็คปีนต้นถั่ว บนยอดเขาพบปราสาทยักษ์กลางท้องฟ้า เขาซ่อนอยู่หลังประตูและดูยักษ์ตัวมหึมานับเหรียญทองของมัน",
-        "เมื่อยักษ์หลับ แจ็คคว้ากระสอบเหรียญทองและปีนลงมา เขากับแม่กลายเป็นคนรวย แต่แจ็คอยากสำรวจปราสาทอีกครั้ง จึงปีนขึ้นไปอีกครั้ง",
-        "คราวนี้เขาเอาไก่วิเศษที่ออกไข่ทองคำและพิณวิเศษที่ร้องเพลงเองได้ ยักษ์ไล่ตามเขา แต่แจ็คตัดต้นถั่วทิ้ง ยักษ์ตกลงมา และแจ็คก็อยู่กับแม่อย่างมีความสุขตลอดไป"
+        "แม่ของเขาโกรธมาก 'ถั่ว?! เจ้าขายวัวแลกกับถั่วเหรอ?' เธอโยนถั่วออกไปนอกหน้าต่าง คืนนั้นต้นถั่ววิเศษยักษ์ก็งอกขึ้นไปถึงเมฆ",
+        "เช้าวันรุ่งขึ้นแจ็คปีนต้นถั่ว บนยอดเขาเห็นปราสาทยักษ์กลางท้องฟ้า เขาซ่อนอยู่หลังประตูและดูยักษ์ตัวมหึมานับเหรียญทองของมัน",
+        "เมื่อยักษ์หลับ แจ็คคว้ากระสอบเหรียญทองและปีนลงมา เขากับแม่กลายเป็นคนรวย แต่แจ็คอยากสำรวจปราสาทอีกครั้ง จึงปีนขึ้นไปอีก",
+        "คราวนี้เขาเอาไก่วิเศษที่ออกไข่ทองคำและพิณวิเศษที่ร้องเพลงได้เอง ยักษ์ไล่ตามเขา แต่แจ็คตัดต้นถั่วทิ้ง ยักษ์ตกลงมา และแจ็คก็อยู่กับแม่อย่างมีความสุขตลอดไป"
       ]
     },
     {
@@ -6333,11 +6431,11 @@
       ],
       thPages: [
         "กาลครั้งหนึ่งมีเด็กหญิงตัวน้อยน่ารักที่สวมหมวกคลุมสีแดงเสมอ ทุกคนในหมู่บ้านเรียกเธอว่าหนูน้อยหมวกแดง วันหนึ่งแม่ห่อตะกร้าเค้กแล้วพูดว่า 'เอาไปให้คุณยาย เธอไม่สบาย'",
-        "หนูน้อยหมวกแดงเดินกระโดดไปเรื่อยๆ ผ่านป่า ระหว่างทางเธอพบหมาป่าตัวใหญ่ 'เจ้าจะไปไหนหนูน้อย?' หมาป่าถาม 'ไปบ้านคุณยาย' เธอตอบ หมาป่ายิ้มและวิ่งนำหน้าไปก่อน",
-        "หมาป่าไปถึงบ้านคุณยายก่อน มันเคาะประตู และหญิงชราก็เปิดประตู หมาป่าทำให้เธอตกใจ ล็อกเธอไว้ในตู้ สวมเสื้อผ้าของเธอ แล้วปีนขึ้นไปบนเตียง",
+        "หนูน้อยหมวกแดงเดินกระโดดผ่านป่าไปเรื่อยๆ ระหว่างทางเธอพบหมาป่าตัวใหญ่ 'เจ้าจะไปไหนหนูน้อย?' หมาป่าถาม 'ไปบ้านคุณยาย' เธอตอบ หมาป่ายิ้มและวิ่งนำหน้าไปก่อน",
+        "หมาป่าไปถึงบ้านคุณยายก่อน มันเคาะประตู และหญิงชราก็เปิดประตูให้ หมาป่าทำให้เธอตกใจ ล็อกเธอไว้ในตู้ สวมเสื้อผ้าของเธอ แล้วปีนขึ้นไปบนเตียง",
         "เมื่อหนูน้อยหมวกแดงมาถึง เธอสังเกตเห็นบางอย่างแปลกๆ 'คุณยายตาโตจัง!' เธอกล่าว 'ก็เพื่อที่จะได้มองเห็นเธอชัดๆ' หมาป่าตอบ 'คุณยายหูใหญ่จัง!' 'ก็เพื่อที่จะได้ยินเธอชัดๆ'",
         "'แล้วปากใหญ่จัง!' เธอกล่าว 'ก็เพื่อที่จะได้กินเธอ!' หมาป่าคำรามและกระโดดลงจากเตียง แต่พรานผู้กล้าหาญได้ยินเสียงจึงวิ่งเข้ามาและไล่หมาป่าไป",
-        "พรานช่วยคุณยายออกจากตู้ หนูน้อยหมวกแดงและคุณยายกอดกัน เธอสัญญาว่าจะไม่คุยกับคนแปลกหน้าในป่าอีก และพวกเขาก็กินเค้กอย่างมีความสุข"
+        "พรานช่วยคุณยายออกจากตู้ หนูน้อยหมวกแดงและคุณยายกอดกันแน่น เธอสัญญาว่าจะไม่คุยกับคนแปลกหน้าในป่าอีก และพวกเขาก็กินเค้กอย่างมีความสุข"
       ]
     },
     {
@@ -6345,19 +6443,19 @@
       title: "The Ugly Duckling",
       pages: [
         "By an old farmhouse, a mother duck sat on her nest. At last the eggs began to crack, and out came six pretty yellow ducklings. But one egg was bigger than the rest, and it took much longer to hatch.",
-        "When the big egg finally opened, out came a strange duckling. He was grey and clumsy, and he looked different from his brothers and sisters. 'Look at him!' said the other ducks. 'He is so ugly!'",
-        "Everywhere the poor duckling went, the other birds laughed at him. Even his own brothers did not want to play with him. He was very sad, and one night he flew away to live alone in the marsh.",
-        "Winter came. The marsh froze, and the ugly duckling was cold and hungry. But he did not give up. He survived the cold season, and in the spring he stretched his wings and flew into the air.",
+        "When the big egg finally opened, out came a strange duckling. He was grey and clumsy, and he looked different from his brothers and sisters. 'Look at him!' said the other ducks. 'He's so ugly!'",
+        "Everywhere the poor duckling went, the other birds laughed at him. Even his own brothers didn't want to play with him. He was very sad, and one night he flew away to live alone in the marsh.",
+        "Winter came. The marsh froze, and the ugly duckling was cold and hungry. But he didn't give up. He survived the cold season, and in the spring he stretched his wings and flew into the air.",
         "He landed on a beautiful lake where three white swans swam. They swam toward him, and he lowered his head, ashamed. But then he saw his own reflection in the water — he was a graceful swan!",
-        "The other swans welcomed him with open wings. He had never dreamed he could be so beautiful. 'It does not matter if you are born in a duck yard,' he thought. 'What matters is what you become inside.' And he was the happiest swan of all."
+        "The other swans welcomed him with open wings. He had never dreamed he could be so beautiful. 'It doesn't matter if you are born in a duck yard,' he thought. 'What matters is what you become inside.' And he was the happiest swan of all."
       ],
       thPages: [
-        "ข้างบ้านไร่เก่า เป็ดแม่นั่งกกไข่บนรัง ในที่สุดไข่ก็เริ่มแตก และลูกเป็ดสีเหลืองน่ารักหกตัวก็ออกมา แต่มีไข่ใบหนึ่งใหญ่กว่าใบอื่น และใช้เวลาฟักนานกว่ามาก",
-        "เมื่อไข่ใหญ่ใบนั้นฟักออกมา ลูกเป็ดตัวแปลกก็ออกมา เขาสีเทาและงุ่มง่าม ดูแตกต่างจากพี่น้อง 'ดูมันสิ!' เป็ดตัวอื่นกล่าว 'มันน่าเกลียดจัง!'",
+        "ข้างบ้านไร่เก่า เป็ดแม่นั่งกกไข่อยู่บนรัง ในที่สุดไข่ก็เริ่มแตก และลูกเป็ดสีเหลืองน่ารักหกตัวก็ออกมา แต่มีไข่ใบหนึ่งใหญ่กว่าใบอื่น และใช้เวลาฟักนานกว่ามาก",
+        "เมื่อไข่ใหญ่ใบนั้นฟักออกมา ลูกเป็ดตัวแปลกๆ ก็ออกมา เขาสีเทาและงุ่มง่าม ดูแตกต่างจากพี่น้อง 'ดูมันสิ!' เป็ดตัวอื่นพูด 'มันน่าเกลียดจัง!'",
         "ลูกเป็ดผู้น่าสงสารไปที่ไหน นกตัวอื่นก็หัวเราะเยาะ แม้แต่พี่น้องของเขาเองก็ไม่อยากเล่นด้วย เขาเศร้ามาก และคืนหนึ่งเขาก็บินหนีไปอยู่ตามลำพังในหนองน้ำ",
-        "ฤดูหนาวมาถึง หนองน้ำแข็งตัว ลูกเป็ดตัวนั้นหนาวและหิว แต่เขาไม่ยอมแพ้ เขารอดชีวิตผ่านฤดูหนาว และในฤดูใบไม้ผลิเขาก็ยืดปีกและบินขึ้นสู่อากาศ",
+        "ฤดูหนาวมาถึง หนองน้ำแข็งตัว ลูกเป็ดตัวนั้นหนาวและหิว แต่เขาไม่ยอมแพ้ เขารอดชีวิตผ่านฤดูหนาวมาได้ และในฤดูใบไม้ผลิเขาก็ยืดปีกและบินขึ้นสู่อากาศ",
         "เขาลงจอดที่ทะเลสาบสวยงามซึ่งมีหงส์ขาวสามตัวว่ายอยู่ พวกมันว่ายเข้ามาหาเขา และเขาก็ก้มหน้าลงด้วยความละอาย แต่แล้วเขาก็เห็นเงาสะท้อนของตัวเองในน้ำ — เขาคือหงส์ที่สง่างาม!",
-        "หงส์ตัวอื่นต้อนรับเขาด้วยปีกที่กางออก เขาไม่เคยฝันว่าตนจะสวยได้ขนาดนี้ 'ไม่สำคัญว่าคุณจะเกิดในเล้าเป็ด' เขาคิด 'สิ่งที่สำคัญคือสิ่งที่คุณเป็นอยู่ภายใน' และเขาก็เป็นหงส์ที่มีความสุขที่สุด"
+        "หงส์ตัวอื่นต้อนรับเขาด้วยปีกที่กางออก เขาไม่เคยฝันว่าตัวเองจะสวยได้ขนาดนี้ 'ไม่สำคัญว่าคุณจะเกิดในเล้าเป็ด' เขาคิด 'สิ่งที่สำคัญคือสิ่งที่คุณเป็นอยู่ภายใน' และเขาก็เป็นหงส์ที่มีความสุขที่สุด"
       ]
     },
     {
@@ -6367,552 +6465,452 @@
         "Outside a cold English village, the White family sat by the fire. A visitor named Sergeant-Major Morris arrived and told them a strange story about a monkey's paw that could grant three wishes to its owner.",
         "Morris threw the dried paw onto the fire, but Mr. White grabbed it. 'I'll keep it,' he said. 'How do I use it?' Morris warned him seriously. 'Be careful what you wish for. I've seen things happen that I regret.'",
         "That night, Mr. White wished for two hundred pounds. The next morning, his son Herbert went to work. A while later, a stranger came to the door with sad news: Herbert had been caught in the machinery and had died.",
-        "The stranger handed Mr. White two hundred pounds as compensation. The family was heartbroken. Weeks passed, and Mrs. White could not bear the loss. 'The paw! Wish for Herbert to come back!' she begged.",
+        "The stranger handed Mr. White two hundred pounds as compensation. The family was heartbroken. Weeks passed, and Mrs. White couldn't bear the loss. 'The paw! Wish for Herbert to come back!' she begged.",
         "Reluctantly, Mr. White wished for his son to be alive again. That night, a terrible knocking came at the door. Something outside called Herbert's name in a low, hollow voice.",
         "Mrs. White rushed to unlock the door, but Mr. White was terrified. The knocking grew louder. He found the paw, and with a shaking hand, he made a final wish. The knocking stopped. When Mrs. White opened the door, the street was empty."
       ],
       thPages: [
         "นอกหมู่บ้านอังกฤษที่หนาวเย็น ครอบครัวไวท์นั่งอยู่ริมกองไฟ แขกคนหนึ่งชื่อจ่าเมเจอร์มอร์ริสมาถึงและเล่าเรื่องแปลกประหลาดเกี่ยวกับอุ้งตีนลิงที่สามารถให้พรสามข้อแก่เจ้าของได้",
-        "มอร์ริสโยนอุ้งตีนลิงแห้งนั้นลงในกองไฟ แต่คุณไวท์คว้าไว้ 'ฉันจะเก็บไว้' เขากล่าว 'ใช้ยังไง?' มอร์ริสเตือนเขาอย่างจริงจัง 'ระวังสิ่งที่เจ้าขอ ฉันเคยเห็นเรื่องที่ฉันเสียใจ'",
+        "มอร์ริสโยนอุ้งตีนลิงแห้งนั้นลงในกองไฟ แต่คุณไวท์คว้าไว้ 'ฉันจะเก็บไว้' เขาพูด 'ใช้ยังไง?' มอร์ริสเตือนเขาอย่างจริงจัง 'ระวังสิ่งที่เจ้าขอ ฉันเคยเห็นเรื่องที่ฉันเสียใจ'",
         "คืนนั้นคุณไวท์ขอเงินสองร้อยปอนด์ เช้าวันรุ่งขึ้นเฮอร์เบิร์ตลูกชายไปทำงาน ต่อมาคนแปลกหน้ามาที่ประตูพร้อมข่าวเศร้า: เฮอร์เบิร์ตถูกเครื่องจักรเกี่ยวและเสียชีวิต",
-        "คนแปลกหน้าส่งเงินสองร้อยปอนด์ให้คุณไวท์เป็นค่าชดเชย ครอบครัวเสียใจมาก หลายสัปดาห์ผ่านไป คุณนายไวท์ทนการสูญเสียนี้ไม่ได้ 'อุ้งตีนลิง! ขอให้เฮอร์เบิร์ตกลับมา!' เธอวิงวอน",
-        "อย่างไม่เต็มใจ คุณไวท์ขอให้ลูกชายกลับมามีชีวิตอีกครั้ง คืนนั้นเสียงเคาะประตูอันน่ากลัวดังมา บางสิ่งนอกประตูเรียกชื่อเฮอร์เบิร์ตด้วยเสียงทุ้มและก้อง",
-        "คุณนายไวท์รีบวิ่งไปปลดล็อกประตู แต่คุณไวท์ตกใจมาก เสียงเคาะดังขึ้นเรื่อยๆ เขาหาอุ้งตีนลิงพบ และด้วยมือที่สั่น เขาขอพรสุดท้าย เสียงเคาะหยุดลง เมื่อคุณนายไวท์เปิดประตู ถนนก็ว่างเปล่า"
+        "คนแปลกหน้าส่งเงินสองร้อยปอนด์ให้คุณไวท์เป็นค่าชดเชย ครอบครัวเสียใจมาก หลายสัปดาห์ผ่านไป คุณนายไวท์ทนการสูญเสียนี้ไม่ไหว 'อุ้งตีนลิง! ขอให้เฮอร์เบิร์ตกลับมา!' เธอวิงวอน",
+        "อย่างไม่เต็มใจ คุณไวท์ขอให้ลูกชายกลับมามีชีวิตอีกครั้ง คืนนั้นเสียงเคาะประตูอันน่ากลัวก็ดังขึ้น มีบางอย่างนอกประตูเรียกชื่อเฮอร์เบิร์ตด้วยเสียงทุ้มและก้อง",
+        "คุณนายไวท์รีบวิ่งไปปลดล็อกประตู แต่คุณไวท์ตกใจมาก เสียงเคาะดังขึ้นเรื่อยๆ เขาหาอุ้งตีนลิงเจอ และด้วยมือที่สั่นเทา เขาก็ขอพรสุดท้าย เสียงเคาะหยุดลง เมื่อคุณนายไวท์เปิดประตู ถนนก็ว่างเปล่า"
       ]
     },
     {
       id: "cur-ghost-sleepy-hollow", level: "B1", genre: "ghost",
       title: "The Legend of Sleepy Hollow",
-      pages: [
-        "In a quiet valley called Sleepy Hollow lived a young schoolmaster named Ichabod Crane. He was tall and thin, and he loved ghost stories. The people of the village told a terrible tale about a Headless Horseman who rode at night.",
-        "Ichabod fell in love with Katrina Van Tassel, the daughter of a rich farmer. But another young man, Brom Bones, also wanted to marry Katrina, and he envied the schoolmaster.",
-        "One autumn evening, the Van Tassels held a great party. Ichabod danced with Katrina all night, while Brom watched angrily from the corner. As the party ended, Ichabod stayed behind to speak with Katrina.",
-        "It was late when Ichabod rode home alone. The road was dark and full of strange sounds. Suddenly, he saw a huge horseman following him. The rider had no head!",
-        "Ichabod urged his horse faster, but the horseman followed. They raced toward a wooden bridge. The legend said the ghost could not cross the bridge, so Ichabod galloped across it. Then the horseman threw his head at him!",
-        "The next morning, Ichabod's horse was found without its rider. His hat lay near the bridge, next to a smashed pumpkin. Nobody ever saw Ichabod Crane again, and some said he had married a rich widow far away. Brom Bones married Katrina, and he always laughed when the story was told."
-      ],
-      thPages: [
-        "ในหุบเขาที่เงียบสงบชื่อสลีปปี้ฮอลโลว์มีครูหนุ่มชื่ออิคาบ็อด เครนอาศัยอยู่ เขาสูงและผอม และชอบเรื่องผี ผู้คนในหมู่บ้านเล่าตำนานน่ากลัวเกี่ยวกับอัศวินไม่มีหัวที่ขี่ม้าในเวลากลางคืน",
-        "อิคาบ็อดตกหลุมรักคาทริน่า แวน ทาสเซล ลูกสาวของชาวนาที่ร่ำรวย แต่ชายหนุ่มอีกคนชื่อบรอม โบนส์ก็อยากแต่งงานกับคาทริน่าเช่นกัน และเขาก็อิจฉาครูหนุ่ม",
-        "เย็นวันหนึ่งในฤดูใบไม้ร่วง ครอบครัวแวนทาสเซลจัดงานเลี้ยงใหญ่ อิคาบ็อดเต้นรำกับคาทริน่าตลอดทั้งคืน ขณะที่บรอมมองอย่างโกรธเคืองจากมุมห้อง เมื่องานจบลง อิคาบ็อดอยู่ต่อเพื่อพูดคุยกับคาทริน่า",
-        "มันดึกมากเมื่ออิคาบ็อดขี่ม้ากลับบ้านคนเดียว ถนนมืดและเต็มไปด้วยเสียงประหลาด ทันใดนั้นเขาก็เห็นคนขี่ม้าตัวใหญ่ตามมา คนขี่ม้าไม่มีหัว!",
-        "อิคาบ็อดเร่งม้าให้เร็วขึ้น แต่มนุษย์ขี่ม้าก็ตามมา พวกเขาแข่งไปที่สะพานไม้ ตำนานกล่าวว่าผีข้ามสะพานไม่ได้ อิคาบ็อดจึงควบม้าข้ามไป แล้วคนขี่ม้าก็โยนหัวของเขามาใส่!",
-        "เช้าวันรุ่งขึ้นพบม้าของอิคาบ็อดโดยไม่มีคนขี่ หมวกของเขาอยู่ใกล้สะพาน ถัดจากฟักทองที่ถูกทุบ ไม่มีใครเห็นอิคาบ็อด เครนอีกเลย และบางคนก็บอกว่าเขาแต่งงานกับหญิงม่ายรวยในที่ห่างไกล บรอม โบนส์แต่งงานกับคาทริน่า และเขามักจะหัวเราะเสมอเมื่อมีคนเล่าเรื่องนี้"
-      ]
+      pages: ["In a quiet valley called Sleepy Hollow lived a young schoolmaster named Ichabod Crane. He was tall and thin, and he loved ghost stories. The villagers told a terrible tale about a Headless Horseman who rode at night.",
+        "Ichabod fell in love with Katrina Van Tassel, the daughter of a rich farmer. But another young man, Brom Bones, also wanted to marry Katrina, and he was jealous of the schoolmaster.",
+        "One autumn evening, the Van Tassels threw a big party. Ichabod danced with Katrina all night, while Brom watched from the corner, angry. When the party ended, Ichabod stayed behind to talk with Katrina.",
+        "It was late when Ichabod rode home alone. The road was dark, and strange sounds filled the air. Suddenly, he saw a huge horseman riding behind him. The rider had no head!",
+        "Ichabod urged his horse to go faster, but the horseman kept coming. They raced toward a wooden bridge. The legend said the ghost couldn't cross the bridge, so Ichabod galloped across it. Then the horseman threw his head at him!",
+        "The next morning, they found Ichabod's horse without its rider. His hat lay near the bridge, next to a smashed pumpkin. Nobody ever saw Ichabod Crane again, and some said he'd married a rich widow far away. Brom Bones married Katrina, and he always laughed whenever the story was told."],
+      thPages: ["ในหุบเขาอันเงียบสงบชื่อสลีปปี้ฮอลโลว์มีครูหนุ่มชื่ออิคาบ็อด เครนอาศัยอยู่ เขาสูงผอมและชอบเรื่องผีมาก ชาวบ้านเล่าตำนานน่ากลัวเกี่ยวกับอัศวินไม่มีหัวที่ขี่ม้าออกมาในตอนกลางคืน",
+        "อิคาบ็อดตกหลุมรักคาทริน่า แวน ทาสเซล ลูกสาวของชาวนาผู้มั่งคั่ง แต่ชายหนุ่มอีกคนชื่อบรอม โบนส์ก็อยากได้คาทริน่าเหมือนกัน เขาอิจฉาครูหนุ่มคนนี้มาก",
+        "เย็นวันหนึ่งในฤดูใบไม้ร่วง ครอบครัวแวนทาสเซลจัดงานเลี้ยงใหญ่ อิคาบ็อดเต้นรำกับคาทริน่าทั้งคืน ส่วนบรอมก็นั่งมองอยู่ที่มุมห้องด้วยความหงุดหงิด เมื่องานเลิก อิคาบ็อดก็อยู่ต่อเพื่อคุยกับคาทริน่าคนเดียว",
+        "กว่าจะได้กลับบ้านก็ดึกมากแล้ว อิคาบ็อดขี่ม้ากลับเพียงลำพัง ถนนมืดสนิทและเต็มไปด้วยเสียงแปลกๆ ทันใดนั้นเขาก็เห็นคนขี่ม้าตัวใหญ่ตามมาข้างหลัง คนขี่ม้าคนนั้นไม่มีหัว!",
+        "อิคาบ็อดเร่งม้าให้เร็วขึ้น แต่คนขี่ม้าก็ยังตามมาไม่ลดละ พวกเขาแข่งกันไปที่สะพานไม้ ตำนานบอกว่าผีข้ามสะพานไม่ได้ อิคาบ็อดจึงควบม้าข้ามไป แล้วทันใดนั้นคนขี่ม้าก็โยนหัวของตัวเองมาใส่!",
+        "เช้าวันรุ่งขึ้น พวกเขาพบม้าของอิคาบ็อดแต่ไม่มีคนขี่ หมวกของเขาวางอยู่ใกล้สะพาน ข้างๆ ฟักทองที่แตกเป็นเสี่ยง ไม่มีใครเห็นอิคาบ็อด เครนอีกเลย บางคนบอกว่าเขาแต่งงานกับแม่ม่ายรวยที่อยู่ไกลออกไป ส่วนบรอม โบนส์แต่งงานกับคาทริน่า และเขามักจะหัวเราะทุกครั้งที่มีคนเล่าเรื่องนี้"]
     },
     {
       id: "cur-ghost-black-cat", level: "B2", genre: "ghost",
       title: "The Black Cat",
-      pages: [
-        "I will not try to explain these events. I only say that I am not mad, and that I saw everything with my own eyes. I was a gentle man who loved animals, and my wife and I kept many pets, including a black cat named Pluto.",
-        "But my temper began to change. I grew gloomy and irritable, and I drank too much. One night, blinded by anger, I seized the cat and cut out one of its eyes. The next morning I wept, but the damage was done.",
-        "The cat avoided me, and my shame turned into bitterness. One evening, in a rage, I grabbed poor Pluto by the neck and hanged him from a tree. That very night my house burned down, and only one wall remained standing.",
-        "On that wall, drawn in the ashes, was the image of a giant cat with a rope around its neck. I shuddered, but I told myself it was a coincidence. I needed another pet, and soon I found a black cat in a tavern — identical to Pluto, except for one white spot on its chest.",
-        "The new cat followed me everywhere. The white spot slowly changed shape until it looked like a gallows. I began to fear and hate the creature, but I could not bring myself to harm it. My wife, however, loved it.",
-        "One day we went down to the cellar. The cat startled me, and I raised an axe. My wife tried to stop me, and in my madness I struck her instead. She fell dead. I hid her body inside the wall and finished my work in peace.",
-        "The police searched the house but found nothing. I grew confident, and on the fourth day I led them into the cellar myself. I tapped the wall, boasting of its strong construction. A terrible cry answered — and when the bricks fell, there stood the cat, sitting on my wife's head."
-      ],
-      thPages: [
-        "ฉันจะไม่พยายามอธิบายเหตุการณ์เหล่านี้ ฉันเพียงกล่าวว่าฉันไม่ได้บ้า และฉันเห็นทุกอย่างด้วยตาของตัวเอง ฉันเคยเป็นคนอ่อนโยนที่รักสัตว์ และฉันกับภรรยาเลี้ยงสัตว์หลายชนิด รวมถึงแมวดำตัวหนึ่งชื่อพลูโต",
-        "แต่นิสัยของฉันเริ่มเปลี่ยนไป ฉันหงุดหงิดและฉุนเฉียว และดื่มมากเกินไป คืนหนึ่ง ด้วยความโกรธที่บดบัง ฉันคว้าแมวและตัดตาของมันออกหนึ่งข้าง เช้าวันรุ่งขึ้นฉันร้องไห้ แต่ความเสียหายก็เกิดขึ้นแล้ว",
-        "แมวหลบฉัน และความอับอายของฉันก็กลายเป็นความขมขื่น เย็นวันหนึ่ง ด้วยความเดือดดาล ฉันจับพลูโตผู้น่าสงสารที่คอและแขวนมันไว้กับต้นไม้ คืนนั้นเองบ้านของฉันก็ถูกไฟไหม้ และเหลือเพียงกำแพงเดียวที่ยังตั้งอยู่",
-        "บนกำแพงนั้น ที่วาดในขี้เถ้า เป็นภาพของแมวยักษ์ที่มีเชือกอยู่ที่คอ ฉันสั่นสะท้าน แต่บอกตัวเองว่ามันเป็นเรื่องบังเอิญ ฉันต้องการสัตว์เลี้ยงตัวใหม่ และไม่นานฉันก็พบแมวดำตัวหนึ่งในโรงเหล้า — เหมือนพลูโตทุกอย่าง ยกเว้นจุดขาวบนหน้าอก",
-        "แมวตัวใหม่ตามฉันไปทุกที่ จุดขาวค่อยๆ เปลี่ยนรูปร่างจนดูเหมือนตะแลงแกง ฉันเริ่มกลัวและเกลียดสัตว์ตัวนั้น แต่ก็ไม่กล้าทำร้ายมัน อย่างไรก็ตาม ภรรยาของฉันรักมัน",
-        "วันหนึ่งเราลงไปที่ห้องใต้ดิน แมวทำให้ฉันสะดุ้ง ฉันจึงยกขวานขึ้น ภรรยาพยายามห้ามฉัน และด้วยความวิกลจริต ฉันกลับฟาดเธอแทน เธอล้มลงเสียชีวิต ฉันซ่อนร่างของเธอไว้ในกำแพงและทำงานต่ออย่างสงบ",
-        "ตำรวจค้นบ้านแต่ไม่พบอะไร ฉันเริ่มมั่นใจ และในวันที่สี่ฉันก็นำพวกเขาลงไปที่ห้องใต้ดินด้วยตัวเอง ฉันเคาะกำแพง อวดว่าก่อสร้างแข็งแรงเพียงใด เสียงร้องอันน่าสยดสยองตอบกลับมา — และเมื่ออิฐร่วงลงมา แมวตัวนั้นก็ยืนอยู่บนหัวของภรรยาฉัน"
-      ]
+      pages: ["I will not try to explain these events. I say only that I am not mad and that I saw everything with my own eyes. I was a gentle man who loved animals, and my wife and I kept many pets, including a black cat named Pluto.",
+        "But my temper began to change. I grew gloomy and irritable, and I drank too much. One night, blinded by anger, I grabbed the cat and cut out one of its eyes. The next morning I wept, but the damage was done.",
+        "The cat avoided me, and my shame slowly turned to bitterness. One evening, in a rage, I grabbed poor Pluto by the neck and hanged him from a tree. That very night my house burned down, and only one wall was left standing.",
+        "On that wall, drawn in the ashes, was the image of a giant cat with a rope around its neck. I shuddered, but I told myself it was only a coincidence. I needed another pet, and soon I found a black cat in a tavern — the image of Pluto, except for one white spot on its chest.",
+        "The new cat followed me everywhere. The white spot slowly changed shape until it looked like a gallows. I began to fear and hate the creature, yet I could not bring myself to harm it. My wife, however, loved it.",
+        "One day we went down to the cellar. The cat startled me, and I raised an axe. My wife tried to stop me, and in my madness I struck her instead. She fell dead on the spot. I hid her body inside the wall and finished my work in peace.",
+        "The police searched the house but found nothing. I grew confident, and on the fourth day I led them into the cellar myself. I tapped the wall, boasting of how strongly it was built. A terrible cry answered — and when the bricks fell, there stood the cat, sitting on my wife's head."],
+      thPages: ["ฉันจะไม่พยายามอธิบายเหตุการณ์เหล่านี้ ขอเพียงบอกว่าฉันไม่ได้บ้า และฉันเห็นทุกอย่างด้วยตาของตัวเอง ฉันเคยเป็นคนอ่อนโยนที่รักสัตว์ ฉันกับภรรยาเลี้ยงสัตว์ไว้หลายชนิด รวมถึงแมวดำตัวหนึ่งชื่อพลูโต",
+        "แต่นิสัยของฉันเริ่มเปลี่ยนไป ฉันหงุดหงิดง่าย ฉุนเฉียวง่าย และดื่มเกินขนาด คืนหนึ่ง ด้วยความโกรธที่บดบังสติ ฉันคว้าแมวมาแล้วตัดตาของมันออกหนึ่งข้าง เช้าวันรุ่งขึ้นฉันร้องไห้ แต่สิ่งที่ทำลงไปก็แก้ไขไม่ได้แล้ว",
+        "แมวพยายามหลบฉัน และความอับอายก็กลายเป็นความขมขื่น เย็นวันหนึ่ง ด้วยความเดือดดาล ฉันจับพลูโตผู้น่าสงสารที่คอแล้วแขวนมันไว้กับต้นไม้ คืนนั้นเองบ้านของฉันก็ถูกไฟไหม้ เหลือเพียงกำแพงด้านเดียวที่ยังตั้งอยู่",
+        "บนกำแพงนั้น กลางขี้เถ้า มีภาพแมวยักษ์ที่มีเชือกคล้องคอ ฉันสั่นสะท้าน แต่บอกตัวเองว่ามันเป็นแค่เรื่องบังเอิญ ฉันอยากได้สัตว์เลี้ยงตัวใหม่ และไม่นานฉันก็พบแมวดำตัวหนึ่งในโรงเหล้า — เหมือนพลูโตทุกอย่าง ยกเว้นจุดขาวจุดเดียวบนหน้าอก",
+        "แมวตัวใหม่ตามฉันไปทุกหนทุกแห่ง จุดขาวค่อยๆ เปลี่ยนรูปร่างจนดูเหมือนตะแลงแกง ฉันเริ่มกลัวและเกลียดมัน แต่ก็ทำร้ายมันไม่ลง ส่วนภรรยาของฉันกลับรักมันมาก",
+        "วันหนึ่งเราลงไปที่ห้องใต้ดิน แมวทำให้ฉันสะดุ้ง ฉันจึงยกขวานขึ้น ภรรยาพยายามเข้ามาห้าม และด้วยความวิกลจริต ฉันกลับฟาดลงไปที่เธอแทน เธอล้มลงสิ้นใจทันที ฉันซ่อนร่างของเธอไว้ในกำแพง แล้วก็ทำงานต่ออย่างใจเย็น",
+        "ตำรวจค้นบ้านแต่ไม่พบอะไร ฉันเริ่มมั่นใจขึ้นเรื่อยๆ และในวันที่สี่ฉันก็พาพวกเขาลงไปที่ห้องใต้ดินด้วยตัวเอง ฉันเคาะกำแพง อวดว่ามันแข็งแรงแค่ไหน ทันใดนั้นเสียงร้องอันน่าสยดสยองก็ตอบกลับมา — และเมื่ออิฐร่วงลงมา แมวตัวนั้นก็ยืนอยู่บนหัวของภรรยาฉัน"]
     },
     {
       id: "cur-adv-robinson-crusoe", level: "B1", genre: "adventure",
       title: "Robinson Crusoe",
-      pages: [
-        "My name is Robinson Crusoe. I was born in England and I always dreamed of the sea. My father begged me to stay home, but I would not listen. I sailed away at nineteen, and I have never regretted my love of adventure.",
+      pages: ["My name is Robinson Crusoe. I was born in England, and I always dreamed of the sea. My father begged me to stay home, but I wouldn't listen. I sailed away at nineteen, and I've never regretted my love of adventure.",
         "My first voyages were dangerous, but the greatest test came when a terrible storm sank our ship near a wild island. Every man on board was lost except me. The waves threw me onto the sand, and when I opened my eyes, I was alone.",
-        "I swam out to the broken ship and pulled out food, tools, guns, and rope. I carried them to the shore and built a strong shelter inside a cave. I made a calendar by cutting marks into a wooden post so I would not lose track of the days.",
-        "Months passed, and the island became my home. I learned to grow corn, to catch fish, and to make pots. I kept a few goats for milk and meat. I was no longer afraid; I worked hard every day and thanked God for saving my life.",
-        "I lived there quietly for many years. Then one day I saw a footprint in the sand. It was not my own. I hid in fear, certain that strangers had come to the island, and I prepared my guns and my walls.",
+        "I swam out to the broken ship and pulled out food, tools, guns, and rope. I carried them to the shore and built a strong shelter inside a cave. I made a calendar by cutting marks into a wooden post so I wouldn't lose track of the days.",
+        "Months passed, and the island became my home. I learned to grow corn, to catch fish, and to make pots. I kept a few goats for milk and meat. I was no longer afraid. I worked hard every day and thanked God for saving my life.",
+        "I lived there quietly for many years. Then one day I saw a footprint in the sand. It wasn't my own. I hid in fear, certain that strangers had come to the island, and I prepared my guns and my walls.",
         "One morning I watched a group of men drag two poor prisoners to the beach. One escaped and ran toward me. I rescued him, gave him a name — Friday — and taught him to speak. He was loyal and brave, and we became the best of friends.",
-        "After twenty-eight years on the island, a ship full of mutineers arrived. Friday and I freed its captain, defeated the mutineers, and took the ship. We sailed for England, where I returned as a wealthy man with my faithful friend Friday."
-      ],
-      thPages: [
-        "ฉันชื่อโรบินสัน ครูโซ ฉันเกิดที่อังกฤษและใฝ่ฝันถึงทะเลมาตลอด พ่อขอร้องให้ฉันอยู่บ้าน แต่ฉันไม่ฟัง ฉันออกเรือตอนอายุสิบเก้า และฉันไม่เคยเสียใจที่รักการผจญภัย",
-        "การเดินทางครั้งแรกของฉันอันตราย แต่บททดสอบที่ยิ่งใหญ่ที่สุดเกิดขึ้นเมื่อพายุร้ายจมเรือของเราใกล้เกาะร้าง ลูกเรือทุกคนจมน้ำตายยกเว้นฉัน คลื่นซัดฉันขึ้นฝั่ง และเมื่อฉันลืมตา ฉันก็อยู่เพียงลำพัง",
-        "ฉันว่ายไปที่เรือที่แตกและดึงอาหาร เครื่องมือ ปืน และเชือกขึ้นมา ฉันขนมันไปที่ฝั่งและสร้างที่พักพิงแข็งแรงในถ้ำ ฉันทำปฏิทินโดยการขีดรอยบนเสาไม้เพื่อไม่ให้ลืมนับวัน",
-        "หลายเดือนผ่านไป เกาะแห่งนี้กลายเป็นบ้านของฉัน ฉันเรียนรู้ที่จะปลูกข้าวโพด จับปลา และทำหม้อ ฉันเลี้ยงแพะไม่กี่ตัวไว้กินนมและเนื้อ ฉันไม่กลัวอีกต่อไป ฉันทำงานหนักทุกวันและขอบคุณพระเจ้าที่ช่วยชีวิตฉัน",
-        "ฉันอาศัยอยู่ที่นั่นอย่างสงบหลายปี แล้ววันหนึ่งฉันเห็นรอยเท้าบนทราย มันไม่ใช่รอยเท้าของฉัน ฉันซ่อนตัวด้วยความกลัว แน่ใจว่าคนแปลกหน้ามาที่เกาะ และฉันก็เตรียมปืนและกำแพงของฉัน",
-        "เช้าวันหนึ่งฉันเห็นกลุ่มคนลากนักโทษผู้น่าสงสารสองคนไปที่ชายหาด คนหนึ่งหนีออกมาและวิ่งมาหาฉัน ฉันช่วยเขา ตั้งชื่อให้เขาว่า 'ฟรายเดย์' และสอนให้เขาพูด เขาจงรักภักดีและกล้าหาญ และเรากลายเป็นเพื่อนสนิทกัน",
-        "หลังจากอยู่บนเกาะยี่สิบแปดปี เรือที่เต็มไปด้วยพวกกบฏก็มาถึง ฟรายเดย์กับฉันช่วยกัปตันของมัน เอาชนะพวกกบฏ และยึดเรือได้ เราออกเรือกลับอังกฤษ ที่ซึ่งฉันกลับมาเป็นคนรวยพร้อมกับเพื่อนผู้ซื่อสัตย์ของฉัน ฟรายเดย์"
-      ]
+        "After twenty-eight years on the island, a ship full of mutineers arrived. Friday and I freed its captain, defeated the mutineers, and took the ship. We sailed for England, where I returned a wealthy man with my faithful friend Friday."],
+      thPages: ["ฉันชื่อโรบินสัน ครูโซ เกิดที่อังกฤษและใฝ่ฝันถึงทะเลมาตลอด พ่อขอร้องให้ฉันอยู่บ้านแต่ฉันไม่ยอมฟัง ฉันออกเรือตั้งแต่อายุสิบเก้า และฉันไม่เคยเสียใจที่รักการผจญภัย",
+        "การเดินทางครั้งแรกของฉันอันตราย แต่บททดสอบที่ยิ่งใหญ่ที่สุดเกิดขึ้นเมื่อพายุร้ายจมเรือของเราใกล้เกาะร้าง ลูกเรือทุกคนจมน้ำตายยกเว้นฉัน คลื่นซัดฉันขึ้นฝั่ง และเมื่อฉันลืมตาขึ้นมา ฉันก็อยู่เพียงลำพัง",
+        "ฉันว่ายไปที่เรือที่แตกและดึงอาหาร เครื่องมือ ปืน และเชือกขึ้นมา ฉันขนมันไปที่ฝั่งและสร้างที่พักพิงแข็งแรงในถ้ำ ฉันทำปฏิทินด้วยการขีดรอยบนเสาไม้ เพื่อไม่ให้ตัวเองลืมว่านี่ผ่านไปกี่วัน",
+        "หลายเดือนผ่านไป เกาะแห่งนี้ก็กลายเป็นบ้านของฉัน ฉันเรียนรู้ที่จะปลูกข้าวโพด จับปลา และทำหม้อ ฉันเลี้ยงแพะไว้ไม่กี่ตัวเพื่อกินนมและเนื้อ ฉันไม่กลัวอีกต่อไป ฉันทำงานหนักทุกวันและขอบคุณพระเจ้าที่ช่วยชีวิตฉัน",
+        "ฉันใช้ชีวิตอยู่ที่นั่นอย่างสงบหลายปี แล้ววันหนึ่งฉันเห็นรอยเท้าบนทราย มันไม่ใช่รอยเท้าของฉัน ฉันซ่อนตัวด้วยความกลัว แน่ใจว่ามีคนแปลกหน้ามาที่เกาะ และฉันก็เตรียมปืนและเสริมกำแพงให้แข็งแรง",
+        "เช้าวันหนึ่งฉันเห็นกลุ่มคนลากนักโทษผู้น่าสงสารสองคนมาที่ชายหาด คนหนึ่งหนีออกมาและวิ่งมาหาฉัน ฉันช่วยเขาไว้ ตั้งชื่อเขาว่า 'ฟรายเดย์' และสอนให้เขาพูด เขาเป็นคนซื่อสัตย์และกล้าหาญ และเราก็กลายเป็นเพื่อนสนิทกัน",
+        "หลังจากอยู่บนเกาะยี่สิบแปดปี เรือที่เต็มไปด้วยพวกกบฏก็มาถึง ฟรายเดย์กับฉันช่วยกัปตันของเรือ เอาชนะพวกกบฏ และยึดเรือได้ เราออกเรือกลับอังกฤษ ซึ่งฉันกลับมาเป็นคนร่ำรวยพร้อมกับเพื่อนผู้ซื่อสัตย์ของฉัน ฟรายเดย์"]
     },
     {
       id: "cur-adv-treasure-island", level: "B1", genre: "adventure",
       title: "Treasure Island",
-      pages: [
-        "I am Jim Hawkins, and I must tell you the story of the gold. It began when an old sailor named Billy Bones came to my mother's inn. He paid us well to keep quiet, but he drank too much and talked too much about the sea.",
+      pages: ["I'm Jim Hawkins, and I must tell you the story of the gold. It began when an old sailor named Billy Bones came to my mother's inn. He paid us well to keep quiet, but he drank too much and talked far too much about the sea.",
         "Billy feared a one-legged man more than anything. One night, blind Pew came with a black spot — a signal of death. Billy was struck down, and before he died, he gave me his old sea chest. Inside lay a map of an island, with a cross marking buried treasure.",
         "Dr. Livesey and Squire Trelawney read the map and planned a voyage. The squire bought a fine ship called the Hispaniola and hired a crew. But the cook he hired was a clever man named Long John Silver, who smiled and seemed kind to everyone.",
         "We sailed for weeks. Then, one night, I climbed into the apple barrel to hide and overheard Silver talking to the sailors. He was a pirate! He planned to steal the treasure and kill us all when we reached the island.",
         "When we landed, I warned the captain. The pirates attacked, and we fought behind a wooden stockade in the forest. Silver tried to bargain and even switched sides, but I could see the greed in his eyes.",
-        "I slipped away and found a man living alone on the island. His name was Ben Gunn, and he had been marooned there for three years. He told me he had already found the treasure and moved it to his cave!",
-        "Silver led us to the empty hole where the gold should have been. Thanks to Ben Gunn, we loaded the treasure onto the ship and sailed home. We left Silver on the island, but I will never forget the adventure."
-      ],
-      thPages: [
-        "ฉันคือจิม ฮอว์กินส์ และฉันต้องเล่าเรื่องทองคำให้ฟัง มันเริ่มขึ้นเมื่อกะลาสีแก่ชื่อบิลลี่ โบนส์มาพักที่โรงแรมของแม่ฉัน เขาจ่ายเงินดีเพื่อให้เราเงียบ แต่เขาดื่มมากเกินไปและพูดถึงทะเลมากเกินไป",
-        "บิลลี่กลัวชายขาเดียวมากกว่าสิ่งใด คืนหนึ่งพิวตาบอดมาพร้อมจุดดำ — สัญญาณแห่งความตาย บิลลี่ถูกโจมตี และก่อนตาย เขามอบหีบสมบัติเก่าของเขาให้ฉัน ข้างในมีแผนที่เกาะหนึ่ง ซึ่งมีเครื่องหมายกากบาทกำกับตำแหน่งสมบัติที่ฝังไว้",
-        "ดร.ไลฟ์ซีย์และสุภาพบุรุษเทรลอว์นีย์อ่านแผนที่และวางแผนการเดินทาง สุภาพบุรุษซื้อเรือที่สวยงามชื่อฮิสปานิโอลาและจ้างลูกเรือ แต่พ่อครัวที่เขาจ้างเป็นคนฉลาดชื่อลองจอห์นซิลเวอร์ ผู้ซึ่งยิ้มแย้มและดูใจดีกับทุกคน",
-        "เราแล่นเรือหลายสัปดาห์ แล้วคืนหนึ่งฉันปีนเข้าไปในถังแอปเปิลเพื่อซ่อน และได้ยินซิลเวอร์คุยกับกะลาสี เขาคือโจรสลัด! เขาวางแผนจะขโมยสมบัติและฆ่าพวกเราทุกคนเมื่อไปถึงเกาะ",
-        "เมื่อเราขึ้นฝั่ง ฉันเตือนกัปตัน พวกโจรสลัดโจมตี และเราสู้รบหลังกำแพงไม้ในป่า ซิลเวอร์พยายามต่อรองและแม้แต่เปลี่ยนข้าง แต่ฉันเห็นความโลภในดวงตาของเขา",
-        "ฉันหนีออกไปและพบชายคนหนึ่งอาศัยอยู่คนเดียวบนเกาะ ชื่อของเขาคือเบน กันน์ และเขาถูกทิ้งร้างบนเกาะมาสามปี เขาบอกฉันว่าเขาพบสมบัติแล้วและย้ายมันไปที่ถ้ำของเขาแล้ว!",
-        "ซิลเวอร์นำพวกเราไปที่หลุมว่างเปล่าที่สมบัติควรจะอยู่ ต้องขอบคุณเบน กันน์ เราขนสมบัติขึ้นเรือและแล่นกลับบ้าน เราทิ้งซิลเวอร์ไว้บนเกาะ แต่ฉันจะไม่มีวันลืมการผจญภัยครั้งนี้"
-      ]
+        "I slipped away and found a man living alone on the island. His name was Ben Gunn, and he'd been marooned there for three years. He told me he'd already found the treasure and moved it to his cave!",
+        "Silver led us to the empty hole where the gold should have been. Thanks to Ben Gunn, we loaded the treasure onto the ship and sailed home. We left Silver on the island, but I'll never forget the adventure."],
+      thPages: ["ฉันคือจิม ฮอว์กินส์ และฉันต้องเล่าเรื่องทองคำให้ฟัง เรื่องเริ่มขึ้นเมื่อกะลาสีแก่ชื่อบิลลี่ โบนส์มาพักที่โรงแรมของแม่ฉัน เขาจ่ายเงินดีๆ เพื่อให้เราเงียบๆ แต่เขาดื่มจัดและพูดถึงทะเลมากเกินไป",
+        "บิลลี่กลัวชายขาเดียวมากกว่าสิ่งใด คืนหนึ่งพิวตาบอดมาพร้อมจุดดำ — สัญญาณแห่งความตาย บิลลี่ถูกเล่นงาน และก่อนจะตาย เขามอบหีบสมบัติเก่าแก่ของเขาให้ฉัน ข้างในมีแผนที่เกาะหนึ่ง ซึ่งมีเครื่องหมายกากบาทบอกตำแหน่งสมบัติที่ฝังไว้",
+        "ดร.ไลฟ์ซีย์และสุภาพบุรุษเทรลอว์นีย์อ่านแผนที่และวางแผนการเดินทาง เทรลอว์นีย์ซื้อเรือสวยงามชื่อฮิสปานิโอลาและจ้างลูกเรือ แต่พ่อครัวที่เขาจ้างเป็นคนฉลาดชื่อลองจอห์นซิลเวอร์ ซึ่งยิ้มแย้มและทำท่าทางใจดีกับทุกคน",
+        "เราแล่นเรืออยู่หลายสัปดาห์ แล้วคืนหนึ่งฉันปีนเข้าไปในถังแอปเปิลเพื่อซ่อนตัว และได้ยินซิลเวอร์คุยกับกะลาสี เขาคือโจรสลัด! เขาวางแผนจะขโมยสมบัติและฆ่าพวกเราทุกคนเมื่อไปถึงเกาะ",
+        "เมื่อเราขึ้นฝั่ง ฉันเตือนกัปตัน พวกโจรสลัดโจมตี และเราสู้หลังกำแพงไม้ในป่า ซิลเวอร์พยายามต่อรองและถึงกับเปลี่ยนข้าง แต่ฉันเห็นความโลภในดวงตาของเขา",
+        "ฉันหนีออกไปและพบชายคนหนึ่งอาศัยอยู่คนเดียวบนเกาะ ชื่อของเขาคือเบน กันน์ และเขาถูกทอดทิ้งอยู่บนเกาะมาสามปี เขาบอกฉันว่าเขาหาสมบัติเจอแล้ว และย้ายมันไปซ่อนไว้ในถ้ำของเขา!",
+        "ซิลเวอร์พาพวกเราไปที่หลุมว่างเปล่าที่สมบัติควรจะอยู่ ต้องขอบคุณเบน กันน์ เราขนสมบัติขึ้นเรือและแล่นกลับบ้าน เราทิ้งซิลเวอร์ไว้บนเกาะ แต่ฉันจะไม่มีวันลืมการผจญภัยครั้งนี้"]
     },
     {
       id: "cur-adv-around-world-80", level: "B2", genre: "adventure",
       title: "Around the World in Eighty Days",
-      pages: [
-        "In 1872, a very exact gentleman named Phileas Fogg lived in London. He had no friends and no adventure in his heart, until one evening at his club he made a bold bet. He wagered twenty thousand pounds that he could circle the globe in eighty days.",
-        "That same night, Fogg hired a new servant named Jean Passepartout. 'We leave in ten minutes,' said Fogg. 'Around the world!' Passepartout cried in surprise. He packed one small bag, and the two men caught the first train to Paris.",
+      pages: ["In 1872, a very exact gentleman named Phileas Fogg lived in London. He had no friends and no adventure in his heart, until one evening at his club he made a bold bet. He wagered twenty thousand pounds that he could circle the globe in eighty days.",
+        "That same night, Fogg hired a new servant named Jean Passepartout. 'We're leaving in ten minutes,' said Fogg. 'Around the world!' Passepartout cried in surprise. He packed one small bag, and the two men caught the first train to Paris.",
         "A detective named Fix followed them. He believed Fogg was a bank robber, because twenty thousand pounds had just been stolen from the Bank of England. Fix planned to arrest Fogg the moment he set foot on British soil again.",
         "The pair crossed Europe by train and sailed to India, where Fogg bought an elephant to cross the jungle. On the way, they rescued a beautiful Indian woman named Aouda from a terrible ceremony, and Fogg agreed to take her with them.",
-        "From Calcutta they took a steamer to Hong Kong and then to Japan. Passepartout lost his master for a time, but they reunited and crossed the Pacific to America, where they raced across the plains by train, even swinging the car onto the track when a bridge broke.",
+        "From Calcutta they took a steamer to Hong Kong and then to Japan. Passepartout was separated from his master for a time, but they reunited and crossed the Pacific to America, where they raced across the plains by train, even swinging the car onto the track when a bridge broke.",
         "At last they reached New York and boarded a fast steamer for Liverpool. Fix arrested Fogg just before the ship docked — but the thief was already caught elsewhere, and Fogg was set free. Even so, they had lost the race; it was December 21st, a day late.",
-        "Then Passepartout realized the truth: by traveling east, they had gained a whole day. It was actually Saturday, not Sunday! Fogg rushed to his club and arrived at exactly the final second. He won the bet and married the lovely Aouda."
-      ],
-      thPages: [
-        "ในปี ค.ศ. 1872 สุภาพบุรุษผู้แม่นยำชื่อไพล์ส ฟอกก์อาศัยอยู่ในลอนดอน เขาไม่มีเพื่อนและไม่มีความตื่นเต้นในใจ จนกระทั่งเย็นวันหนึ่งที่สมาคม เขาทำเดิมพันอย่างกล้าหาญ เขาพนันเงินสองหมื่นปอนด์ว่าเขาสามารถวนรอบโลกได้ในแปดสิบวัน",
-        "คืนนั้นเอง ฟอกก์จ้างคนรับใช้ใหม่ชื่อฌอง ปาสปาร์ตู 'เราออกเดินทางในสิบนาที' ฟอกก์กล่าว 'รอบโลก!' ปาสปาร์ตูร้องด้วยความประหลาดใจ เขาแพ็คกระเป๋าใบเล็กหนึ่งใบ และชายสองคนขึ้นรถไฟขบวนแรกไปปารีส",
-        "นักสืบชื่อฟิกซ์ตามพวกเขามา เขาเชื่อว่าฟอกก์คือขโมยธนาคาร เพราะเงินสองหมื่นปอนด์เพิ่งถูกขโมยจากธนาคารแห่งอังกฤษ ฟิกซ์วางแผนจะจับกุมฟอกก์ทันทีที่เขาก้าวเท้าลงบนแผ่นดินอังกฤษอีกครั้ง",
-        "สองคนเดินทางข้ามยุโรปด้วยรถไฟและล่องเรือไปอินเดีย ที่ซึ่งฟอกก์ซื้อช้างเพื่อข้ามป่า ระหว่างทาง พวกเขาช่วยหญิงสาวชาวอินเดียผู้งดงามชื่ออาอูดาจากพิธีกรรมอันน่าสยดสยอง และฟอกก์ตกลงที่จะพาเธอไปด้วย",
-        "จากกัลกัตตา พวกเขานั่งเรือกลไฟไปฮ่องกงแล้วไปญี่ปุ่น ปาสปาร์ตูหลงเจ้านายอยู่พักหนึ่ง แต่พวกเขาก็กลับมาพบกันและข้ามมหาสมุทรแปซิฟิกไปอเมริกา ที่ซึ่งพวกเขาแข่งกับรถไฟข้ามทุ่งกว้าง แม้แต่ยกตู้รถไฟกลับขึ้นรางเมื่อสะพานหัก",
-        "ในที่สุดพวกเขาก็ถึงนิวยอร์กและขึ้นเรือกลไฟเร็วไปลิเวอร์พูล ฟิกซ์จับกุมฟอกก์ก่อนที่เรือจะเทียบท่า — แต่ขโมยตัวจริงถูกจับที่อื่นแล้ว และฟอกก์ก็เป็นอิสระ ถึงอย่างนั้น พวกเขาก็แพ้การแข่งขัน มันคือวันที่ 21 ธันวาคม ช้าไปหนึ่งวัน",
-        "แล้วปาสปาร์ตูก็ตระหนักถึงความจริง: โดยการเดินทางไปทางตะวันออก พวกเขาได้เพิ่มเวลาขึ้นหนึ่งวันเต็ม ที่จริงมันคือวันเสาร์ ไม่ใช่วันอาทิตย์! ฟอกก์รีบวิ่งไปที่สมาคมและมาถึงตรงวินาทีสุดท้ายพอดี เขาชนะเดิมพันและแต่งงานกับอาอุดาผู้งดงาม"
-      ]
+        "Then Passepartout realized the truth: by traveling east, they had gained a whole day. It was actually Saturday, not Sunday! Fogg rushed to his club and arrived at exactly the final second. He won the bet and married the lovely Aouda."],
+      thPages: ["ในปี ค.ศ. 1872 สุภาพบุรุษผู้เคร่งครัดชื่อไพล์ส ฟอกก์อาศัยอยู่ในลอนดอน เขาไม่มีเพื่อนและไม่มีใจรักการผจญภัย จนกระทั่งเย็นวันหนึ่งที่คลับ เขากล้าทำเดิมพัน เขาพนันเงินสองหมื่นปอนด์ว่าเขาจะวนรอบโลกให้ได้ภายในแปดสิบวัน",
+        "คืนนั้นเอง ฟอกก์จ้างคนรับใช้คนใหม่ชื่อฌอง ปาสปาร์ตู 'เราออกเดินทางในสิบนาที' ฟอกก์พูด 'รอบโลก!' ปาสปาร์ตูร้องด้วยความประหลาดใจ เขาแพ็คกระเป๋าใบเล็กๆ หนึ่งใบ แล้วชายสองคนก็ขึ้นรถไฟขบวนแรกไปปารีส",
+        "นักสืบชื่อฟิกซ์ตามพวกเขามา เขาเชื่อว่าฟอกก์คือโจรปล้นธนาคาร เพราะเงินสองหมื่นปอนด์เพิ่งถูกขโมยไปจากธนาคารแห่งอังกฤษ ฟิกซ์วางแผนจะจับกุมฟอกก์ทันทีที่เขาก้าวเท้าลงบนแผ่นดินอังกฤษอีกครั้ง",
+        "ทั้งสองเดินทางข้ามยุโรปด้วยรถไฟและล่องเรือไปอินเดีย ซึ่งฟอกก์ซื้อช้างตัวหนึ่งไว้ข้ามป่า ระหว่างทาง พวกเขาช่วยหญิงสาวชาวอินเดียผู้งดงามชื่ออาอุดาจากพิธีกรรมอันน่าสยดสยอง และฟอกก์ก็ตกลงพาเธอไปด้วย",
+        "จากกัลกัตตา พวกเขานั่งเรือกลไฟไปฮ่องกงแล้วต่อไปญี่ปุ่น ปาสปาร์ตูพลัดหลงจากเจ้านายอยู่พักหนึ่ง แต่ทั้งคู่ก็กลับมาพบกันและข้ามมหาสมุทรแปซิฟิกไปอเมริกา ซึ่งพวกเขาแข่งกันด้วยรถไฟข้ามทุ่งกว้าง ถึงขั้นยกตู้รถไฟกลับขึ้นรางเมื่อสะพานหัก",
+        "ในที่สุดพวกเขาก็ถึงนิวยอร์กและขึ้นเรือกลไฟเร็วไปลิเวอร์พูล ฟิกซ์จับกุมฟอกก์ก่อนที่เรือจะเทียบท่า — แต่โจรตัวจริงถูกจับได้ที่อื่นแล้ว และฟอกก์ก็ได้รับการปล่อยตัว ถึงอย่างนั้น พวกเขาก็แพ้การแข่งขัน นี่คือวันที่ 21 ธันวาคม ช้ากว่ากำหนดหนึ่งวัน",
+        "แล้วปาสปาร์ตูก็ตระหนักถึงความจริง: เพราะเดินทางไปทางทิศตะวันออก พวกเขาจึงได้เวลามาเพิ่มอีกหนึ่งวันเต็ม ที่จริงแล้ววันนี้คือวันเสาร์ ไม่ใช่วันอาทิตย์! ฟอกก์รีบวิ่งไปที่คลับและมาถึงในวินาทีสุดท้ายพอดี เขาชนะเดิมพันและได้แต่งงานกับอาอุดาผู้งดงาม"]
     },
     {
       id: "cur-adv-20000-leagues", level: "B2", genre: "adventure",
       title: "Twenty Thousand Leagues Under the Sea",
-      pages: [
-        "In 1866, sailors around the world reported a strange creature in the ocean — a giant animal that moved faster than any whale. Professor Aronnax, a famous scientist, boarded a warship to hunt it down, sure it was a huge narwhal.",
-        "After weeks at sea, the creature attacked. The professor, his servant Conseil, and the harpooner Ned Land were thrown into the water. The creature, they discovered, was not an animal at all. It was a submarine made of steel!",
+      pages: ["In 1866, sailors around the world reported a strange creature in the ocean — a giant animal that moved faster than any whale. Professor Aronnax, a famous scientist, boarded a warship to hunt it down, sure it was a huge narwhal.",
+        "After weeks at sea, the creature attacked. The professor, his servant Conseil, and the harpooner Ned Land were thrown into the water. The creature, they soon discovered, was not an animal at all. It was a submarine made of steel!",
         "The ship's commander opened a door and welcomed them inside. His name was Captain Nemo. 'You will never leave this ship,' he said calmly. 'But you will see wonders that no man has ever seen.'",
         "For months they sailed beneath every ocean. Nemo showed the professor forests of coral, sunken ships full of gold, and the lost city of Atlantis beneath the waves. They walked on the sea floor in heavy diving suits.",
         "One day the submarine was trapped under ice at the South Pole. The crew worked for hours to cut the ice, and just when the air ran out, they broke free and surfaced with a great roar.",
-        "Then a school of giant squid attacked the ship. The crew fought the monsters on deck with axes while Ned threw his harpoon. One man was dragged into the water, and Nemo wept over his loss.",
-        "Nemo's heart grew darker, and his mysterious past filled the professor with fear. When a whirlpool — the Maelstrom — pulled the ship into its spinning grip, the three men escaped in a small boat and were rescued by fishermen. Captain Nemo and his submarine were never seen again."
-      ],
-      thPages: [
-        "ในปี ค.ศ. 1866 กะลาสีทั่วโลกรายงานว่ามีสิ่งมีชีวิตประหลาดในมหาสมุทร — สัตว์ยักษ์ที่เคลื่อนที่เร็วกว่าปลาวาฬใดๆ ศาสตราจารย์อารอนแนกซ์ นักวิทยาศาสตร์ชื่อดัง ขึ้นเรือรบเพื่อตามล่ามัน โดยมั่นใจว่ามันคือนาร์วาลตัวมหึมา",
-        "หลังอยู่กลางทะเลหลายสัปดาห์ สิ่งมีชีวิตนั้นก็โจมตี ศาสตราจารย์ คนรับใช้คอนเซย์ และคนฉมวกเน็ด แลนด์ถูกโยนลงน้ำ สิ่งมีชีวิตนั้น พวกเขาค้นพบ ไม่ใช่สัตว์เลยสักนิด มันคือเรือดำน้ำที่ทำจากเหล็กกล้า!",
-        "ผู้บัญชาการเรือเปิดประตูและต้อนรับพวกเขาเข้าไปข้างใน ชื่อของเขาคือกัปตันนีโม 'คุณจะไม่มีวันออกจากเรือลำนี้' เขากล่าวอย่างสงบ 'แต่คุณจะได้เห็นสิ่งมหัศจรรย์ที่ไม่มีมนุษย์คนใดเคยเห็น'",
-        "เป็นเวลาหลายเดือนที่พวกเขาแล่นเรืออยู่ใต้มหาสมุทรทุกแห่ง นีโมพาศาสตราจารย์ชมปะการังป่า เรือจมที่เต็มไปด้วยทองคำ และเมืองแอตแลนติสที่สาบสูญใต้คลื่น พวกเขาเดินบนพื้นทะเลในชุดดำน้ำหนัก",
-        "วันหนึ่งเรือดำน้ำถูกกักอยู่ใต้แผ่นน้ำแข็งที่ขั้วโลกใต้ ลูกเรือทำงานหลายชั่วโมงเพื่อตัดน้ำแข็ง และเมื่ออากาศใกล้หมดพอดี พวกเขาก็หลุดออกมาและลอยขึ้นสู่ผิวน้ำด้วยเสียงคำรามอันยิ่งใหญ่",
-        "แล้วฝูงปลาหมึกยักษ์ก็โจมตีเรือ ลูกเรือต่อสู้กับสัตว์ประหลาดบนดาดฟ้าด้วยขวานขณะที่เน็ดขว้างฉมวก ชายคนหนึ่งถูกฉุดลงน้ำ และนีโมก็ร้องไห้เสียใจกับการสูญเสียนั้น",
-        "หัวใจของนีโมเริ่มมืดมนลง และอดีตลึกลับของเขาทำให้ศาสตราจารย์เต็มไปด้วยความกลัว เมื่อวังวน — มาเอลสตรอม — ดูดเรือเข้าไปในแรงหมุนของมัน ชายสามคนก็หนีออกมาในเรือเล็กและได้รับการช่วยเหลือจากชาวประมง กัปตันนีโมและเรือดำน้ำของเขาไม่เคยถูกพบเห็นอีกเลย"
-      ]
+        "Then a school of giant squid attacked the ship. The crew fought the monsters on deck with axes while Ned hurled his harpoon. One man was dragged into the water, and Nemo wept over his loss.",
+        "Nemo's heart grew darker, and his mysterious past filled the professor with fear. When a whirlpool — the Maelstrom — pulled the ship into its spinning grip, the three men escaped in a small boat and were rescued by fishermen. Captain Nemo and his submarine were never seen again."],
+      thPages: ["ในปี ค.ศ. 1866 กะลาสีทั่วโลกเริ่มรายงานว่ามีสิ่งมีชีวิตประหลาดอยู่ในมหาสมุทร — สัตว์ยักษ์ที่ว่ายเร็วกว่าปลาวาฬทุกชนิด ศาสตราจารย์อารอนแนกซ์ นักวิทยาศาสตร์ชื่อดัง ขึ้นเรือรบเพื่อตามล่ามัน โดยเชื่อมั่นว่ามันคือนาร์วาลยักษ์",
+        "หลังอยู่กลางทะเลหลายสัปดาห์ สิ่งมีชีวิตนั้นก็โจมตีเรือ ศาสตราจารย์ คนรับใช้คอนเซย์ และคนฉมวกเน็ด แลนด์ ถูกซัดลงน้ำ สิ่งที่พวกเขาค้นพบไม่ใช่สัตว์เลยสักนิด มันคือเรือดำน้ำที่สร้างจากเหล็กกล้า!",
+        "ผู้บัญชาการเรือเปิดประตูและเชิญพวกเขาเข้าไปข้างใน ชื่อของเขาคือกัปตันนีโม 'คุณจะไม่มีวันออกจากเรือลำนี้' เขาพูดอย่างสงบ 'แต่คุณจะได้เห็นสิ่งมหัศจรรย์ที่ไม่มีมนุษย์คนไหนเคยเห็น'",
+        "เป็นเวลาหลายเดือนที่พวกเขาแล่นอยู่ใต้มหาสมุทรทุกแห่ง นีโมพาศาสตราจารย์ชมป่าปะการัง เรือจมที่เต็มไปด้วยทองคำ และเมืองแอตแลนติสที่จมอยู่ใต้คลื่น พวกเขาเดินบนพื้นทะเลในชุดดำน้ำหนักๆ",
+        "วันหนึ่งเรือดำน้ำติดอยู่ใต้แผ่นน้ำแข็งที่ขั้วโลกใต้ ลูกเรือทำงานหลายชั่วโมงเพื่อตัดน้ำแข็ง และเมื่ออากาศใกล้จะหมดพอดี พวกเขาก็หลุดออกมาและโผล่ขึ้นสู่ผิวน้ำพร้อมเสียงคำรามอันยิ่งใหญ่",
+        "แล้วปลาหมึกยักษ์ทั้งฝูงก็โจมตีเรือ ลูกเรือต่อสู้กับสัตว์ประหลาดบนดาดฟ้าด้วยขวาน ขณะที่เน็ดขว้างฉมวก ชายคนหนึ่งถูกฉุดลงน้ำ และนีโมก็ร้องไห้คร่ำครวญกับการสูญเสียครั้งนั้น",
+        "จิตใจของนีโมเริ่มมืดมนลง และอดีตลึกลับของเขาทำให้ศาสตราจารย์รู้สึกหวาดกลัว เมื่อวังวนขนาดยักษ์ — มาเอลสตรอม — ดูดเรือเข้าไปในเกลียวหมุนของมัน ชายสามคนก็หนีออกมาในเรือเล็กและได้รับการช่วยเหลือจากชาวประมง กัปตันนีโมและเรือดำน้ำของเขาไม่เคยปรากฏให้เห็นอีกเลย"]
     },
     {
       id: "cur-adv-jungle-book", level: "A2", genre: "adventure",
       title: "The Jungle Book",
-      pages: [
-        "Deep in the Indian jungle, a wolf family found a tiny baby in the bushes. He had no fear, and he smiled at the wolves. They adopted him and named him Mowgli, the little frog, and he grew up strong and clever.",
+      pages: ["Deep in the Indian jungle, a wolf family found a tiny baby in the bushes. He wasn't afraid at all, and he smiled at the wolves. They adopted him and named him Mowgli, the little frog, and he grew up strong and clever.",
         "The great bear Baloo taught Mowgli the Law of the Jungle. 'Be careful of Man,' Baloo warned. 'And never trust the Bandar-log — the monkey people.' But Mowgli loved playing in the trees with the noisy monkeys.",
-        "One day the monkeys stole Mowgli and carried him to their ruined city. The panther Bagheera and Baloo called on Kaa, the giant python. Kaa hypnotized the monkeys with his slow dance, and Mowgli was free.",
-        "Mowgli returned to his wolf family, but the fierce tiger Shere Khan wanted to kill him. 'Man-cub, I will eat you!' the tiger snarled. Mowgli grew brave and began to learn the secret ways of the jungle.",
-        "The wolves argued about keeping Mowgli. So the boy went to the village to fetch fire — the Red Flower, as the animals called it. He carried it back into the jungle, burning a branch, ready to fight Shere Khan.",
-        "With the burning branch, Mowgli drove the tiger into a trap of his own making, and Shere Khan was destroyed. The jungle roared its praise. But Mowgli's heart belonged to two worlds, and one day he walked into the village of men."
-      ],
-      thPages: [
-        "ลึกเข้าไปในป่าของอินเดีย ครอบครัวหมาป่าพบทารกตัวน้อยในพุ่มไม้ เขาไม่มีความกลัวและยิ้มให้หมาป่า พวกมันรับเลี้ยงเขาและตั้งชื่อเขาว่ามาวกลี เจ้ากบน้อย และเขาเติบโตขึ้นอย่างแข็งแรงและฉลาด",
-        "หมีใหญ่บาเลาสอนกฎแห่งป่าให้มาวกลี 'ระวังมนุษย์' บาเลาเตือน 'และอย่าไว้ใจบันดาร์-ล็อก — พวกมนุษย์ลิง' แต่มาวกลีชอบเล่นบนต้นไม้กับลิงที่ส่งเสียงดัง",
-        "วันหนึ่งลิงขโมยมาวกลีและพาเขาไปที่เมืองปรักหักพังของพวกมัน เสือดำบากีรากับบาเลาเรียกคาร์ เจ้างูหลามยักษ์ คาร์สะกดจิตลิงด้วยการเต้นรำช้าๆ ของเขา และมาวกลีก็เป็นอิสระ",
-        "มาวกลีกลับไปหาครอบครัวหมาป่า แต่เสือโคร่งเชียร์ข่านต้องการฆ่าเขา 'เจ้าลูกมนุษย์ ฉันจะกินเจ้า!' เสือคำราม มาวกลีกล้าหาญขึ้นและเริ่มเรียนรู้วิถีลับของป่า",
-        "หมาป่าโต้เถียงกันว่าจะเก็บมาวกลีไว้หรือไม่ ดังนั้นเด็กชายจึงไปที่หมู่บ้านเพื่อเอาไฟ — ดอกไม้แดง ตามที่สัตว์เรียกมัน เขาแบกมันกลับเข้าป่า พร้อมเผากิ่งไม้ เตรียมสู้กับเชียร์ข่าน",
-        "ด้วยกิ่งไม้ที่ลุกไหม้ มาวกลีผลักเสือเข้าไปในกับดักที่เสือสร้างไว้เอง และเชียร์ข่านก็พ่ายแพ้ ป่าคำรามสรรเสริญเขา แต่หัวใจของมาวกลีเป็นของสองโลก และวันหนึ่งเขาก็เดินเข้าไปในหมู่บ้านมนุษย์"
-      ]
+        "One day the monkeys stole Mowgli and carried him to their ruined city. The panther Bagheera and Baloo went to find Kaa, the giant python. Kaa hypnotized the monkeys with his slow dance, and Mowgli was free.",
+        "Mowgli returned to his wolf family, but the fierce tiger Shere Khan wanted to kill him. 'Man-cub, I'll eat you!' the tiger snarled. Mowgli grew braver and began to learn the secret ways of the jungle.",
+        "The wolves argued about whether to keep Mowgli. So the boy went to the village to get fire — the Red Flower, as the animals called it. He carried it back into the jungle, burning a branch, ready to fight Shere Khan.",
+        "With the burning branch, Mowgli drove the tiger into his own trap, and Shere Khan was destroyed. The jungle roared with joy. But Mowgli belonged to two worlds, and one day he walked into the village of men."],
+      thPages: ["ลึกเข้าไปในป่าของอินเดีย ครอบครัวหมาป่าพบทารกตัวน้อยในพุ่มไม้ เขาไม่กลัวเลยสักนิดและยิ้มให้หมาป่า พวกมันรับเลี้ยงเขาและตั้งชื่อเขาว่ามาวกลี เจ้ากบน้อย และเขาก็เติบโตขึ้นอย่างแข็งแรงและฉลาด",
+        "หมีใหญ่บาเลาสอนกฎแห่งป่าให้มาวกลี 'ระวังมนุษย์' บาเลาเตือน 'และอย่าไว้ใจบันดาร์-ล็อก — พวกมนุษย์ลิง' แต่มาวกลีชอบปีนต้นไม้เล่นกับลิงที่ส่งเสียงดัง",
+        "วันหนึ่งลิงขโมยมาวกลีและพาเขาไปที่เมืองปรักหักพังของพวกมัน เสือดำบากีรากับบาเลาจึงไปหาคาร์ เจ้างูหลามยักษ์ คาร์สะกดจิตลิงทั้งฝูงด้วยการร่ายรำช้าๆ และมาวกลีก็เป็นอิสระ",
+        "มาวกลีกลับไปหาครอบครัวหมาป่า แต่เสือโคร่งเชียร์ข่านต้องการฆ่าเขา 'เจ้าลูกมนุษย์ ฉันจะกินเจ้า!' เสือคำราม มาวกลีค่อยๆ กล้าหาญขึ้น และเริ่มเรียนรู้วิถีลับของป่า",
+        "หมาป่าเถียงกันว่าจะเก็บมาวกลีไว้ดีหรือไม่ ดังนั้นเด็กชายจึงไปที่หมู่บ้านเพื่อเอาไฟ — ดอกไม้แดง ตามที่สัตว์ทั้งหลายเรียกมัน เขาแบกไฟกลับเข้าป่า พร้อมกับเผากิ่งไม้ เตรียมสู้กับเชียร์ข่าน",
+        "ด้วยกิ่งไม้ที่ลุกไหม้ มาวกลีไล่เสือเข้าไปในกับดักของมันเอง และเชียร์ข่านก็พ่ายแพ้ ทั้งป่าคำรามด้วยความยินดี แต่หัวใจของมาวกลีผูกพันกับสองโลก และวันหนึ่งเขาก็เดินเข้าไปในหมู่บ้านมนุษย์"]
     },
     {
       id: "cur-sf-time-machine", level: "B2", genre: "scifi",
       title: "The Time Machine",
-      pages: [
-        "A brilliant inventor gathered his friends around a small machine of ivory and glass. 'I have built a machine that travels in time,' he said. 'I will test it tonight.' He pressed a lever, and the machine vanished.",
-        "He returned a week later, pale and shaken. 'Listen,' he said, and told them his story. He had set the machine's dial far into the future and watched the sun spin and the seasons fly like a blur of days.",
+      pages: ["A brilliant inventor gathered his friends around a small machine of ivory and glass. 'I've built a machine that travels in time,' he said. 'I'll test it tonight.' He pressed a lever, and the machine vanished.",
+        "He returned a week later, pale and shaken. 'Listen,' he said, and told them his story. He had set the machine's dial far into the future and watched the sun spin and the seasons fly past like a blur of days.",
         "He landed in the year 802,701. The world was a peaceful garden, and gentle little people called the Eloi lived there. They fed him fruit and flowers, but they were weak and seemed to have no cares at all.",
-        "Then the Time Traveller noticed that his machine was gone. Someone had dragged it into a tall bronze statue. He searched everywhere, and at last he learned the truth: below the earth lived the Morlocks, pale creatures of the dark who ate the Eloi at night.",
-        "A brave Eloi woman named Weena became his friend. Together they explored the dark underworld, where the Morlocks kept the machines running. He found his machine but could not free it, and the creatures attacked him.",
+        "Then the Time Traveller noticed that his machine was gone. Someone had dragged it inside a tall bronze statue. He searched everywhere, and at last he learned the truth: below the earth lived the Morlocks, pale creatures of the dark who ate the Eloi at night.",
+        "A brave Eloi woman named Weena became his friend. Together they explored the dark underworld, where the Morlocks kept the machines running. He found his machine but couldn't free it, and the creatures attacked him.",
         "He escaped by climbing into a thick forest, where the trees caught fire. Weena was lost in the flames, and he returned alone. With a heavy heart, he found the machine at last and fled forward in time to escape the Morlocks.",
-        "He sped millions of years ahead and saw a dying red sun over a lifeless shore. Filled with dread, he returned to his own time. 'I will go back again,' he told his friends. He stepped into the machine and never came home."
-      ],
-      thPages: [
-        "นักประดิษฐ์อัจฉริยะรวบรวมเพื่อนๆ รอบเครื่องจักรเล็กๆ ที่ทำจากงาช้างและแก้ว 'ฉันสร้างเครื่องจักรที่เดินทางข้ามเวลาได้' เขากล่าว 'คืนนี้ฉันจะทดสอบมัน' เขากดคันโยก และเครื่องจักรก็หายไป",
-        "เขากลับมาหนึ่งสัปดาห์ต่อมา หน้าซีดและสั่นเทา 'ฟังก่อน' เขากล่าว แล้วเล่าเรื่องของเขา เขาตั้งหน้าปัดเครื่องจักรไปไกลในอนาคต และเฝ้าดูดวงอาทิตย์หมุนและฤดูกาลผ่านไปราวกับวันเวลาที่เลือนราง",
-        "เขาลงจอดในปี 802,701 โลกเป็นสวนอันสงบสุข และผู้คนตัวเล็กที่อ่อนโยนเรียกว่าชาวเอลอยอาศัยอยู่ที่นั่น พวกเขาให้ผลไม้และดอกไม้แก่เขา แต่พวกเขาอ่อนแอและดูเหมือนไม่มีความกังวลใดๆ เลย",
-        "แล้วนักเดินทางเวลาก็สังเกตเห็นว่าเครื่องจักรของเขาหายไป มีคนลากมันเข้าไปในรูปปั้นทองสัมฤทธิ์สูง เขาค้นหาทุกที่ และในที่สุดก็รู้ความจริง: ใต้พื้นดินอาศัยมอร์ล็อกส์ สิ่งมีชีวิตสีซีดแห่งความมืดที่กินชาวเอลอยในตอนกลางคืน",
-        "หญิงสาวเอลอยผู้กล้าหาญชื่อวีน่ากลายเป็นเพื่อนของเขา พวกเขาสำรวจโลกใต้ดินอันมืดมิดด้วยกัน ที่ซึ่งมอร์ล็อกส์คอยเดินเครื่องจักร เขาพบเครื่องจักรของเขาแต่ไม่สามารถปลดปล่อยมันได้ และสิ่งมีชีวิตเหล่านั้นก็โจมตีเขา",
-        "เขาหนีโดยการปีนเข้าไปในป่าทึบ ที่ซึ่งต้นไม้ถูกไฟไหม้ วีน่าหายไปในเปลวเพลิง และเขากลับมาคนเดียว ด้วยหัวใจที่หนักอึ้ง ในที่สุดเขาก็พบเครื่องจักรและหนีไปข้างหน้าในเวลาเพื่อหลบหนีมอร์ล็อกส์",
-        "เขาพุ่งไปหลายล้านปีข้างหน้าและเห็นดวงอาทิตย์สีแดงที่กำลังจะตายเหนือชายฝั่งที่ไร้ชีวิต ด้วยความหวาดกลัว เขากลับมาสู่ยุคของตัวเอง 'ฉันจะกลับไปอีกครั้ง' เขาบอกเพื่อนๆ เขาก้าวเข้าไปในเครื่องจักรและไม่เคยกลับบ้านอีกเลย"
-      ]
+        "He sped millions of years ahead and saw a dying red sun over a lifeless shore. Filled with dread, he returned to his own time. 'I'll go back again,' he told his friends. He stepped into the machine and never came home."],
+      thPages: ["นักประดิษฐ์อัจฉริยะเรียกเพื่อนๆ มาล้อมรอบเครื่องจักรเล็กๆ ที่ทำจากงาช้างและแก้ว 'ฉันสร้างเครื่องจักรที่เดินทางข้ามเวลาได้' เขาบอก 'คืนนี้ฉันจะลองดู' เขากดคันโยก และเครื่องจักรก็หายไป",
+        "เขากลับมาอีกหนึ่งสัปดาห์ต่อมา หน้าซีดและสั่นเทา 'ฟังนะ' เขาบอก แล้วเล่าเรื่องราวของเขา เขาหมุนหน้าปัดเครื่องจักรไปไกลในอนาคต และเฝ้าดูดวงอาทิตย์หมุนวนและฤดูกาลผ่านไปราวกับวันเวลาที่เลือนราง",
+        "เขาลงจอดในปี 802,701 โลกเป็นสวนอันสงบสุข และผู้คนตัวเล็กๆ ผู้อ่อนโยนที่เรียกว่าชาวเอลอยอาศัยอยู่ที่นั่น พวกเขาให้ผลไม้และดอกไม้แก่เขา แต่พวกเขาอ่อนแอและดูเหมือนไม่มีความกังวลใดๆ เลย",
+        "แล้วนักเดินทางเวลาก็สังเกตเห็นว่าเครื่องจักรของเขาหายไป มีคนลากมันเข้าไปในรูปปั้นทองสัมฤทธิ์สูง เขาค้นหาทุกหนทุกแห่ง และในที่สุดก็รู้ความจริง: ใต้พื้นดินอาศัยมอร์ล็อกส์ สิ่งมีชีวิตสีซีดแห่งความมืดที่กินชาวเอลอยในตอนกลางคืน",
+        "หญิงสาวเอลอยผู้กล้าหาญชื่อวีน่ากลายเป็นเพื่อนของเขา พวกเขาสำรวจโลกใต้ดินอันมืดมิดด้วยกัน ที่ซึ่งมอร์ล็อกส์คอยดูแลเดินเครื่องจักร เขาพบเครื่องจักรของเขาแต่เอาออกมาไม่ได้ และสิ่งมีชีวิตเหล่านั้นก็โจมตีเขา",
+        "เขาหนีด้วยการปีนขึ้นไปในป่าทึบ ที่ซึ่งต้นไม้ลุกไหม้ วีน่าหายไปในเปลวเพลิง และเขากลับมาคนเดียว ด้วยหัวใจที่หนักอึ้ง ในที่สุดเขาก็พบเครื่องจักรและหนีไปข้างหน้าในเวลาเพื่อให้พ้นจากมอร์ล็อกส์",
+        "เขาพุ่งไปหลายล้านปีข้างหน้าและเห็นดวงอาทิตย์สีแดงที่กำลังจะตายเหนือชายฝั่งที่ไร้ชีวิต ด้วยความหวาดกลัว เขาจึงกลับมาสู่ยุคของตัวเอง 'ฉันจะกลับไปอีก' เขาบอกเพื่อนๆ เขาก้าวเข้าไปในเครื่องจักรและไม่เคยกลับบ้านอีกเลย"]
     },
     {
       id: "cur-sf-war-of-worlds", level: "B2", genre: "scifi",
       title: "The War of the Worlds",
-      pages: [
-        "No one believed that another world could watch us. But that night, astronomers saw a burst of fire on Mars, and a strange object fell from the sky into the fields near London. Men rushed out to stare at the great metal cylinder.",
-        "When the top of the cylinder unscrewed, a gray creature crawled out. It had huge dark eyes and long tentacles. It was a Martian — and it was followed by others. They brought terrible machines and an unknown weapon.",
+      pages: ["No one believed that another world could be watching us. But that night, astronomers saw a burst of fire on Mars, and a strange object fell from the sky into the fields near London. People rushed out to stare at the great metal cylinder.",
+        "When the top of the cylinder unscrewed, a gray creature crawled out. It had huge dark eyes and long tentacles. It was a Martian — and more followed. They brought terrible machines and an unknown weapon.",
         "The Martians pointed a box of mirrors at the crowd, and a beam of heat flashed out. Men and women burst into flame and fell. The Martian war machines — towering tripods — strode across the countryside, leaving destruction behind.",
-        "I was one of the survivors. I fled the burning roads and hid with my wife in a cellar while the thunder of the tripods shook the earth. For days I crept through ruined villages, hungry and terrified, searching for a way to escape.",
-        "I met an artilleryman who had a wild plan to live underground and rebuild civilization. But I could not share his hope. The red weed covered the land, and the Martians seemed unstoppable, drinking the blood of men.",
-        "I hid inside a half-broken house and watched through a crack as a Martian crawled toward me. For hours I stayed frozen, and I felt my reason slipping away. But the Martian did not see me — it fell beside the house, motionless.",
-        "The truth was simple and wonderful. On Earth, the Martians had no defense against our smallest enemies. The invisible bacteria of our world destroyed them, one by one. The mighty invaders fell, and the red weed withered away. Humanity was saved by the humblest of creatures."
-      ],
-      thPages: [
-        "ไม่มีใครเชื่อว่าโลกอื่นจะเฝ้าดูเรา แต่คืนนั้น นักดาราศาสตร์เห็นแสงระเบิดบนดาวอังคาร และวัตถุประหลาดตกลงมาจากท้องฟ้าลงสู่ทุ่งนาใกล้ลอนดอน ผู้คนวิ่งออกไปจ้องดูกระบอกโลหะขนาดใหญ่",
-        "เมื่อฝากระบอกคลายเกลียวออก สิ่งมีชีวิตสีเทาก็คลานออกมา มันมีดวงตาสีเข้มขนาดใหญ่และหนวดยาว มันคือมนุษย์ดาวอังคาร — และมีตัวอื่นตามมา พวกมันนำเครื่องจักรอันน่ากลัวและอาวุธที่ไม่รู้จักมาด้วย",
-        "มนุษย์ดาวอังคารชี้กล่องกระจกไปที่ฝูงชน และลำแสงความร้อนก็พุ่งออกมา ชายและหญิงลุกเป็นไฟและล้มลง เครื่องจักรสงครามของดาวอังคาร — หุ่นสามขาสูงตระหง่าน — ก้าวย่างข้ามชนบท ทิ้งความหายนะไว้เบื้องหลัง",
-        "ฉันเป็นหนึ่งในผู้รอดชีวิต ฉันหนีจากถนนที่ลุกไหม้และซ่อนตัวกับภรรยาในห้องใต้ดิน ขณะที่เสียงฟ้าร้องของหุ่นสามขาสั่นสะเทือนแผ่นดิน หลายวันฉันคืบคลานผ่านหมู่บ้านปรักหักพัง หิวโหยและหวาดกลัว มองหาหนทางหนี",
+        "I was one of the survivors. I fled the burning roads and hid with my wife in a cellar while the thunder of the tripods shook the earth. For days I crept through ruined villages, hungry and terrified, looking for a way out.",
+        "I met an artilleryman who had a wild plan to live underground and rebuild civilization. But I couldn't share his hope. The red weed covered the land, and the Martians seemed unstoppable, drinking the blood of men.",
+        "I hid inside a half-broken house and watched through a crack as a Martian crawled toward me. For hours I stayed frozen, and I felt my reason slipping away. But the Martian didn't see me — it fell beside the house, motionless.",
+        "The truth was simple and wonderful. On Earth, the Martians had no defense against our smallest enemies. The invisible bacteria of our world destroyed them, one by one. The mighty invaders fell, and the red weed withered away. Humanity was saved by the humblest of creatures."],
+      thPages: ["ไม่มีใครเชื่อว่าโลกอื่นจะเฝ้าดูเรา แต่คืนนั้น นักดาราศาสตร์เห็นแสงวาบระเบิดบนดาวอังคาร และวัตถุประหลาดตกลงมาจากท้องฟ้าลงสู่ทุ่งนาใกล้ลอนดอน ผู้คนวิ่งออกไปจ้องดูกระบอกโลหะขนาดใหญ่",
+        "เมื่อฝาโลหะคลายเกลียวออก สิ่งมีชีวิตสีเทาก็คลานออกมา มันมีดวงตาสีเข้มขนาดใหญ่และหนวดยาว มันคือมนุษย์ดาวอังคาร — และมีตัวอื่นตามมาอีก พวกมันนำเครื่องจักรอันน่ากลัวและอาวุธประหลาดที่ไม่เคยเห็นมาก่อนมาด้วย",
+        "มนุษย์ดาวอังคารชี้กล่องกระจกไปที่ฝูงชน และลำแสงความร้อนก็พุ่งออกมา ชายและหญิงลุกเป็นไฟแล้วล้มลง เครื่องจักรสงครามของดาวอังคาร — หุ่นสามขาสูงตระหง่าน — ก้าวย่างข้ามชนบท ทิ้งความหายนะไว้เบื้องหลัง",
+        "ฉันเป็นหนึ่งในผู้รอดชีวิต ฉันหนีจากถนนที่ลุกไหม้และซ่อนตัวกับภรรยาในห้องใต้ดิน ขณะที่เสียงคำรามของหุ่นสามขาสะเทือนแผ่นดิน หลายวันผ่านไป ฉันคืบคลานผ่านหมู่บ้านที่พังทลาย หิวโหยและหวาดกลัว มองหาหนทางหนี",
         "ฉันพบนายทหารปืนใหญ่คนหนึ่งที่มีแผนบ้าคลั่งที่จะอาศัยอยู่ใต้ดินและสร้างอารยธรรมขึ้นใหม่ แต่ฉันแบ่งปันความหวังของเขาไม่ได้ วัชพืชสีแดงปกคลุมแผ่นดิน และมนุษย์ดาวอังคารดูเหมือนหยุดไม่ได้ พวกมันดื่มเลือดของมนุษย์",
-        "ฉันซ่อนตัวในบ้านครึ่งพังและมองผ่านรอยแตก ขณะที่มนุษย์ดาวอังคารคลานเข้ามาหาฉัน หลายชั่วโมงฉันแข็งทื่อ และรู้สึกว่าสติของฉันกำลังจะหลุดลอย แต่ชายดาวอังคารไม่เห็นฉัน — มันล้มลงข้างบ้าน ไม่ไหวติง",
-        "ความจริงนั้นเรียบง่ายและมหัศจรรย์ บนโลก มนุษย์ดาวอังคารไม่มีทางต้านทานศัตรูที่เล็กที่สุดของเรา แบคทีเรียที่มองไม่เห็นของโลกเราทำลายพวกมันทีละตัว ผู้รุกรานผู้ยิ่งใหญ่ล้มลง และวัชพืชสีแดงก็เหี่ยวเฉา มนุษยชาติได้รับความรอดจากสิ่งมีชีวิตที่ต่ำต้อยที่สุด"
-      ]
+        "ฉันซ่อนตัวในบ้านครึ่งพังและมองผ่านรอยแตก ขณะที่มนุษย์ดาวอังคารคลานเข้ามาหาฉัน ฉันแข็งทื่ออยู่หลายชั่วโมง และรู้สึกว่าสติกำลังจะหลุดลอย แต่มันไม่เห็นฉัน — มันล้มลงข้างบ้าน ไม่ไหวติง",
+        "ความจริงนั้นเรียบง่ายและมหัศจรรย์ บนโลก มนุษย์ดาวอังคารไม่มีทางต้านทานศัตรูที่เล็กที่สุดของเรา แบคทีเรียที่มองไม่เห็นของโลกเราทำลายพวกมันทีละตัว ผู้รุกรานผู้ยิ่งใหญ่ล้มลง และวัชพืชสีแดงก็เหี่ยวเฉา มนุษยชาติได้รับความรอดจากสิ่งมีชีวิตที่ต่ำต้อยที่สุด"]
     },
     {
       id: "cur-sf-center-earth", level: "B2", genre: "scifi",
       title: "Journey to the Center of the Earth",
-      pages: [
-        "My uncle, Professor Lidenbrock, was a famous scientist in Hamburg. One day he found an old book with a strange message written in secret letters. 'Decode it,' he ordered me, 'and we will make history.'",
-        "Together we solved the code. The message was from an ancient explorer named Arne Saknussemm, who claimed he had reached the center of the Earth through a volcano in Iceland. My uncle was overjoyed. 'We leave tomorrow!' he shouted.",
+      pages: ["My uncle, Professor Lidenbrock, was a famous scientist in Hamburg. One day he found an old book with a strange message written in secret letters. 'Decode it,' he ordered me, 'and we'll make history.'",
+        "Together we cracked the code. The message was from an ancient explorer named Arne Saknussemm, who claimed he had reached the center of the Earth through a volcano in Iceland. My uncle was overjoyed. 'We leave tomorrow!' he shouted.",
         "We traveled to Iceland, hired a guide named Hans, and climbed the mountain Sneffels. At the summit we found a dark crater and a narrow chimney leading down. My uncle lowered himself first, and we followed into the darkness.",
         "Down, down we went for days. The walls grew warm, and strange lights glowed in the rock. At last we reached a vast underground sea, and we built a raft of wood to sail across its still, silent water.",
         "The sea was full of wonders — ancient fish, forests of giant mushrooms, and creatures that had vanished from the world above. Then a great storm rose, and lightning flashed across the underground sky as our raft was tossed like a leaf.",
-        "The storm carried us to a strange shore where we found the bones of ancient monsters and the carved name of Saknussemm on a stone. We followed his path and came to a narrow passage that we could not pass. So my uncle lit a charge of gunpowder and blasted the rock.",
-        "The explosion opened a tunnel behind us, and a river of fire — flowing lava — swept us upward. With a deafening roar, the volcano erupted, and we were thrown out onto the green slopes of Italy. We had crossed the entire Earth and returned to the surface!"
-      ],
-      thPages: [
-        "ลุงของฉัน ศาสตราจารย์ลีเดนบร็อก เป็นนักวิทยาศาสตร์ชื่อดังในฮัมบูร์ก วันหนึ่งเขาพบหนังสือเก่าที่มีข้อความแปลกประหลาดเขียนด้วยตัวอักษรลับ 'ถอดรหัสมัน' เขาสั่งฉัน 'แล้วเราจะสร้างประวัติศาสตร์'",
-        "ด้วยกันเราถอดรหัสได้ ข้อความนั้นมาจากนักสำรวจโบราณชื่ออาร์น ซัคนุสเซมม์ ผู้ซึ่งอ้างว่าเขาไปถึงใจกลางโลกผ่านภูเขาไฟในไอซ์แลนด์ ลุงของฉันดีใจมาก 'เราออกเดินทางพรุ่งนี้!' เขาตะโกน",
-        "เราเดินทางไปไอซ์แลนด์ จ้างไกด์ชื่อฮันส์ และปีนภูเขาสเนฟเฟลส์ บนยอดเขาเราพบปล่องภูเขาไฟมืดและช่องแคบที่นำลงไปข้างใต้ ลุงของฉันหย่อนตัวเองลงไปก่อน แล้วเราก็ตามลงไปในความมืด",
-        "ลงไป ลงไป เราลงไปหลายวัน กำแพงเริ่มอุ่นขึ้น และแสงประหลาดเรืองรองในหิน ในที่สุดเราก็ถึงทะเลใต้ดินอันกว้างใหญ่ และเราก็สร้างแพไม้เพื่อแล่นข้ามน้ำที่นิ่งสงบและเงียบงัน",
-        "ทะเลนั้นเต็มไปด้วยสิ่งมหัศจรรย์ — ปลาโบราณ ป่าเห็ดยักษ์ และสิ่งมีชีวิตที่สูญพันธุ์ไปจากโลกเบื้องบน แล้วพายุใหญ่ก็ก่อตัวขึ้น และฟ้าแลบวาบข้ามท้องฟ้าใต้ดิน ขณะที่แพของเราถูกซัดราวกับใบไม้",
-        "พายุพาเราไปที่ชายฝั่งประหลาด ที่ซึ่งเราพบกระดูกของสัตว์ประหลาดโบราณและชื่อของซัคนุสเซมม์ที่แกะสลักบนหิน เราตามเส้นทางของเขาและมาถึงทางเดินแคบที่เราไม่สามารถผ่านได้ ดังนั้นลุงของฉันจึงจุดดินระเบิดและระเบิดหิน",
-        "การระเบิดเปิดอุโมงค์ที่อยู่ข้างหลังเรา และแม่น้ำแห่งไฟ — ลาวาที่ไหล — พัดพาเราขึ้นไป ด้วยเสียงคำรามกึกก้อง ภูเขาไฟก็ปะทุ และเราถูกเหวี่ยงออกไปบนเนินเขาสีเขียวของอิตาลี เราข้ามโลกทั้งใบและกลับสู่ผิวน้ำ!"
-      ]
+        "The storm carried us to a strange shore where we found the bones of ancient monsters and Saknussemm's name carved on a stone. We followed his path and came to a narrow passage we couldn't pass. So my uncle lit a charge of gunpowder and blasted the rock.",
+        "The explosion opened a tunnel behind us, and a river of fire — flowing lava — swept us upward. With a deafening roar, the volcano erupted, and we were thrown out onto the green slopes of Italy. We had crossed the entire Earth and returned to the surface!"],
+      thPages: ["ลุงของฉัน ศาสตราจารย์ลีเดนบร็อก เป็นนักวิทยาศาสตร์ชื่อดังในฮัมบูร์ก วันหนึ่งเขาพบหนังสือเก่าที่มีข้อความแปลกประหลาดเขียนด้วยตัวอักษรลับ 'ถอดรหัสมัน' เขาสั่งฉัน 'แล้วเราจะสร้างประวัติศาสตร์'",
+        "เราร่วมกันไขรหัสได้สำเร็จ ข้อความนั้นมาจากนักสำรวจโบราณชื่ออาร์น ซัคนุสเซมม์ ที่อ้างว่าเขาไปถึงใจกลางโลกผ่านภูเขาไฟในไอซ์แลนด์ ลุงของฉันดีใจมาก 'เราออกเดินทางพรุ่งนี้!' เขาตะโกน",
+        "เราเดินทางไปไอซ์แลนด์ จ้างไกด์ชื่อฮันส์ และปีนภูเขาสเนฟเฟลส์ บนยอดเขาเราพบปล่องภูเขาไฟอันมืดมิดและช่องแคบที่ทอดลงไปข้างใต้ ลุงของฉันหย่อนตัวเองลงไปก่อน แล้วเราก็ตามลงไปในความมืด",
+        "เราค่อยๆ ลงไปเป็นเวลาหลายวัน กำแพงเริ่มอุ่นขึ้น และแสงประหลาดเรืองรองอยู่ในหิน ในที่สุดเราก็ถึงทะเลใต้ดินอันกว้างใหญ่ และเราก็สร้างแพไม้เพื่อแล่นข้ามผืนน้ำที่นิ่งสงบและเงียบงัน",
+        "ทะเลนั้นเต็มไปด้วยสิ่งมหัศจรรย์ — ปลาโบราณ ป่าเห็ดยักษ์ และสิ่งมีชีวิตที่สูญพันธุ์ไปจากโลกข้างบนแล้ว แล้วพายุใหญ่ก็ก่อตัวขึ้น และฟ้าแลบวาบข้ามท้องฟ้าใต้ดิน ขณะที่แพของเราถูกซัดราวกับใบไม้",
+        "พายุพาเราไปที่ชายฝั่งประหลาด ที่ซึ่งเราพบกระดูกของสัตว์ประหลาดโบราณและชื่อของซัคนุสเซมม์ที่แกะสลักบนหิน เราตามเส้นทางของเขาและมาถึงทางเดินแคบที่เราเข้าไปไม่ได้ ลุงของฉันจึงจุดชนวนดินระเบิดเพื่อทลายหินออก",
+        "การระเบิดเปิดอุโมงค์ที่อยู่ข้างหลังเรา และแม่น้ำแห่งไฟ — ลาวาที่ไหล — พัดพาเราขึ้นไป ด้วยเสียงคำรามกึกก้อง ภูเขาไฟก็ปะทุ และเราถูกเหวี่ยงออกไปบนเนินเขาสีเขียวของอิตาลี เราข้ามโลกทั้งใบและกลับสู่ผิวน้ำ!"]
     },
     {
       id: "cur-sf-frankenstein", level: "B2", genre: "scifi",
       title: "Frankenstein",
-      pages: [
-        "A ship trapped in Arctic ice found a man near death on a floating block. His name was Victor Frankenstein, and he told the captain his terrible story — a warning that he begged the world to hear.",
+      pages: ["A ship trapped in Arctic ice found a man near death on a floating block. His name was Victor Frankenstein, and he told the captain his terrible story — a warning that he begged the world to hear.",
         "Victor had been a brilliant student who loved science. He became obsessed with the secret of life itself. After years of secret work, he gathered the parts of dead bodies and used electricity to give a new being the spark of life.",
-        "When the creature opened its yellow eyes, Victor was filled with horror. He fled his own creation. The lonely monster wandered the world, learning to speak and to read, but every human who saw it screamed and drove it away.",
-        "The creature found Victor at last. 'I am miserable,' it said. 'You made me. You owe me a mate.' Victor refused at first, but the monster threatened his family, and he agreed to build a female companion.",
+        "When the creature opened its yellow eyes, Victor was filled with horror. He fled his own creation. The lonely monster wandered the world, learning to speak and read, but every human who saw it screamed and drove it away.",
+        "The creature found Victor at last. 'I'm miserable,' it said. 'You made me. You owe me a mate.' Victor refused at first, but the monster threatened his family, and he agreed to build a female companion.",
         "But as Victor worked, doubt filled his heart. What if the two monsters had children? What if they destroyed the world? In a fit of fear, he tore the new creature apart. The monster watched, and rage filled its heart.",
-        "The monster killed Victor's brother, then his best friend, and finally his beloved bride Elizabeth on their wedding night. 'You destroyed my hope,' it said. 'Now you will know my loneliness.' Victor swore to hunt it to the ends of the Earth.",
-        "Victor chased the monster across frozen wastes until his health gave out. On the ship, he died. The monster appeared at his coffin, wept, and promised to end its own life. It leapt onto the ice and vanished into the darkness forever."
-      ],
-      thPages: [
-        "เรือที่ติดอยู่ในน้ำแข็งอาร์กติกพบชายคนหนึ่งใกล้ตายบนก้อนน้ำแข็งที่ลอยอยู่ ชื่อของเขาคือวิกเตอร์ แฟรงเกนสไตน์ และเขาเล่าเรื่องราวอันน่าสยดสยองของเขาให้กัปตันฟัง — คำเตือนที่เขาวิงวอนให้โลกได้ยิน",
-        "วิกเตอร์เคยเป็นนักเรียนที่เก่งกาจผู้รักวิทยาศาสตร์ เขากลายเป็นคนหมกมุ่นกับความลับของชีวิตเอง หลังทำงานลับหลายปี เขารวบรวมชิ้นส่วนของศพและใช้ไฟฟ้าเพื่อมอบประกายแห่งชีวิตให้กับสิ่งมีชีวิตใหม่",
+        "The monster killed Victor's brother, then his best friend, and finally his beloved bride Elizabeth on their wedding night. 'You destroyed my hope,' it said. 'Now you'll know my loneliness.' Victor swore to hunt it to the ends of the Earth.",
+        "Victor chased the monster across frozen wastes until his health gave out. On the ship, he died. The monster appeared at his coffin, wept, and promised to end its own life. It leapt onto the ice and vanished into the darkness forever."],
+      thPages: ["เรือที่ติดอยู่ในน้ำแข็งอาร์กติกพบชายคนหนึ่งใกล้ตายบนก้อนน้ำแข็งที่ลอยอยู่ ชื่อของเขาคือวิกเตอร์ แฟรงเกนสไตน์ และเขาเล่าเรื่องราวอันน่าสยดสยองของเขาให้กัปตันฟัง — คำเตือนที่เขาวิงวอนให้โลกได้ยิน",
+        "วิกเตอร์เคยเป็นนักเรียนที่เก่งกาจผู้หลงใหลวิทยาศาสตร์ เขากลายเป็นคนหมกมุ่นกับความลับของชีวิต หลังจากทำงานอย่างลับๆ มาหลายปี เขารวบรวมชิ้นส่วนของศพและใช้ไฟฟ้าเพื่อมอบประกายแห่งชีวิตให้กับสิ่งมีชีวิตใหม่",
         "เมื่อสิ่งมีชีวิตนั้นลืมตาสีเหลือง วิกเตอร์เต็มไปด้วยความสยดสยอง เขาหนีจากสิ่งที่เขาสร้างขึ้น สัตว์ประหลาดผู้โดดเดี่ยวเร่ร่อนไปทั่วโลก เรียนรู้ที่จะพูดและอ่าน แต่ทุกมนุษย์ที่เห็นมันก็กรีดร้องและไล่มันไป",
-        "ในที่สุดสิ่งมีชีวิตนั้นก็พบวิกเตอร์ 'ฉันทุกข์ทรมาน' มันกล่าว 'คุณสร้างฉันขึ้นมา คุณเป็นหนี้ฉันเพื่อนคู่ครอง' วิกเตอร์ปฏิเสธในตอนแรก แต่สัตว์ประหลาดข่มขู่ครอบครัวของเขา และเขาก็ตกลงที่จะสร้างคู่หูหญิง",
-        "แต่ขณะที่วิกเตอร์ทำงาน ความสงสัยก็เติมเต็มหัวใจของเขา จะเกิดอะไรขึ้นถ้าสัตว์ประหลาดสองตัวมีลูก? จะเกิดอะไรขึ้นถ้าพวกมันทำลายโลก? ด้วยความกลัว เขาฉีกสิ่งมีชีวิตตัวใหม่ออกจากกัน สัตว์ประหลาดเฝ้าดู และความโกรธก็เติมเต็มหัวใจของมัน",
-        "สัตว์ประหลาดฆ่าน้องชายของวิกเตอร์ แล้วก็เพื่อนสนิทของเขา และในที่สุดก็ฆ่าเอลิซาเบธเจ้าสาวผู้เป็นที่รักของเขาในคืนแต่งงาน 'คุณทำลายความหวังของฉัน' มันกล่าว 'ตอนนี้คุณจะรู้จักความโดดเดี่ยวของฉัน' วิกเตอร์สาบานว่าจะไล่ล่ามันจนสุดขอบโลก",
-        "วิกเตอร์ไล่ตามสัตว์ประหลาดข้ามทุ่งน้ำแข็งจนสุขภาพของเขาทรุดโทรม บนเรือ เขาเสียชีวิต สัตว์ประหลาดปรากฏตัวที่โลงศพของเขา ร้องไห้ และสัญญาว่าจะจบชีวิตของมันเอง มันกระโดดขึ้นบนน้ำแข็งและหายไปในความมืดตลอดกาล"
-      ]
+        "ในที่สุดสิ่งมีชีวิตนั้นก็พบวิกเตอร์ 'ฉันทุกข์ทรมาน' มันพูด 'คุณสร้างฉันขึ้นมา คุณต้องมอบคู่ครองให้ฉัน' วิกเตอร์ปฏิเสธในตอนแรก แต่สัตว์ประหลาดข่มขู่ครอบครัวของเขา และเขาก็ตกลงที่จะสร้างคู่หูหญิงให้มัน",
+        "แต่ขณะที่วิกเตอร์ทำงาน ความสงสัยก็เกาะกุมหัวใจของเขา จะเกิดอะไรขึ้นถ้าสัตว์ประหลาดสองตัวมีลูก? จะเกิดอะไรขึ้นถ้าพวกมันทำลายโลก? ด้วยความกลัว เขาจึงฉีกสิ่งมีชีวิตตัวใหม่ออกจากกัน สัตว์ประหลาดเฝ้าดู และความโกรธก็เกาะกุมหัวใจของมัน",
+        "สัตว์ประหลาดฆ่าน้องชายของวิกเตอร์ แล้วก็เพื่อนสนิทของเขา และในที่สุดก็ฆ่าเอลิซาเบธเจ้าสาวผู้เป็นที่รักของเขาในคืนแต่งงาน 'คุณทำลายความหวังของฉัน' มันพูด 'ตอนนี้คุณจะรู้จักความโดดเดี่ยวของฉัน' วิกเตอร์สาบานว่าจะไล่ล่ามันจนสุดขอบโลก",
+        "วิกเตอร์ไล่ตามสัตว์ประหลาดข้ามทุ่งน้ำแข็งจนสุขภาพของเขาทรุดโทรม บนเรือ เขาเสียชีวิต สัตว์ประหลาดปรากฏตัวที่โลงศพของเขา ร้องไห้ และสัญญาว่าจะยุติชีวิตของตัวเอง มันกระโดดขึ้นไปบนน้ำแข็งและหายไปในความมืดตลอดกาล"]
     },
     {
       id: "cur-mys-hound-baskerville", level: "B2", genre: "mystery",
       title: "The Hound of the Baskervilles",
-      pages: [
-        "In the misty moors of Devonshire, a great dog was said to haunt the Baskerville family. Legend told how Sir Hugo Baskerville was killed by a monstrous hound after a wicked crime, and his descendants were cursed from that day on.",
+      pages: ["In the misty moors of Devonshire, a great dog was said to haunt the Baskerville family. Legend told how Sir Hugo Baskerville was killed by a monstrous hound after a wicked crime, and his descendants were cursed from that day on.",
         "A hundred years later, Sir Charles Baskerville was found dead near his manor, his face twisted with terror. The only clue was a set of huge footprints — like those of a giant hound — leading away from his body.",
         "Dr. Mortimer brought the case to Sherlock Holmes. 'Keep my heir, Sir Henry, safe,' he begged. 'He arrives from America tomorrow.' Holmes sent his friend Dr. Watson to the manor to guard the young man and watch everyone closely.",
         "At Baskerville Hall, Watson met the strange butler Barrymore and his wife. One night he saw Barrymore signal with a candle from a window, and he discovered that the butler's brother was a dangerous convict hiding on the moors.",
-        "Watson also met the naturalist Stapleton, who lived across the moor with his sister. A strange fog often rose from the bog, and Watson heard a sound like a great hound howling in the night. Stapleton warned him away from the Grimpen Mire.",
+        "Watson also met the naturalist Stapleton, who lived across the moor with his sister. A strange fog often rose from the bog, and Watson heard a sound like a great hound howling in the night. Stapleton warned him to stay away from the Grimpen Mire.",
         "Then Sherlock Holmes himself appeared, hidden on the moors. He had guessed the truth: Stapleton was a Baskerville in disguise, and he planned to kill the heir. The 'hound' was a huge, glowing dog he kept in the marsh, ready to be set loose.",
-        "In the fog, the giant hound attacked Sir Henry. Holmes and Watson shot it as it leaped, and its glow faded. Stapleton fled into the bog and drowned in the mire. The curse of the Baskervilles was ended, and Sir Henry was safe."
-      ],
-      thPages: [
-        "ในทุ่งหมอกของเดวอนเชียร์ ว่ากันว่าสุนัขตัวใหญ่สิงสถิตครอบครัวแบสเกอร์วิลล์ ตำนานเล่าว่าเซอร์ฮูโก แบสเกอร์วิลล์ถูกสุนัขปีศาจฆ่าตายหลังก่ออาชญากรรมชั่วร้าย และลูกหลานของเขาถูกสาปตั้งแต่วันนั้นเป็นต้นมา",
+        "In the fog, the giant hound attacked Sir Henry. Holmes and Watson shot it as it leaped, and its glow faded. Stapleton fled into the bog and drowned in the mire. The curse of the Baskervilles was ended, and Sir Henry was safe."],
+      thPages: ["ในทุ่งหมอกของเดวอนเชียร์ ว่ากันว่าสุนัขยักษ์สิงสถิตตระกูลแบสเกอร์วิลล์ ตำนานเล่าว่าเซอร์ฮูโก แบสเกอร์วิลล์ถูกสุนัขปีศาจฆ่าตายหลังก่ออาชญากรรมชั่วร้าย และลูกหลานของเขาถูกสาปตั้งแต่วันนั้นเป็นต้นมา",
         "ร้อยปีต่อมา เซอร์ชาร์ลส์ แบสเกอร์วิลล์ถูกพบเสียชีวิตใกล้คฤหาสน์ของเขา ใบหน้าบิดเบี้ยวด้วยความสยดสยอง เบาะแสเดียวคือรอยเท้าขนาดมหึมา — เหมือนรอยของสุนัขยักษ์ — ทอดออกไปจากร่างของเขา",
-        "ดร.มอร์ติเมอร์นำคดีนี้มาหาเชอร์ล็อก โฮมส์ 'ดูแลทายาทของฉัน เซอร์เฮนรี ให้ปลอดภัยด้วย' เขาวิงวอน 'เขาจะมาถึงพรุ่งนี้จากอเมริกา' โฮมส์ส่งเพื่อนของเขา ดร.วัตสัน ไปที่คฤหาสน์เพื่อคุ้มครองชายหนุ่มและเฝ้าดูทุกคนอย่างใกล้ชิด",
-        "ที่แบสเกอร์วิลล์ฮอลล์ วัตสันพบพ่อบ้านแปลกหน้าชื่อแบร์รีมอร์กับภรรยาของเขา คืนหนึ่งเขาเห็นแบร์รีมอร์ส่งสัญญาณด้วยเทียนจากหน้าต่าง และเขาค้นพบว่าน้องชายของพ่อบ้านคืออาชญากรอันตรายที่ซ่อนตัวอยู่บนทุ่ง",
-        "วัตสันยังได้พบกับสเตเปิลตัน นักธรรมชาติวิทยา ที่อาศัยอยู่อีกฟากของทุ่งกับน้องสาวของเขา หมอกแปลกๆ มักลอยขึ้นจากหนองบึง และวัตสันได้ยินเสียงเหมือนสุนัขตัวใหญ่หอนในยามค่ำคืน สเตเปิลตันเตือนเขาให้หลีกเลี่ยงหนองกริมเพน",
-        "แล้วเชอร์ล็อก โฮมส์เองก็ปรากฏตัว ซ่อนตัวอยู่บนทุ่ง เขาคาดเดาความจริงได้: สเตเปิลตันคือแบสเกอร์วิลล์ในคราบปลอมตัว และเขาวางแผนจะฆ่าทายาท 'สุนัข' ที่ว่านั้นคือสุนัขตัวใหญ่เรืองแสงที่เขาเลี้ยงไว้ในหนอง พร้อมปล่อยออกมา",
-        "ในหมอก สุนัขยักษ์โจมตีเซอร์เฮนรี โฮมส์และวัตสันยิงมันขณะที่มันกระโดด และแสงของมันก็มืดลง สเตเปิลตันหนีเข้าไปในหนองและจมน้ำตาย คำสาปของแบสเกอร์วิลล์สิ้นสุดลง และเซอร์เฮนรีก็ปลอดภัย"
-      ]
+        "ดร.มอร์ติเมอร์นำคดีนี้มาหาเชอร์ล็อก โฮมส์ 'ช่วยดูแลทายาทของฉัน เซอร์เฮนรี ให้ปลอดภัยด้วย' เขาวิงวอน 'พรุ่งนี้เขาจะมาถึงจากอเมริกา' โฮมส์ส่งเพื่อนของเขา ดร.วัตสัน ไปที่คฤหาสน์เพื่อคุ้มครองชายหนุ่มและเฝ้าดูทุกคนอย่างใกล้ชิด",
+        "ที่แบสเกอร์วิลล์ฮอลล์ วัตสันพบพ่อบ้านสุดลึกลับชื่อแบร์รีมอร์กับภรรยาของเขา คืนหนึ่งเขาเห็นแบร์รีมอร์ส่งสัญญาณด้วยเทียนจากหน้าต่าง และเขาค้นพบว่าน้องชายของพ่อบ้านคืออาชญากรอันตรายที่ซ่อนตัวอยู่บนทุ่ง",
+        "วัตสันยังได้พบกับสเตเปิลตัน นักธรรมชาติวิทยา ที่อาศัยอยู่อีกฟากของทุ่งกับน้องสาวของเขา หมอกแปลกๆ มักลอยขึ้นจากหนองบึง และวัตสันได้ยินเสียงเหมือนสุนัขตัวใหญ่หอนในยามค่ำคืน สเตเปิลตันเตือนให้เขาอยู่ให้ห่างจากหนองกริมเพน",
+        "แล้วเชอร์ล็อก โฮมส์เองก็ปรากฏตัว ซ่อนตัวอยู่บนทุ่ง เขารู้ความจริงแล้ว: สเตเปิลตันคือแบสเกอร์วิลล์ที่ปลอมตัว และเขาวางแผนจะฆ่าทายาท 'สุนัข' ที่ว่านั้นคือสุนัขตัวใหญ่เรืองแสงที่เขาเลี้ยงไว้ในหนอง พร้อมที่จะปล่อยออกมา",
+        "ในหมอก สุนัขยักษ์โจมตีเซอร์เฮนรี โฮมส์และวัตสันยิงมันขณะที่มันกระโดด และแสงเรืองของมันก็มอดลง สเตเปิลตันหนีเข้าไปในหนองและจมน้ำตาย คำสาปของตระกูลแบสเกอร์วิลล์ก็สิ้นสุดลง และเซอร์เฮนรีก็ปลอดภัย"]
     },
     {
       id: "cur-mys-rue-morgue", level: "B2", genre: "mystery",
       title: "The Murders in the Rue Morgue",
-      pages: [
-        "In Paris, a terrible crime shook the city. In a locked room on the fourth floor of the Rue Morgue, the bodies of a mother and daughter were found. The mother's throat was cut, and the daughter had been strangled and thrown up the chimney.",
+      pages: ["In Paris, a terrible crime shook the city. In a locked room on the fourth floor of the Rue Morgue, the bodies of a mother and daughter were found. The mother's throat was cut, and the daughter had been strangled and thrown up the chimney.",
         "The door was locked from inside, and the windows were firmly shut. Money lay scattered on the floor, but nothing was stolen. People said the daughter had a voice too loud for a woman, and witnesses argued about a foreign language they had heard.",
         "The police were lost. But the great detective Auguste Dupin read the newspaper and saw the truth in the details. He noticed that the windows opened in a strange way, and that the daughter was wedged into the chimney with terrible force.",
         "Dupin examined the room himself. He found hairs on the mother's hand that were not human, and marks on the throat that no human hands could have made. 'This was no murder by a man,' he said quietly.",
         "The answer was a wild creature. A sailor had brought a huge orangutan back from Borneo. It had escaped, climbed into the window, and killed the women in a blind frenzy. The voices the witnesses heard were the cries of the beast.",
-        "Dupin found the sailor through an advertisement and told him the whole story. The man was grateful to escape blame, and he told Dupin everything. The mystery of the Rue Morgue was solved by careful thought — and the police never understood a single step."
-      ],
-      thPages: [
-        "ในปารีส อาชญากรรมอันน่าสยดสยองสั่นสะเทือนทั้งเมือง ในห้องที่ล็อกไว้บนชั้นสี่ของถนนรูมอร์ก พบศพของแม่และลูกสาว ร่างของแม่ถูกเฉือนคอ และลูกสาวถูกรัดคอแล้วถูกโยนขึ้นไปในปล่องไฟ",
-        "ประตูถูกล็อกจากด้านใน และหน้าต่างก็ปิดสนิท เงินกระจายอยู่บนพื้น แต่ไม่มีอะไรถูกขโมย ผู้คนกล่าวว่าลูกสาวมีเสียงดังเกินกว่าผู้หญิงคนหนึ่ง และพยานโต้เถียงกันเกี่ยวกับภาษาต่างประเทศที่พวกเขาได้ยิน",
-        "ตำรวจสับสนสิ้น แต่ยอดนักสืบออกุสต์ ดูแปงอ่านหนังสือพิมพ์และเห็นความจริงในรายละเอียด เขาสังเกตว่าหน้าต่างเปิดในลักษณะแปลก และลูกสาวถูกอัดเข้าไปในปล่องไฟด้วยแรงมหาศาล",
-        "ดูแปงตรวจห้องด้วยตัวเอง เขาพบเส้นผมบนมือของแม่ที่ไม่ใช่เส้นผมมนุษย์ และรอยบนคอที่มือมนุษย์ไม่สามารถทำได้ 'นี่ไม่ใช่การฆาตกรรมโดยมนุษย์' เขากล่าวอย่างเงียบๆ",
-        "คำตอบคือสัตว์ป่า กะลาสีคนหนึ่งนำอุรังอุตังตัวใหญ่กลับมาจากเกาะบอร์เนียว มันหนีออกมา ปีนเข้าไปในหน้าต่าง และฆ่าผู้หญิงทั้งสองในความคลั่งไคล้ที่มองไม่เห็น เสียงที่พยานได้ยินคือเสียงร้องของสัตว์ร้าย",
-        "ดูแปงหากะลาสีเจอผ่านการลงโฆษณาและเล่าเรื่องทั้งหมดให้เขาฟัง ชายคนนั้นรู้สึกขอบคุณที่พ้นผิด และเล่าทุกอย่างให้ดูแปงฟัง ปริศนาของถนนรูมอร์กถูกไขด้วยการคิดอย่างรอบคอบ — และตำรวจไม่เคยเข้าใจสักขั้นตอนเดียว"
-      ]
+        "Dupin found the sailor through an advertisement and told him the whole story. The man was grateful to escape blame, and he told Dupin everything. The mystery of the Rue Morgue was solved by careful thought — and the police never understood a single step."],
+      thPages: ["ในปารีส อาชญากรรมอันน่าสยดสยองสั่นสะเทือนทั้งเมือง ในห้องที่ถูกล็อกบนชั้นสี่ของถนนรูมอร์ก พบศพของแม่และลูกสาว ร่างของแม่ถูกเฉือนคอ และลูกสาวถูกรัดคอแล้วถูกโยนขึ้นไปในปล่องไฟ",
+        "ประตูถูกล็อกจากด้านใน และหน้าต่างก็ปิดสนิท เงินกระจายอยู่บนพื้น แต่ไม่มีอะไรถูกขโมย ผู้คนกล่าวว่าลูกสาวมีเสียงดังเกินกว่าเสียงผู้หญิงปกติ และพยานเถียงกันเรื่องภาษาต่างประเทศที่พวกเขาได้ยิน",
+        "ตำรวจงงไปหมด แต่ยอดนักสืบออกุสต์ ดูแปงอ่านหนังสือพิมพ์และเห็นความจริงในรายละเอียด เขาสังเกตว่าหน้าต่างเปิดได้แปลกๆ และลูกสาวถูกอัดเข้าไปในปล่องไฟด้วยแรงมหาศาล",
+        "ดูแปงตรวจห้องด้วยตัวเอง เขาพบเส้นผมบนมือของแม่ที่ไม่ใช่ผมของมนุษย์ และรอยบนคอที่มือมนุษย์ทำไม่ได้ 'นี่ไม่ใช่การฆาตกรรมโดยมนุษย์' เขาพูดเสียงเบา",
+        "คำตอบคือสัตว์ป่า กะลาสีคนหนึ่งนำอุรังอุตังตัวใหญ่กลับมาจากเกาะบอร์เนียว มันหนีออกมา ปีนเข้าไปในหน้าต่าง และฆ่าผู้หญิงทั้งสองด้วยความคลั่งไร้สติ เสียงที่พยานได้ยินคือเสียงร้องของสัตว์ร้าย",
+        "ดูแปงหากะลาสีคนนั้นเจอด้วยการลงโฆษณา และเล่าเรื่องทั้งหมดให้เขาฟัง ชายคนนั้นโล่งใจที่ไม่ถูกกล่าวหา และเล่าทุกอย่างให้ดูแปงฟัง ปริศนาของถนนรูมอร์กถูกไขด้วยการคิดอย่างรอบคอบ — และตำรวจไม่เคยเข้าใจเลยสักก้าวเดียว"]
     },
     {
       id: "cur-cls-christmas-carol", level: "A2", genre: "classic",
       title: "A Christmas Carol",
-      pages: [
-        "Ebenezer Scrooge was the meanest man in London. He loved money, hated Christmas, and refused to help the poor. 'Bah! Humbug!' he said to anyone who wished him a merry Christmas.",
-        "One Christmas Eve, the ghost of his old partner Jacob Marley appeared, wrapped in heavy chains. 'I wore these chains for my greed,' Marley moaned. 'Tonight, three spirits will visit you. Listen to them, or you will suffer as I do.'",
-        "The Ghost of Christmas Past showed Scrooge his boyhood — happy days he had forgotten. It showed him his old love, who had left him because of his cold heart. Scrooge wept to see what he had become.",
-        "The Ghost of Christmas Present showed him the home of his poor clerk, Bob Cratchit, where the family enjoyed a simple feast. Bob's small son Tiny Tim was ill, and Scrooge asked, 'Will the boy live?' The ghost said, 'If nothing changes, he will die.'",
-        "The Ghost of Christmas Yet to Come showed Scrooge a grave with his own name on it, and greedy men glad that he was dead. Scrooge fell to his knees. 'I will change!' he cried. 'I promise to honor Christmas in my heart!'",
-        "Scrooge woke in his own bed, laughing with joy. He sent a huge turkey to the Cratchit family, gave money to the poor, and walked through the streets wishing everyone a merry Christmas.",
-        "From that day on, Scrooge kept his promise. He helped Tiny Tim, who lived, and became like a second father to him. The people of London said no one knew better than Scrooge how to keep Christmas well."
-      ],
-      thPages: [
-        "เอ็บเบเนเซอร์ สครูจเป็นคนที่ใจร้ายที่สุดในลอนดอน เขารักเงิน เกลียดคริสต์มาส และปฏิเสธที่จะช่วยคนยากจน 'บาห์! ฮัมบั๊ก!' เขาพูดกับใครก็ตามที่อวยพรคริสต์มาสให้เขา",
-        "คืนก่อนวันคริสต์มาส ผีของเจค็อบ มาร์ลีย์หุ้นส่วนเก่าของเขาปรากฏตัว ถูกพันธนาการด้วยโซ่หนัก 'ฉันสวมโซ่เหล่านี้เพราะความโลภของฉัน' มาร์ลีย์คร่ำครวญ 'คืนนี้ วิญญาณสามตนจะมาเยือนคุณ ฟังพวกมัน หรือคุณจะทนทุกข์เหมือนฉัน'",
-        "ผีแห่งคริสต์มาสอดีตพาสครูจดูวัยเด็กของเขา — วันที่มีความสุขที่เขาลืมไปแล้ว มันพาเขาดูคนรักเก่าของเขาที่จากไปเพราะหัวใจเย็นชาของเขา สครูจร้องไห้ที่เห็นว่าตัวเองกลายเป็นอะไร",
-        "ผีแห่งคริสต์มาสปัจจุบันพาเขาดูบ้านของบ็อบ แครทชิตเสมียนผู้ยากจนของเขา ที่ซึ่งครอบครัวเพลิดเพลินกับมื้ออาหารที่เรียบง่าย ทิมน้อยลูกชายตัวเล็กของบ็อบป่วย และสครูจถามว่า 'เด็กคนนั้นจะรอดไหม?' ผีกล่าว 'ถ้าไม่มีอะไรเปลี่ยนแปลง เขาจะตาย'",
-        "ผีแห่งคริสต์มาสที่ยังมาไม่ถึงพาสครูจดูหลุมศพที่มีชื่อของเขาอยู่บนนั้น และชายโลภที่ดีใจที่เขาตาย สครูจคุกเข่าลง 'ฉันจะเปลี่ยน!' เขาร้องไห้ 'ฉันสัญญาว่าจะให้เกียรติคริสต์มาสในหัวใจ!'",
-        "สครูจตื่นขึ้นบนเตียงของตัวเอง หัวเราะด้วยความสุข เขาส่งไก่งวงตัวใหญ่ให้ครอบครัวแครทชิต ให้เงินคนยากจน และเดินผ่านถนนอวยพรคริสต์มาสกับทุกคน",
-        "ตั้งแต่วันนั้นเป็นต้นมา สครูจรักษาสัญญาของเขา เขาช่วยทิมน้อย ผู้ซึ่งรอดชีวิต และกลายเป็นเหมือนพ่อคนที่สองของเขา ผู้คนในลอนดอนกล่าวว่าไม่มีใครรู้จักวิธีเฉลิมฉลองคริสต์มาสได้ดีเท่าสครูจ"
-      ]
+      pages: ["Ebenezer Scrooge was the meanest man in London. He loved money, hated Christmas, and never gave a penny to the poor. 'Bah! Humbug!' he'd snap at anyone who wished him a merry Christmas.",
+        "One Christmas Eve, the ghost of his old partner, Jacob Marley, appeared wrapped in heavy chains. 'I wore these chains because I was greedy,' Marley moaned. 'Tonight three spirits will visit you. Listen to them, or you'll suffer just like me.'",
+        "The Ghost of Christmas Past showed Scrooge his boyhood — happy days he'd long forgotten. It showed him the woman he'd once loved, who had left him because his heart had grown so cold. Scrooge wept to see what he'd become.",
+        "The Ghost of Christmas Present showed him the home of Bob Cratchit, his poor clerk, where the family enjoyed a simple feast together. Bob's little son, Tiny Tim, was ill. 'Will the boy live?' Scrooge asked. 'If nothing changes,' said the ghost, 'he will die.'",
+        "The Ghost of Christmas Yet to Come showed Scrooge a grave with his own name on it — and greedy men who were glad he was dead. Scrooge fell to his knees. 'I'll change!' he cried. 'I promise to keep Christmas in my heart, all year long!'",
+        "Scrooge woke up in his own bed, laughing with joy. He sent a huge turkey to the Cratchits, gave money to the poor, and walked through the streets wishing everyone a merry Christmas.",
+        "From that day on, Scrooge kept his promise. He helped Tiny Tim, who lived, and became like a second father to him. And the people of London said that no one kept Christmas quite as well as Scrooge."],
+      thPages: ["เอ็บเบเนเซอร์ สครูจเป็นคนใจร้ายที่สุดในลอนดอน เขารักเงิน เกลียดคริสต์มาส และไม่เคยยอมช่วยคนจนสักบาท 'บาห์! ฮัมบั๊ก!' เขาโมโหใส่ใครก็ตามที่อวยพรคริสต์มาสให้เขา",
+        "คืนก่อนวันคริสต์มาส ผีของเจค็อบ มาร์ลีย์หุ้นส่วนเก่าของเขาปรากฏตัวขึ้น พร้อมโซ่หนักคล้องตัว 'ฉันสวมโซ่นี้เพราะความโลภของฉันเอง' มาร์ลีย์ครวญคราง 'คืนนี้วิญญาณสามตนจะมาเยือนคุณ ฟังพวกมันไว้ ไม่งั้นคุณจะเจ็บปวดเหมือนฉัน'",
+        "ผีคริสต์มาสอดีตพาสครูจไปดูวัยเด็กของเขา — วันที่สดใสที่เขาลืมไปหมดแล้ว มันพาเขาไปดูผู้หญิงที่เขาเคยรัก ผู้ซึ่งจากไปเพราะหัวใจของเขาเย็นชาเกินไป สครูจร้องไห้เมื่อเห็นว่าตัวเองกลายเป็นคนแบบไหน",
+        "ผีคริสต์มาสปัจจุบันพาเขาดูบ้านของบ็อบ แครทชิต เสมียนยากจนของเขา ที่ซึ่งทั้งครอบครัวนั่งกินอาหารง่ายๆ ร่วมกันอย่างอบอุ่น ทิมน้อยลูกชายตัวเล็กของบ็อบกำลังป่วย สครูจถามว่า 'เด็กคนนั้นจะรอดไหม?' ผีตอบว่า 'ถ้าไม่มีอะไรเปลี่ยน เขาจะต้องตาย'",
+        "ผีคริสต์มาสที่ยังมาไม่ถึงพาเขาดูหลุมศพที่มีชื่อของเขาอยู่บนนั้น และพวกคนโลภที่ดีใจที่เขาตายไปแล้ว สครูจคุกเข่าลง 'ฉันจะเปลี่ยน!' เขาร้องไห้ 'ฉันสัญญาว่าจะเก็บคริสต์มาสไว้ในหัวใจตลอดทั้งปี!'",
+        "สครูจตื่นขึ้นบนเตียงของตัวเอง หัวเราะอย่างมีความสุข เขาส่งไก่งวงตัวใหญ่ไปให้ครอบครัวแครทชิต แจกเงินให้คนยากจน แล้วเดินไปตามถนนอวยพรคริสต์มาสทุกคนที่เจอ",
+        "ตั้งแต่วันนั้นมา สครูจก็รักษาสัญญา เขาช่วยทิมน้อยไว้ และทิมก็รอดชีวิต เขาเป็นเหมือนพ่อคนที่สองของทิม และชาวลอนดอนพูดเป็นเสียงเดียวกันว่า ไม่มีใครรู้จักวิธีเฉลิมฉลองคริสต์มาสได้ดีเท่าสครูจ"]
     },
     {
       id: "cur-cls-alice-wonderland", level: "A2", genre: "classic",
       title: "Alice in Wonderland",
-      pages: [
-        "Alice was sitting by the river with her sister when a white rabbit ran past, pulling a watch from its pocket. 'I'm late!' it cried. Alice chased it down a rabbit hole and fell, falling slowly, down into a strange new world.",
-        "She landed in a hall full of doors. On a table stood a bottle labeled 'Drink me' and a cake labeled 'Eat me.' When she drank, she shrank. When she ate, she grew taller than the house. Nothing made sense, but everything was wonderful.",
-        "Alice wept so much that she swam in a pool of her own tears. Then she joined a strange race with birds and animals, and everyone was wet and tired. 'Curiouser and curiouser,' she said to herself.",
-        "She met the White Rabbit again, who thought she was his servant, and a blue caterpillar who smoked a hookah. 'Who are you?' the caterpillar asked. Alice sighed. 'I hardly know anymore — I change so often today!'",
-        "At a long table she found the Mad Hatter, the March Hare, and a sleepy dormouse having tea. They asked her riddles and moved around the table, shouting, 'No room! No room!' Alice left them and walked into a beautiful garden.",
-        "In the garden she met the Queen of Hearts, who ordered, 'Off with their heads!' at every small mistake. Alice played croquet with flamingos and hedgehogs, but the Queen wanted to behead even the players she disliked.",
-        "Then Alice was called to a trial over some stolen tarts. When the Queen shouted to behead her, Alice cried, 'You're nothing but a pack of cards!' The cards flew up in the air, and Alice woke on the riverbank — it had all been a dream."
-      ],
-      thPages: [
-        "อลิซกำลังนั่งอยู่ริมแม่น้ำกับพี่สาวของเธอ เมื่อกระต่ายขาวตัวหนึ่งวิ่งผ่านมา ดึงนาฬิกาออกจากกระเป๋า 'ฉันสายแล้ว!' มันร้อง อลิซไล่ตามมันลงไปในโพรงกระต่ายและตกลงไป ตกลงช้าๆ ลงสู่โลกใหม่ที่แปลกประหลาด",
-        "เธอลงจอดในห้องโถงที่เต็มไปด้วยประตู บนโต๊ะมีขวดที่ติดฉลาก 'ดื่มฉัน' และเค้กที่ติดฉลาก 'กินฉัน' เมื่อเธอดื่ม เธอก็เล็กลง เมื่อเธอกิน เธอก็สูงขึ้นกว่าบ้าน ไม่มีอะไรสมเหตุสมผล แต่ทุกอย่างวิเศษ",
-        "อลิซร้องไห้มากจนเธอว่ายอยู่ในสระน้ำตาของตัวเอง แล้วเธอก็เข้าร่วมการแข่งแปลกๆ กับนกและสัตว์ และทุกคนก็เปียกและเหนื่อย 'แปลกขึ้น แปลกขึ้นเรื่อยๆ' เธอพูดกับตัวเอง",
-        "เธอพบกระต่ายขาวอีกครั้ง ซึ่งคิดว่าเธอเป็นคนรับใช้ของมัน และหนอนผีเสื้อสีน้ำเงินที่สูบไปป์น้ำ 'เธอเป็นใคร?' หนอนถาม อลิซถอนหายใจ 'ฉันแทบไม่รู้ตัวอีกแล้ว — ฉันเปลี่ยนไปมากวันนี้!'",
-        "ที่โต๊ะยาว เธอพบคนบ้าฮัทเตอร์ กระต่ายมีนาคม และดอร์เมาส์ง่วงนอนกำลังดื่มชา พวกเขาถามปริศนาและย้ายไปรอบโต๊ะ ตะโกนว่า 'ไม่มีที่! ไม่มีที่!' อลิซจากพวกเขาไปและเดินเข้าไปในสวนที่สวยงาม",
-        "ในสวนเธอพบราชินีหัวใจ ผู้ซึ่งสั่ง 'ตัดหัวพวกมันซะ!' กับทุกความผิดพลาดเล็กๆ อลิซเล่นครอกเกต์กับฟลามิงโกและเม่น แต่ราชินีต้องการตัดหัวแม้แต่ผู้เล่นที่เธอไม่ชอบ",
-        "แล้วอลิซก็ถูกเรียกไปพิจารณาคดีเกี่ยวกับทาร์ตที่ถูกขโมย เมื่อราชินีตะโกนสั่งตัดหัวเธอ อลิซร้องว่า 'คุณเป็นแค่สำรับไพ่!' ไพ่บินขึ้นไปในอากาศ และอลิซก็ตื่นขึ้นบนฝั่งแม่น้ำ — มันเป็นแค่ความฝัน"
-      ]
+      pages: ["Alice was sitting by the river with her sister when a white rabbit ran past, pulling a watch out of his pocket. 'I'm late!' he cried. Alice chased him down a rabbit hole and fell — fell slowly — down into a strange new world.",
+        "She landed in a hall full of doors. On a table sat a bottle marked 'Drink me' and a cake marked 'Eat me.' When she drank, she shrank. When she ate, she grew taller than the house. Nothing made sense, but everything felt wonderful.",
+        "Alice cried so much that she ended up swimming in a pool of her own tears. Then she joined a silly race with birds and animals, and everyone came out soaking wet and tired. 'Curiouser and curiouser,' she told herself.",
+        "She met the White Rabbit again, who mistook her for his servant, and a blue caterpillar who smoked a hookah. 'Who are you?' the caterpillar asked. Alice sighed. 'I hardly know anymore — I keep changing all the time today!'",
+        "At a long table she found the Mad Hatter, the March Hare, and a sleepy dormouse having tea. They asked her riddles and shuffled around the table, shouting, 'No room! No room!' Alice left them and wandered into a beautiful garden.",
+        "In the garden she met the Queen of Hearts, who shouted, 'Off with their heads!' at the tiniest mistake. Alice played croquet with flamingos and hedgehogs, but the Queen wanted to behead even the players she didn't like.",
+        "Then Alice was called to a trial about some stolen tarts. When the Queen ordered her head cut off, Alice cried, 'You're nothing but a pack of cards!' The cards flew up into the air — and Alice woke up on the riverbank. It had all been a dream."],
+      thPages: ["อลิซกำลังนั่งอยู่ริมแม่น้ำกับพี่สาว ทันใดนั้นกระต่ายขาวตัวหนึ่งวิ่งผ่านมา คุ้ยหยิบนาฬิกาออกจากกระเป๋า 'ฉันสายแล้ว!' มันร้อง อลิซไล่ตามมันลงไปในโพรงกระต่าย แล้วก็ตกลงไปเรื่อยๆ ช้าๆ จนถึงโลกใหม่ที่แปลกประหลาด",
+        "เธอตกลงไปในห้องโถงที่เต็มไปด้วยประตู บนโต๊ะมีขวดติดฉลากว่า 'ดื่มฉัน' และเค้กติดฉลากว่า 'กินฉัน' พอเธอดื่ม เธอก็หดเล็กลง พอเธอกิน เธอก็ตัวสูงจนใหญ่กว่าบ้าน ไม่มีอะไรสมเหตุสมผล แต่ทุกอย่างกลับวิเศษไปหมด",
+        "อลิซร้องไห้หนักมากจนต้องว่ายอยู่ในแอ่งน้ำตาของตัวเอง แล้วเธอก็ไปร่วมแข่งวิ่งแปลกๆ กับนกและสัตว์ต่างๆ จนทุกคนเปียกปอนและเหนื่อยอ่อน 'แปลกขึ้นทุกที' เธอบอกตัวเอง",
+        "เธอได้เจอกระต่ายขาวอีกครั้ง ซึ่งเข้าใจว่าเธอเป็นคนรับใช้ของมัน และหนอนผีเสื้อสีน้ำเงินที่กำลังสูบไปป์น้ำ 'เธอเป็นใคร?' หนอนถาม อลิซถอนหายใจ 'ฉันแทบไม่รู้ตัวเองแล้ว — วันนี้ฉันเปลี่ยนไปตลอด!'",
+        "ที่โต๊ะยาว เธอเจอคนบ้าฮัทเตอร์ กระต่ายมีนาคม และดอร์เมาส์ง่วงนอนกำลังจัดงานน้ำชา พวกเขาถามปริศนาให้เธอเดา แล้วก็ผลัดกันย้ายที่นั่งรอบโต๊ะพร้อมตะโกนว่า 'ไม่มีที่! ไม่มีที่!' อลิซจึงจากมาแล้วเดินเข้าไปในสวนสวย",
+        "ในสวนเธอเจอราชินีหัวใจ ผู้สั่ง 'ตัดหัวมันซะ!' กับทุกความผิดพลาดเล็กๆ น้อยๆ อลิซเล่นครอกเกต์กับฟลามิงโกและเม่น แต่ราชินีถึงกับอยากตัดหัวนักกีฬาที่เธอไม่ชอบใจด้วย",
+        "แล้วอลิซก็ถูกเรียกไปร่วมพิจารณาคดีเกี่ยวกับทาร์ตที่ถูกขโมย เมื่อราชินีสั่งตัดหัวเธอ อลิซร้องว่า 'คุณก็แค่สำรับไพ่!' ไพ่ทั้งสำรับปลิวว่อนขึ้นไปในอากาศ — แล้วอลิซก็ตื่นขึ้นที่ริมแม่น้ำ ปรากฏว่าทั้งหมดเป็นเพียงความฝัน"]
     },
     {
       id: "cur-cls-little-prince", level: "B1", genre: "classic",
       title: "The Little Prince",
-      pages: [
-        "Once a pilot crashed his plane in the desert. As he fixed it, a small boy appeared and asked for a drawing of a sheep. The boy was the Little Prince, and he came from a tiny planet no bigger than a house.",
-        "The Little Prince told the pilot about his planet, where a beautiful rose grew. He loved her dearly, but she was proud and vain. One day he grew tired of her, and he left to see the wide world and learn what it meant to have friends.",
-        "He visited other planets. On one lived a king who ruled over nothing. On another lived a vain man who wanted everyone to admire him. A third was owned by a businessman who counted stars and called them his wealth.",
-        "On the next planet lived a lamplighter, who lit his lamp again and again because his planet spun faster and faster. 'He is the only one who is not ridiculous,' thought the prince. 'Because he cares about his duty.'",
-        "At last the Little Prince came to Earth. He walked through a garden of roses and felt sad, because his own rose had told him she was the only one of her kind. But a fox taught him a secret. 'It is the time you spend on your rose that makes her so important.'",
-        "'You become responsible forever for what you have tamed,' the fox said. 'What is essential is invisible to the eye.' The Little Prince understood. He returned to his rose in his heart, ready to love and be loved.",
-        "The Little Prince left the pilot at last, telling him that he would go home to his planet and his rose. The pilot never saw him again, but every night he listened to the stars, as if they were a million laughing bells."
-      ],
-      thPages: [
-        "ครั้งหนึ่งนักบินตกเครื่องบินในทะเลทราย ขณะที่เขาซ่อมมัน เด็กชายตัวเล็กคนหนึ่งปรากฏตัวและขอภาพวาดแกะหนึ่งตัว เด็กชายคือเจ้าชายน้อย และเขามาจากดาวเคราะห์เล็กๆ ที่ใหญ่ไม่เกินบ้านหลังหนึ่ง",
-        "เจ้าชายน้อยเล่าให้นักบินฟังเกี่ยวกับดาวเคราะห์ของเขา ที่ซึ่งกุหลาบแสนสวยงอกขึ้น เขารักเธออย่างสุดหัวใจ แต่เธอหยิ่งและโอ้อวด วันหนึ่งเขาเบื่อเธอ จึงจากไปเพื่อดูโลกกว้างและเรียนรู้ว่าการมีเพื่อนหมายถึงอะไร",
-        "เขาไปเยือนดาวเคราะห์ดวงอื่น ดวงหนึ่งมีกษัตริย์ผู้ปกครองสิ่งที่ไม่มี อีกดวงมีคนขี้โอ่ที่ต้องการให้ทุกคนชื่นชมเขา ดวงที่สามเป็นของนักธุรกิจที่นับดวงดาวและเรียกมันว่าความมั่งคั่งของเขา",
-        "บนดาวเคราะห์ดวงถัดไปมีคนจุดตะเกียง ผู้จุดตะเกียงของเขาซ้ำแล้วซ้ำเล่าเพราะดาวเคราะห์ของเขาหมุนเร็วขึ้นเรื่อยๆ 'เขาเป็นคนเดียวที่ไม่ไร้สาระ' เจ้าชายคิด 'เพราะเขาห่วงใยหน้าที่ของเขา'",
-        "ในที่สุดเจ้าชายน้อยก็มาถึงโลก เขาเดินผ่านสวนกุหลาบและรู้สึกเศร้า เพราะกุหลาบของเขาเองเคยบอกว่าเธอเป็นเพียงหนึ่งเดียวในสายพันธุ์ของเธอ แต่สุนัขจิ้งจอกสอนความลับแก่เขา 'เวลาที่คุณใช้กับกุหลาบของคุณคือสิ่งที่ทำให้เธอสำคัญขนาดนั้น'",
-        "'คุณต้องรับผิดชอบตลอดไปสำหรับสิ่งที่คุณผูกพัน' จิ้งจอกกล่าว 'สิ่งที่สำคัญนั้นมองไม่เห็นด้วยตา' เจ้าชายน้อยเข้าใจ เขากลับหากุหลาบของเขาในหัวใจ พร้อมที่จะรักและถูกรัก",
-        "ในที่สุดเจ้าชายน้อยก็จากนักบินไป โดยบอกว่าเขาจะกลับบ้านไปยังดาวเคราะห์และกุหลาบของเขา นักบินไม่เคยเห็นเขาอีกเลย แต่ทุกคืนเขาฟังดวงดาว ราวกับว่าพวกมันเป็นระฆังหัวเราะนับล้านใบ"
-      ]
+      pages: ["A pilot once crashed his plane in the desert. While he was fixing it, a small boy appeared and asked him to draw a sheep. The boy was the Little Prince, and he came from a tiny planet no bigger than a house.",
+        "The Little Prince told the pilot about his planet, where a beautiful rose grew. He loved her dearly, but she was proud and vain. One day he grew tired of her and set off to see the wide world — and to learn what having friends really meant.",
+        "He visited other planets. On one lived a king who ruled over nothing at all. On another lived a vain man who wanted everyone to admire him. A third belonged to a businessman who counted the stars and called them his fortune.",
+        "On the next planet lived a lamplighter, who lit his lamp again and again because his planet spun faster and faster. 'He's the only one who isn't ridiculous,' thought the prince, 'because he cares about his duty.'",
+        "At last the Little Prince reached Earth. He walked through a garden full of roses and felt sad, because his own rose had told him she was the only one of her kind. But a fox taught him a secret: 'It's the time you spend on your rose that makes her so important.'",
+        "'You become responsible, forever, for what you've tamed,' said the fox. 'What's essential is invisible to the eye.' The Little Prince understood. He went back to his rose in his heart, ready to love and to be loved.",
+        "At last the Little Prince left the pilot, saying he was going home to his planet and his rose. The pilot never saw him again, but every night he listened to the stars — as if they were a million little bells, laughing."],
+      thPages: ["ครั้งหนึ่งนักบินคนหนึ่งตกเครื่องบินกลางทะเลทราย ตอนที่เขากำลังซ่อมเครื่องอยู่ ก็มีเด็กชายตัวเล็กๆ โผล่มาและขอให้เขาวาดรูปแกะให้หน่อย เด็กชายคนนั้นคือเจ้าชายน้อย เขามาจากดาวดวงจิ๋วที่ใหญ่ไม่เกินบ้านหลังหนึ่ง",
+        "เจ้าชายน้อยเล่าให้นักบินฟังถึงดาวของเขา ที่มีกุหลาบแสนสวยงอกอยู่ เขารักเธอมาก แต่เธอช่างหยิ่งและขี้อวด วันหนึ่งเขาเบื่อเธอเข้าแล้ว จึงออกเดินทางไปดูโลกกว้าง และเรียนรู้ว่าการมีเพื่อนนั้นหมายความว่าอย่างไร",
+        "เขาไปเยือนดาวดวงอื่นๆ ดวงหนึ่งมีกษัตริย์ที่ปกครองสิ่งที่ไม่มีจริง อีกดวงมีคนขี้โอ่ที่อยากให้ทุกคนชื่นชมเขา ดวงที่สามเป็นของนักธุรกิจที่นับดาวและเรียกมันว่าความมั่งคั่งของตัวเอง",
+        "บนดาวดวงถัดไปมีคนจุดตะเกียง คอยจุดตะเกียงซ้ำแล้วซ้ำเล่าเพราะดาวของเขาหมุนเร็วขึ้นเรื่อยๆ 'เขาเป็นคนเดียวที่ไม่น่าขำ' เจ้าชายน้อยคิด 'เพราะเขารักหน้าที่ของตัวเอง'",
+        "ในที่สุดเจ้าชายน้อยก็มาถึงโลก เขาเดินผ่านสวนที่เต็มไปด้วยกุหลาบแล้วรู้สึกเศร้า เพราะกุหลาบของเขาเองเคยบอกว่าเธอเป็นหนึ่งเดียวในสายพันธุ์ แต่สุนัขจิ้งจอกสอนความลับให้เขา 'เวลาที่เธอใช้กับกุหลาบของเธอต่างหาก ที่ทำให้เธอสำคัญ'",
+        "'เธอต้องรับผิดชอบไปตลอดกาล สำหรับสิ่งที่เธอผูกพัน' จิ้งจอกกล่าว 'สิ่งที่สำคัญจริงๆ มองไม่เห็นด้วยตา' เจ้าชายน้อยเข้าใจ เขากลับหากุหลาบของเขาในหัวใจ พร้อมที่จะรักและถูกรัก",
+        "ในที่สุดเจ้าชายน้อยก็ลาจากนักบินไป โดยบอกว่าเขาจะกลับดาวของเขา กลับหากุหลาบของเขา นักบินไม่เห็นเขาอีกเลย แต่ทุกคืนเขาจะเงยหน้าฟังดวงดาว ราวกับว่ามันเป็นระฆังเล็กๆ นับล้านใบที่กำลังหัวเราะ"]
     },
     {
       id: "cur-cls-wizard-oz", level: "A2", genre: "classic",
       title: "The Wizard of Oz",
-      pages: [
-        "Dorothy lived on a gray farm in Kansas with her dog Toto. One day a great cyclone lifted the little house into the air and carried it far away to a strange and beautiful land of colors.",
-        "The house landed in the country of the Munchkins and squashed the Wicked Witch of the East. A good witch gave Dorothy silver shoes and said, 'Follow the yellow brick road to the Emerald City. The great Wizard of Oz can send you home.'",
-        "On the road Dorothy met a scarecrow who wanted a brain, a tin man who wanted a heart, and a cowardly lion who wanted courage. She invited them all to come with her to see the Wizard.",
-        "After many dangers, they reached the Emerald City, where everything sparkled with green. But the Wizard appeared as a giant head and refused their request. 'Bring me the broom of the Wicked Witch of the West,' he demanded, 'and I will help you.'",
-        "The Witch captured them and sent flying monkeys to attack. But Dorothy threw water on the Witch by accident, and the wicked woman melted away. The Munchkins were free, and Dorothy took the Witch's golden broom back to the city.",
-        "The Wizard turned out to be a small, ordinary man behind a curtain. But he gave the Scarecrow a brain of bran, the Tin Man a silk heart, and the Lion a potion of courage. 'You always had these inside you,' he told them.",
-        "The Wizard floated away in his balloon without Dorothy. But the good witch told her to click her silver shoes three times and say, 'There's no place like home.' The shoes carried her back to Kansas, where she hugged Aunt Em and Toto, safe at last."
-      ],
-      thPages: [
-        "โดโรธีอาศัยอยู่ในฟาร์มสีเทาในแคนซัสกับสุนัขชื่อโตโต วันหนึ่งพายุไซโคลนลูกใหญ่พัดบ้านหลังเล็กขึ้นไปในอากาศและพามันไปไกลถึงดินแดนแห่งสีสันที่แปลกประหลาดและสวยงาม",
-        "บ้านลงจอดในดินแดนของมันช์กินส์และทับแม่มดชั่วแห่งตะวันออก แม่มดใจดีมอบรองเท้าเงินให้โดโรธีและกล่าวว่า 'เดินตามถนนอิฐเหลืองไปยังเมืองมรกต มหาจอมเวทแห่งออซจะส่งเธอกลับบ้านได้'",
-        "ระหว่างทางโดโรธีพบหุ่นไล่กาที่ต้องการสมอง มนุษย์ดีบุกที่ต้องการหัวใจ และสิงโตขี้ขลาดที่ต้องการความกล้าหาญ เธอชวนพวกเขาทั้งหมดไปพบจอมเวทด้วยกัน",
-        "หลังอันตรายมากมาย พวกเขาก็ถึงเมืองมรกต ที่ซึ่งทุกอย่างเปล่งประกายสีเขียว แต่จอมเวทปรากฏตัวเป็นศีรษะยักษ์และปฏิเสธคำขอของพวกเขา 'เอาไม้กวาดของแม่มดชั่วแห่งตะวันตกมา' เขาเรียกร้อง 'แล้วฉันจะช่วย'",
-        "แม่มดจับพวกเขาและส่งลิงบินมาโจมตี แต่โดโรธีเผลอสาดน้ำใส่แม่มดโดยบังเอิญ และหญิงชั่วก็ละลายหายไป มันช์กินส์เป็นอิสระ และโดโรธีนำไม้กวาดทองของแม่มดกลับไปที่เมือง",
-        "ปรากฏว่าจอมเวทเป็นเพียงชายตัวเล็กธรรมดาที่ซ่อนอยู่หลังม่าน แต่เขามอบสมองรำข้าวให้หุ่นไล่กา หัวใจผ้าไหมให้มนุษย์ดีบุก และยาน้ำแห่งความกล้าให้สิงโต 'พวกเธอมีสิ่งเหล่านี้อยู่ในตัวมาตลอด' เขาบอกพวกเขา",
-        "จอมเวทบินจากไปในบอลลูนโดยไม่มีโดโรธี แต่แม่มดใจดีบอกให้เธอคลิกส้นรองเท้าเงินสามครั้งแล้วพูดว่า 'ไม่มีที่ไหนเหมือนบ้าน' รองเท้าพาเธอกลับไปแคนซัส ที่ซึ่งเธอกอดป้าอีเอ็มและโตโต ปลอดภัยในที่สุด"
-      ]
+      pages: ["Dorothy lived on a gray farm in Kansas with her dog, Toto. One day a huge cyclone lifted the little house into the air and carried it far, far away, to a strange and beautiful land full of colors.",
+        "The house landed in Munchkin Country and squashed the Wicked Witch of the East. A good witch gave Dorothy a pair of silver shoes and said, 'Follow the yellow brick road to the Emerald City. The great Wizard of Oz can send you home.'",
+        "On the way, Dorothy met a scarecrow who wanted a brain, a tin man who wanted a heart, and a cowardly lion who wanted courage. She invited them all to come and see the Wizard with her.",
+        "After many dangers, they reached the Emerald City, where everything sparkled green. But the Wizard appeared as a giant head and turned them down. 'Bring me the Wicked Witch of the West's broom,' he demanded, 'and then I'll help you.'",
+        "The Witch captured them and sent flying monkeys to attack. But Dorothy threw water on the Witch by accident — and the wicked woman melted away. The Munchkins were free, and Dorothy carried the Witch's golden broom back to the city.",
+        "It turned out the Wizard was just a small, ordinary man hiding behind a curtain. Still, he gave the Scarecrow a brain made of bran, the Tin Man a silk heart, and the Lion a potion of courage. 'You always had these inside you,' he told them.",
+        "The Wizard floated away in his balloon without Dorothy. But the good witch told her to click her silver shoes three times and say, 'There's no place like home.' The shoes carried her back to Kansas, where she hugged Aunt Em and Toto — safe at last."],
+      thPages: ["โดโรธีอาศัยอยู่กับโตโต้ สุนัขของเธอ ในฟาร์มสีเทาแห่งหนึ่งที่แคนซัส วันหนึ่งพายุไซโคลนลูกยักษ์พัดบ้านหลังเล็กของเธอลอยขึ้นฟ้า แล้วพาไปไกลแสนไกล จนถึงดินแดนแห่งสีสันที่แปลกตาและสวยงาม",
+        "บ้านไปตกลงที่เมืองมันช์กินส์ ลงไปทับแม่มดชั่วแห่งตะวันออก แม่มดใจดีมอบรองเท้าเงินคู่หนึ่งให้โดโรธี แล้วบอกว่า 'เดินตามถนนอิฐเหลืองไปจนถึงเมืองมรกต มหาจอมเวทแห่งออซจะส่งเธอกลับบ้านเอง'",
+        "ระหว่างทาง โดโรธีเจอหุ่นไล่กาที่อยากได้สมอง มนุษย์ดีบุกที่อยากได้หัวใจ และสิงโตขี้ขลาดที่อยากได้ความกล้า เธอชวนพวกเขาทุกคนไปพบจอมเวทด้วยกัน",
+        "หลังผ่านอันตรายมากมาย พวกเขาก็มาถึงเมืองมรกต ที่ซึ่งทุกอย่างเปล่งประกายเป็นสีเขียว แต่จอมเวทกลับโผล่มาเป็นแค่หัวยักษ์ แล้วปฏิเสธคำขอ 'ไปเอาไม้กวาดของแม่มดชั่วแห่งตะวันตกมา' เขาสั่ง 'แล้วฉันจะช่วยพวกเจ้า'",
+        "แม่มดจับพวกเขาไว้แล้วปล่อยลิงบินมาโจมตี แต่โดโรธีเผลอสาดน้ำใส่แม่มดโดยไม่ได้ตั้งใจ หญิงชั่วร้ายนั้นก็ละลายหายไป มันช์กินส์เป็นอิสระ และโดโรธีก็นำไม้กวาดทองคำของแม่มดกลับไปที่เมือง",
+        "ที่แท้จอมเวทก็เป็นแค่ชายตัวเล็กๆ ธรรมดาๆ ที่ซ่อนอยู่หลังม่านนั่นเอง ถึงอย่างนั้น เขาก็มอบสมองจากรำข้าวให้หุ่นไล่กา หัวใจผ้าไหมให้มนุษย์ดีบุก และยาน้ำแห่งความกล้าให้สิงโต 'พวกเจ้าครอบครองสิ่งเหล่านี้อยู่ในตัวมาอยู่แล้ว' เขาบอกพวกเขา",
+        "จอมเวทบินจากไปในบอลลูนโดยไม่พาโดโรธี แต่แม่มดใจดีบอกให้เธอคลิกส้นรองเท้าเงินสามครั้งแล้วพูดว่า 'ไม่มีที่ไหนเหมือนบ้าน' รองเท้าพาเธอกลับถึงแคนซัส ที่ซึ่งเธอโผเข้ากอดป้าอีเอ็มและโตโต้ — ปลอดภัยในที่สุด"]
     },
     {
       id: "cur-fairy-snow-white", level: "A1", genre: "fairy",
       title: "Snow White",
-      pages: [
-        "A queen had a beautiful daughter named Snow White, with skin as white as snow. When the queen died, the king married a proud new queen who had a magic mirror. Every day she asked, 'Mirror, mirror, who is the fairest of them all?'",
-        "For years the mirror answered, 'You, my queen, are the fairest of all.' But one day it said, 'Snow White is fairer than you.' The queen grew furious, and she ordered a huntsman to take Snow White into the forest and kill her.",
-        "The huntsman could not harm the kind girl. 'Run away and never come back!' he cried. Snow White ran deep into the forest, where she found a tiny cottage with seven little chairs and seven little beds. It belonged to seven dwarfs.",
-        "When the dwarfs came home, they loved Snow White at once and let her stay. 'But beware,' they warned her. 'Your stepmother may find you.' Every morning they kissed her goodbye and went off to dig for gold.",
-        "The evil queen learned the truth and came to the cottage disguised as an old woman. She offered Snow White a beautiful red apple, and one bite sent the girl into a deep sleep that seemed like death.",
-        "The dwarfs found her and laid her in a glass coffin on a hill, sad beyond words. One day a handsome prince saw her and kissed her. The spell broke, and Snow White opened her eyes.",
-        "The prince took her to his castle, and they married with great joy. The wicked queen was never seen again, and Snow White and her seven dwarf friends lived happily together forever."
-      ],
-      thPages: [
-        "ราชินีองค์หนึ่งมีลูกสาวที่สวยงามชื่อสโนว์ไวท์ ผิวขาวราวกับหิมะ เมื่อราชินีสิ้นพระชนม์ กษัตริย์ทรงอภิเษกกับราชินีองค์ใหม่ผู้หยิ่งยโสที่มีกระจกวิเศษ ทุกวันเธอถามว่า 'กระจก กระจก ใครสวยที่สุดในโลก?'",
-        "เป็นเวลาหลายปีที่กระจกตอบว่า 'ท่านราชินี ท่านสวยที่สุดในโลก' แต่วันหนึ่งมันกล่าวว่า 'สโนว์ไวท์สวยกว่าท่าน' ราชินีโกรธจัด และสั่งนายพรานให้พาสโนว์ไวท์ไปที่ป่าแล้วฆ่าเธอ",
-        "นายพรานทำร้ายเด็กใจดีไม่ได้ 'วิ่งหนีไปและอย่ากลับมา!' เขาร้อง สโนว์ไวท์วิ่งลึกเข้าไปในป่า ที่ซึ่งเธอพบกระท่อมหลังเล็กที่มีเก้าอี้เล็กๆ เจ็ดตัวและเตียงเล็กๆ เจ็ดเตียง มันเป็นของคนแคระทั้งเจ็ด",
-        "เมื่อคนแคระกลับมาถึงบ้าน พวกเขารักสโนว์ไวท์ทันทีและให้เธอพักอยู่ 'แต่ระวัง' พวกเขาเตือนเธอ 'แม่เลี้ยงของเธออาจตามหาเธอเจอ' ทุกเช้าพวกเขาจูบเธอลาและออกไปขุดทอง",
-        "ราชินีชั่วร้ายรู้ความจริงและมาที่กระท่อมปลอมตัวเป็นหญิงชรา เธอเสนอแอปเปิลแดงสวยงามให้สโนว์ไวท์ และหนึ่งคำกัดก็ทำให้เด็กหญิงหลับลึกดูเหมือนตาย",
-        "คนแคระพบเธอและวางเธอไว้ในโลงแก้วบนเนินเขา เศร้าเกินกว่าจะพูด เย็นวันหนึ่งเจ้าชายรูปงามเห็นเธอและจูบเธอ เสน่ห์สลาย และสโนว์ไวท์ก็ลืมตา",
-        "เจ้าชายพาเธอไปที่ปราสาทของเขา และพวกเขาก็แต่งงานกันด้วยความยินดียิ่ง ราชินีชั่วร้ายไม่เคยถูกพบเห็นอีกเลย และสโนว์ไวท์กับเพื่อนคนแคระทั้งเจ็ดก็อยู่ร่วมกันอย่างมีความสุขตลอดไป"
-      ]
+      pages: ["A queen had a beautiful little daughter named Snow White, with skin as white as snow. When the queen died, the king married a proud new queen who owned a magic mirror. Every day she asked, 'Mirror, mirror, who is the fairest of them all?'",
+        "For years the mirror answered, 'You, my queen, are the fairest of all.' But one day it said, 'Snow White is fairer than you.' The queen was furious, and she ordered a huntsman to take Snow White into the forest and kill her.",
+        "The huntsman couldn't hurt such a kind girl. 'Run away, and never come back!' he cried. Snow White ran deep into the forest, where she found a tiny cottage with seven little chairs and seven little beds. It belonged to seven dwarfs.",
+        "When the dwarfs came home, they loved Snow White at once and let her stay. 'But be careful,' they warned her. 'Your stepmother might find you.' Every morning they kissed her goodbye and went off to dig for gold.",
+        "The evil queen learned the truth and came to the cottage dressed as an old woman. She offered Snow White a beautiful red apple, and one bite sent the girl into a deep sleep that looked like death.",
+        "The dwarfs found her and laid her in a glass coffin on a hill, too sad for words. One day a handsome prince saw her and kissed her. The spell broke, and Snow White opened her eyes.",
+        "The prince took her to his castle, and they were married with great joy. The wicked queen was never seen again, and Snow White and her seven dwarf friends lived happily together forever."],
+      thPages: ["ราชินีองค์หนึ่งมีลูกสาวที่สวยงามชื่อสโนว์ไวท์ ผิวขาวราวกับหิมะ พอราชินีสิ้นพระชนม์ กษัตริย์ก็อภิเษกกับราชินีองค์ใหม่ที่หยิ่งยโสและมีกระจกวิเศษ ทุกวันเธอจะถามว่า 'กระจก กระจก ใครสวยที่สุดในโลก?'",
+        "หลายปีที่กระจกตอบว่า 'ท่านราชินี ท่านสวยที่สุด' แต่วันหนึ่งมันกลับพูดว่า 'สโนว์ไวท์สวยกว่าท่าน' ราชินีโกรธจัด จึงสั่งนายพรานให้พาสโนว์ไวท์เข้าไปในป่าแล้วฆ่าเธอเสีย",
+        "นายพรานทำใจทำร้ายเด็กใจดีแบบนี้ไม่ได้ 'หนีไปเถอะ แล้วอย่ากลับมาอีก!' เขาร้อง สโนว์ไวท์วิ่งเข้าไปลึกในป่า แล้วพบกระท่อมหลังเล็กที่มีเก้าอี้เล็กๆ เจ็ดตัวกับเตียงเล็กๆ เจ็ดเตียง มันเป็นบ้านของคนแคระทั้งเจ็ด",
+        "พอคนแคระกลับบ้าน พวกเขาก็รักสโนว์ไวท์ทันทีและยอมให้เธออยู่ด้วย 'แต่ระวังนะ' พวกเขาเตือน 'แม่เลี้ยงของเธออาจตามหาเธอเจอ' ทุกเช้าพวกเขาจะจูบเธอลา แล้วออกไปขุดทอง",
+        "ราชินีชั่วร้ายรู้ความจริง จึงมาที่กระท่อมโดยปลอมตัวเป็นหญิงชรา เธอยื่นแอปเปิลแดงสวยงามให้สโนว์ไวท์ และแค่คำกัดเดียวก็ทำให้เด็กสาวหลับลึก ราวกับตายไปแล้ว",
+        "คนแคระพบเธอและวางเธอไว้ในโลงแก้วบนเนินเขา เศร้าเกินกว่าจะพูดอะไรได้ วันหนึ่งเจ้าชายรูปงามมาเห็นเธอและจูบเธอ เสน่ห์สลาย และสโนว์ไวท์ก็ลืมตาขึ้น",
+        "เจ้าชายพาเธอไปยังปราสาทของเขา และทั้งคู่ก็แต่งงานกันอย่างมีความสุขยิ่งนัก ราชินีชั่วร้ายไม่ปรากฏตัวอีกเลย และสโนว์ไวท์กับเพื่อนคนแคระทั้งเจ็ดก็อยู่ร่วมกันอย่างมีความสุขตลอดไป"]
     },
     {
       id: "cur-fairy-beauty-beast", level: "A2", genre: "fairy",
       title: "Beauty and the Beast",
-      pages: [
-        "A rich merchant lost all his money, and his family had to live in a small cottage. His youngest daughter, Beauty, was kind and good, and she loved her father more than the fine dresses she no longer had.",
-        "One winter, the merchant lost his way in a dark forest. He found a great castle, empty and strange, and he slept there. In the garden he picked a single rose for Beauty. A terrible Beast appeared and roared, 'You have stolen my rose! You must pay with your life!'",
-        "'Please spare me for my daughter's sake,' begged the merchant. The Beast agreed, on one condition: someone must come to the castle in his place. When Beauty heard the story, she said, 'Father, I will go to the Beast myself.'",
+      pages: ["A rich merchant lost all his money, and his family had to move into a small cottage. His youngest daughter, Beauty, was kind and good, and she loved her father far more than the fine dresses she no longer had.",
+        "One winter, the merchant lost his way in a dark forest. He found a great castle, empty and strange, and slept there. In the garden he picked a single rose for Beauty. A terrible Beast appeared and roared, 'You've stolen my rose! You must pay with your life!'",
+        "'Please spare me, for my daughter's sake,' begged the merchant. The Beast agreed, on one condition: someone had to come to the castle in his place. When Beauty heard the story, she said, 'Father, I'll go to the Beast myself.'",
         "At the castle, Beauty expected a monster. Instead, the Beast was gentle and gave her everything she wished for. Every evening he asked, 'Beauty, will you marry me?' And every time she answered, 'No, Beast.' But she grew fond of his kindness.",
-        "One day a magic mirror showed Beauty her father, who was ill. She begged the Beast to let her visit home. 'Go,' he said sadly, 'but if you do not return in seven days, I will die.' Beauty hurried home to her father.",
-        "Her sisters persuaded her to stay longer. Then one night Beauty dreamed of the Beast, dying in his garden. She ran back to the castle at once and found him weak beside the rose. 'I could not live without you,' he whispered.",
-        "Beauty wept. 'I love you, Beast,' she said. 'You shall be my husband.' The spell broke, and the Beast became a handsome prince. They married and lived happily, and Beauty understood that true beauty is found within the heart."
-      ],
-      thPages: [
-        "พ่อค้าผู้มั่งคั่งเสียทรัพย์สินทั้งหมด และครอบครัวของเขาต้องอาศัยในกระท่อมเล็กๆ ลูกสาวคนเล็กชื่อบิวตี้เป็นคนใจดีและดีงาม และเธอรักพ่อมากกว่าชุดสวยๆ ที่เธอไม่มีแล้ว",
-        "ฤดูหนาวปีหนึ่ง พ่อค้าหลงทางในป่ามืด เขาพบปราสาทใหญ่ที่ว่างเปล่าและแปลกประหลาด และเขานอนที่นั่น ในสวนเขาเด็ดกุหลาบเพียงดอกเดียวให้บิวตี้ สัตว์ร้ายที่น่ากลัวปรากฏตัวและคำราม 'เจ้าขโมยกุหลาบของฉัน! เจ้าต้องชดใช้ด้วยชีวิต!'",
-        "'โปรดไว้ชีวิตฉันเพื่อลูกสาวของฉัน' พ่อค้าวิงวอน สัตว์ร้ายตกลง โดยมีเงื่อนไขเดียว: ต้องมีคนมาแทนเขาที่ปราสาท เมื่อบิวตี้ฟังเรื่อง เธอกล่าวว่า 'พ่อ ฉันจะไปหาสัตว์ร้ายเอง'",
-        "ที่ปราสาท บิวตี้คาดว่าจะเจอสัตว์ประหลาด แต่กลับตรงกันข้าม สัตว์ร้ายอ่อนโยนและมอบทุกสิ่งที่เธอปรารถนาให้ ทุกเย็นมันถามว่า 'บิวตี้ เจ้าจะแต่งงานกับฉันไหม?' และทุกครั้งเธอตอบว่า 'ไม่ สัตว์ร้าย' แต่เธอเริ่มรักในความใจดีของมัน",
-        "วันหนึ่งกระจกวิเศษแสดงให้บิวตี้เห็นพ่อของเธอ ซึ่งกำลังป่วย เธอวิงวอนให้สัตว์ร้ายปล่อยเธอกลับบ้าน 'ไปเถอะ' มันกล่าวอย่างเศร้า 'แต่ถ้าเจ้าไม่กลับมาภายในเจ็ดวัน ฉันจะตาย' บิวตี้รีบกลับบ้านไปหาพ่อ",
-        "พี่สาวของเธอชักชวนให้เธออยู่ต่อ แล้วคืนหนึ่งบิวตี้ฝันเห็นสัตว์ร้าย กำลังจะตายในสวนของมัน เธอวิ่งกลับปราสาททันทีและพบมันอ่อนแออยู่ข้างกุหลาบ 'ฉันอยู่ไม่ได้ถ้าไม่มีเจ้า' มันกระซิบ",
-        "บิวตี้ร้องไห้ 'ฉันรักคุณ สัตว์ร้าย' เธอกล่าว 'คุณจะเป็นสามีของฉัน' เสน่ห์สลาย และสัตว์ร้ายก็กลายเป็นเจ้าชายรูปงาม พวกเขาแต่งงานและอยู่กันอย่างมีความสุข และบิวตี้เข้าใจว่าความงามที่แท้จริงอยู่ภายในหัวใจ"
-      ]
+        "One day a magic mirror showed Beauty her father, who was ill. She begged the Beast to let her visit home. 'Go,' he said sadly, 'but if you don't come back in seven days, I will die.' Beauty hurried home to her father.",
+        "Her sisters talked her into staying longer. Then one night Beauty dreamed of the Beast, dying in his garden. She rushed back to the castle and found him weak beside the rose. 'I couldn't live without you,' he whispered.",
+        "Beauty wept. 'I love you, Beast,' she said. 'You'll be my husband.' The spell broke, and the Beast became a handsome prince. They married and lived happily, and Beauty learned that true beauty is found in the heart."],
+      thPages: ["พ่อค้าผู้ร่ำรวยคนหนึ่งเสียทรัพย์สินไปหมด ครอบครัวของเขาจึงต้องย้ายไปอาศัยในกระท่อมเล็กๆ ลูกสาวคนเล็กชื่อบิวตี้เป็นคนใจดีและดีงาม เธอรักพ่อมากกว่าชุดสวยๆ ที่เธอไม่มีแล้วเสียอีก",
+        "ฤดูหนาวปีหนึ่ง พ่อค้าหลงทางในป่ามืดทึบ เขาไปพบปราสาทใหญ่ที่ว่างเปล่าและประหลาด แล้วนอนพักอยู่ที่นั่น ในสวน เขาเด็ดกุหลาบดอกเดียวเพื่อบิวตี้ ทันใดนั้นสัตว์ร้ายที่น่าสะพรึงกลัวก็ปรากฏตัวและคำราม 'เจ้าขโมยกุหลาบของฉัน! เจ้าต้องชดใช้ด้วยชีวิต!'",
+        "'ได้โปรดไว้ชีวิตฉันเถอะ เพื่อลูกสาวของฉัน' พ่อค้าวิงวอน สัตว์ร้ายยอม โดยมีเงื่อนไขเดียว: ต้องมีใครสักคนมาแทนเขาที่ปราสาท พอบิวตี้ฟังเรื่องราวจบ เธอก็พูดว่า 'พ่อ หนูจะไปหาสัตว์ร้ายเอง'",
+        "ที่ปราสาท บิวตี้คิดว่าจะต้องเจอสัตว์ประหลาด แต่กลับไม่ใช่เลย สัตว์ร้ายอ่อนโยนและให้ทุกสิ่งที่เธอปรารถนา ทุกเย็นมันจะถามว่า 'บิวตี้ เจ้าจะแต่งงานกับฉันไหม?' และทุกครั้งเธอก็ตอบว่า 'ไม่ สัตว์ร้าย' แต่เธอเริ่มชอบใจในความใจดีของมันมากขึ้นเรื่อยๆ",
+        "วันหนึ่งกระจกวิเศษเผยให้บิวตี้เห็นพ่อของเธอที่กำลังป่วย เธอวิงวอนให้สัตว์ร้ายปล่อยเธอกลับบ้าน 'ไปเถอะ' มันพูดอย่างเศร้าใจ 'แต่ถ้าเจ้าไม่กลับมาภายในเจ็ดวัน ฉันจะตาย' บิวตี้รีบกลับบ้านไปหาพ่อ",
+        "พี่สาวของเธอชักชวนให้อยู่ต่ออีกหน่อย แล้วคืนหนึ่งบิวตี้ฝันเห็นสัตว์ร้ายกำลังจะตายอยู่ในสวนของมัน เธอรีบวิ่งกลับปราสาททันที แล้วพบว่ามันอ่อนแรงอยู่ข้างกุหลาบ 'ฉันอยู่ไม่ได้ถ้าไม่มีเจ้า' มันกระซิบ",
+        "บิวตี้น้ำตาไหล 'ฉันรักคุณ สัตว์ร้าย' เธอพูด 'คุณจะเป็นสามีของฉัน' เสน่ห์สลาย สัตว์ร้ายกลายเป็นเจ้าชายรูปงาม ทั้งคู่แต่งงานกันและใช้ชีวิตอย่างมีความสุข บิวตี้เรียนรู้ว่าความงามที่แท้จริงนั้นอยู่ที่หัวใจ"]
     },
     {
       id: "cur-ghost-fall-house-usher", level: "B2", genre: "ghost",
       title: "The Fall of the House of Usher",
-      pages: [
-        "One dull autumn day, I rode toward the House of Usher. Even from afar, the ancient mansion filled me with dread. Its walls were black with damp, and a crack ran from the roof down to the dark water below.",
-        "My friend Roderick Usher awaited me. He was pale and nervous, and his eyes had a haunted look. 'I am sick,' he said. 'My senses are too sharp. Every sound is a torture.' He feared the darkness and his own family curse.",
+      pages: ["One dull autumn day, I rode toward the House of Usher. Even from afar, the ancient mansion filled me with dread. Its walls were black with damp, and a crack ran from the roof all the way down to the dark water below.",
+        "My friend Roderick Usher awaited me. He was pale and nervous, and there was a haunted look in his eyes. 'I am sick,' he said. 'My senses are too sharp. Every sound is a torture.' He feared the darkness and his own family curse.",
         "Roderick lived with his twin sister Madeline, who was wasting away from a strange illness. 'When she dies, I shall be the last of the Ushers,' he whispered. Her illness filled him with a nameless terror.",
         "One evening Madeline fell into a deathlike trance, and Roderick believed she had died. We carried her to a vault beneath the house and shut the iron door. He wanted to keep her one last time, even in death.",
         "That night a storm raged. Strange sounds echoed through the halls, and Roderick grew wilder. 'I know what I heard!' he screamed. 'I buried her alive — and now she is knocking!' The door burst open, and Madeline stood there, covered in blood.",
-        "She fell upon her brother, and they died together in each other's arms. I fled the house in terror. Behind me, the great crack widened, and the entire House of Usher sank into the dark tarn, swallowed by the earth forever."
-      ],
-      thPages: [
-        "วันหนึ่งในฤดูใบไม้ร่วงที่หม่นหมอง ฉันขี่ม้าไปทางคฤหาสน์อัสเชอร์ แม้แต่จากไกล วิลล่าโบราณก็ทำให้ฉันเต็มไปด้วยความหวาดกลัว กำแพงของมันดำคล้ำด้วยความชื้น และมีรอยร้าวทอดจากหลังคาลงไปถึงน้ำมืดเบื้องล่าง",
-        "โรเดอริค อัสเชอร์เพื่อนของฉันรอฉันอยู่ เขาหน้าซีดและประหม่า และดวงตาของเขามีแววหลอน 'ฉันป่วย' เขากล่าว 'ประสาทสัมผัสของฉันแหลมคมเกินไป ทุกเสียงคือการทรมาน' เขากลัวความมืดและคำสาปของครอบครัวของเขาเอง",
-        "โรเดอริคอาศัยอยู่กับแมเดอลีนน้องสาวฝาแฝด ซึ่งกำลังทรุดโทรมจากอาการป่วยประหลาด 'เมื่อเธอตาย ฉันจะเป็นคนสุดท้ายของตระกูลอัสเชอร์' เขากระซิบ ความเจ็บป่วยของเธอทำให้เขาหวาดกลัวจนพูดไม่ออก",
-        "เย็นวันหนึ่งแมเดอลีนตกอยู่ในภวังค์คล้ายตาย และโรเดอริคเชื่อว่าเธอเสียชีวิตแล้ว เราอุ้มเธอไปที่ห้องใต้ดินใต้บ้านและปิดประตูเหล็ก เขาต้องการเก็บเธอไว้อีกครั้งหนึ่ง แม้แต่ในความตาย",
-        "คืนนั้นพายุโหมกระหน่ำ เสียงแปลกประหลาดก้องสะท้อนผ่านโถง และโรเดอริคก็ยิ่งเพ้อคลั่ง 'ฉันรู้ว่าฉันได้ยินอะไร!' เขากรีดร้อง 'ฉันฝังเธอทั้งเป็น — และตอนนี้เธอกำลังเคาะประตู!' ประตูพังทลาย และแมเดอลีนยืนอยู่ตรงนั้น ปกคลุมไปด้วยเลือด",
-        "เธอซบลงบนพี่ชายของเธอ และพวกเขาก็ตายด้วยกันในอ้อมแขนของกันและกัน ฉันหนีออกจากบ้านด้วยความสยดสยอง ข้างหลังฉัน รอยร้าวใหญ่ขยายกว้างขึ้น และคฤหาสน์อัสเชอร์ทั้งหลังก็จมลงสู่บึงน้ำมืด ถูกแผ่นดินกลืนหายไปตลอดกาล"
-      ]
+        "She fell upon her brother, and they died together in each other's arms. I fled the house in terror. Behind me, the great crack widened, and the entire House of Usher sank into the dark tarn, swallowed by the earth forever."],
+      thPages: ["วันหนึ่งในฤดูใบไม้ร่วงที่มืดครึ้ม ฉันขี่ม้ามุ่งหน้าไปยังคฤหาสน์อัสเชอร์ แม้แต่จากที่ไกล ตัวคฤหาสน์โบราณก็ทำให้ฉันรู้สึกหวาดกลัว กำแพงดำคล้ำไปด้วยความชื้น และมีรอยร้าวทอดยาวจากหลังคาลงไปถึงผืนน้ำมืดเบื้องล่าง",
+        "โรเดอริค อัสเชอร์ เพื่อนของฉัน รอฉันอยู่ เขาหน้าซีดและกระสับกระส่าย แววตาหลอนลึก 'ฉันป่วย' เขากล่าว 'ประสาทสัมผัสของฉันไวเกินไป ทุกเสียงคือการทรมาน' เขากลัวทั้งความมืดและคำสาปของตระกูลตัวเอง",
+        "โรเดอริคอาศัยอยู่กับแมเดอลีนน้องสาวฝาแฝด ซึ่งกำลังร่วงโรยจากอาการป่วยประหลาด 'เมื่อเธอตาย ฉันจะเป็นคนสุดท้ายของตระกูลอัสเชอร์' เขากระซิบ ความเจ็บป่วยของเธอทำให้เขาหวาดกลัวอย่างอธิบายไม่ถูก",
+        "เย็นวันหนึ่งแมเดอลีนตกอยู่ในภวังค์ที่ดูราวกับตาย และโรเดอริคเชื่อว่าเธอเสียชีวิตแล้ว เราอุ้มเธอไปที่ห้องใต้ดินของบ้านแล้วปิดประตูเหล็ก เขาอยากเก็บเธอไว้ให้ได้อีกสักครั้ง แม้แต่ในความตาย",
+        "คืนนั้นพายุโหมกระหน่ำ เสียงประหลาดก้องสะท้อนไปทั่วโถง และโรเดอริคก็ยิ่งบ้าคลั่ง 'ฉันรู้ว่าฉันได้ยินอะไร!' เขากรีดร้อง 'ฉันฝังเธอทั้งเป็น — และตอนนี้เธอกำลังเคาะประตู!' ประตูบานใหญ่เปิดออกอย่างแรง และแมเดอลีนยืนอยู่ตรงนั้น ทั้งร่างเปื้อนเลือด",
+        "เธอซบลงบนตัวพี่ชาย และทั้งสองก็ตายไปด้วยกันในอ้อมกอดของกันและกัน ฉันหนีออกจากบ้านด้วยความสยดสยอง ข้างหลังฉัน รอยร้าวขยายกว้างขึ้นเรื่อยๆ จนคฤหาสน์อัสเชอร์ทั้งหลังจมลงสู่บึงน้ำมืด ถูกแผ่นดินกลืนหายไปตลอดกาล"]
     },
     {
       id: "cur-ghost-dracula", level: "B2", genre: "ghost",
       title: "Dracula",
-      pages: [
-        "A young English lawyer named Jonathan Harker traveled to a far castle in Transylvania to meet a client, Count Dracula. The mountains were wild, and the people crossed themselves in fear when they heard the Count's name.",
-        "Inside the castle, Jonathan found the Count strange and pale. Dracula never ate and never appeared in daylight. He slept in a coffin filled with earth, and his reflection did not appear in the mirror. Jonathan knew at last that he was not a man.",
-        "One night the Count crawled down the castle wall like a great bat. Jonathan discovered three pale women in a hidden room, and he barely escaped with his life. He fled the castle, leaving his friend, the ship's doctor Van Helsing, to learn the truth later.",
-        "Back in England, Jonathan's wife Mina and her friend Lucy were in danger. Lucy grew pale and weak, with two small marks on her neck. Van Helsing understood at once: a vampire was feeding on her, night after night.",
-        "They tried to save Lucy with garlic and silver, but the vampire returned each night. At last Lucy died and rose again as a creature of the night. Van Helsing and his friends staked her heart, freeing her soul, and swore to destroy the vampire.",
-        "They learned Dracula had fled to London and bought a house. Following his boxes of earth, they hunted him across the city. Van Helsing discovered the lair and cleansed the boxes, breaking the vampire's refuge, while Dracula slipped away to sea.",
-        "The chase led them to Transylvania, where they cornered Dracula at his castle at sunset. Jonathan struck the knife, and Van Helsing cut the Count's throat. The vampire turned to dust, and Mina was freed. The curse was broken forever."
-      ],
-      thPages: [
-        "ทนายความหนุ่มชาวอังกฤษชื่อโจนาธาน ฮาร์เกอร์เดินทางไปปราสาทห่างไกลในทรานซิลเวเนียเพื่อพบลูกค้าของเขา เคาท์แดรกคูลา ภูเขาดุร้าย และผู้คนก็ทำเครื่องหมายกากบาทด้วยความกลัวเมื่อได้ยินชื่อเคาท์",
-        "ในปราสาท โจนาธานพบว่าเคาท์แปลกและหน้าซีด แดรกคูลาไม่เคยกินและไม่เคยปรากฏตัวในเวลากลางวัน เขานอนในโลงศพที่เต็มไปด้วยดิน และเงาสะท้อนของเขาไม่ปรากฏในกระจก ในที่สุดโจนาธานก็รู้ว่าเขาไม่ใช่มนุษย์",
-        "คืนหนึ่งเคาท์คลานลงมาจากกำแพงปราสาทราวกับค้างคาวยักษ์ โจนาธานค้นพบผู้หญิงหน้าซีดสามคนในห้องลับ และแทบเอาชีวิตไม่รอด เขาหนีออกจากปราสาท ทิ้งให้เพื่อนของเขา แวน เฮลซิงแพทย์ประจำเรือ ไปค้นหาความจริงในภายหลัง",
-        "กลับมาที่อังกฤษ มีนามิสภรรยาของโจนาธานและลูซี่เพื่อนของเธอกำลังตกอยู่ในอันตราย ลูซี่หน้าซีดและอ่อนแอ มีรอยเล็กๆ สองรอยที่คอของเธอ แวน เฮลซิงเข้าใจทันที: แวมไพร์กำลังดูดเลือดเธอ ทุกคืน",
-        "พวกเขาพยายามช่วยลูซี่ด้วยกระเทียมและเงิน แต่แวมไพร์กลับมาทุกคืน ในที่สุดลูซี่ก็ตายและฟื้นขึ้นมาเป็นสิ่งมีชีวิตแห่งราตรี แวน เฮลซิงและเพื่อนๆ ใช้หลักปักหัวใจเธอ ปลดปล่อยวิญญาณของเธอ และสาบานว่าจะทำลายแวมไพร์",
-        "พวกเขารู้ว่าแดรกคูลาหนีไปลอนดอนและซื้อบ้าน ตามกล่องดินของเขา พวกเขาล่ามันไปทั่วเมือง แวน เฮลซิงพบที่ซ่อนและชำระกล่อง ทำลายที่หลบภัยของแวมไพร์ ขณะที่แดรกคูลาหลุดรอดลงทะเลไป",
-        "การไล่ล่าพาพวกเขาไปทรานซิลเวเนีย ที่ซึ่งพวกเขาต้อนแดรกคูลาให้จนมุมที่ปราสาทของเขาในยามตะวันตกดิน โจนาธานแทงด้วยมีด และแวน เฮลซิงก็เฉือนคอเคาท์ แวมไพร์กลายเป็นฝุ่น และมินาก็เป็นอิสระ คำสาปถูกทำลายตลอดกาล"
-      ]
+      pages: ["A young English lawyer named Jonathan Harker traveled to a distant castle in Transylvania to meet his client, Count Dracula. The mountains were wild, and the local people crossed themselves in fear whenever they heard the Count's name.",
+        "Inside the castle, Jonathan found the Count strange and pale. Dracula never ate, and he never appeared in daylight. He slept in a coffin filled with earth, and his reflection did not show in the mirror. At last Jonathan understood: this was not a man.",
+        "One night the Count crawled down the castle wall like a great bat. Jonathan discovered three pale women in a hidden room and barely escaped with his life. He fled the castle, leaving it to his friend, the ship's doctor Van Helsing, to learn the truth later.",
+        "Back in England, Jonathan's wife Mina and her friend Lucy were in danger. Lucy grew pale and weak, with two small marks on her neck. Van Helsing realized at once: a vampire was feeding on her, night after night.",
+        "They tried to save Lucy with garlic and silver, but the vampire returned each night. At last Lucy died and rose again as a creature of the night. Van Helsing and his friends drove a stake through her heart, freeing her soul, and swore to destroy the vampire.",
+        "They learned that Dracula had fled to London and bought a house there. Following his boxes of earth, they hunted him across the city. Van Helsing found the lair and cleansed the boxes, destroying the vampire's refuge, while Dracula slipped away to the sea.",
+        "The chase led them to Transylvania, where they cornered Dracula at his castle at sunset. Jonathan struck with his knife, and Van Helsing cut the Count's throat. The vampire turned to dust, and Mina was freed. The curse was broken forever."],
+      thPages: ["ทนายหนุ่มชาวอังกฤษชื่อโจนาธาน ฮาร์เกอร์ เดินทางไปปราสาทอันห่างไกลในทรานซิลเวเนียเพื่อพบลูกความของเขา เคาท์แดรกคูลา ภูเขาที่นั่นดุร้ายและเปลี่ยว และชาวบ้านต่างทำเครื่องหมายกางเขนด้วยความกลัวเมื่อได้ยินชื่อของเคาท์",
+        "ในปราสาท โจนาธานพบว่าเคาท์มีท่าทางแปลกและหน้าซีด แดรกคูลาไม่เคยกินอะไรเลยและไม่เคยออกมาในตอนกลางวัน เขานอนในโลงศพที่เต็มไปด้วยดิน และไม่มีเงาสะท้อนของเขาในกระจก ในที่สุดโจนาธานก็รู้ว่าเขาไม่ใช่มนุษย์",
+        "คืนหนึ่งเคาท์คลานลงมาจากกำแพงปราสาทราวกับค้างคาวยักษ์ โจนาธานพบผู้หญิงหน้าซีดสามคนในห้องลับ และแทบเอาชีวิตไม่รอด เขาหนีออกจากปราสาท ปล่อยให้เพื่อนของเขา แวน เฮลซิง แพทย์ประจำเรือ ค้นหาความจริงทีหลัง",
+        "กลับมาที่อังกฤษ มีนา ภรรยาของโจนาธาน และลูซี่ เพื่อนของเธอ กำลังตกอยู่ในอันตราย ลูซี่เริ่มหน้าซีดและอ่อนแอลง มีรอยเล็กๆ สองรอยที่คอของเธอ แวน เฮลซิงเข้าใจทันที: มีแวมไพร์กำลังดูดเลือดเธออยู่ทุกคืน",
+        "พวกเขาพยายามช่วยลูซี่ด้วยกระเทียมและเครื่องเงิน แต่แวมไพร์ก็กลับมาทุกคืน ในที่สุดลูซี่ก็ตายและฟื้นขึ้นมาเป็นสิ่งมีชีวิตแห่งรัตติกาล แวน เฮลซิงและเพื่อนๆ ใช้หลักปักที่หัวใจของเธอเพื่อปลดปล่อยวิญญาณ แล้วก็สาบานว่าจะทำลายแวมไพร์ให้สิ้นซาก",
+        "พวกเขารู้ว่าแดรกคูลาหนีไปลอนดอนและซื้อบ้านไว้ที่นั่น พวกเขาตามหากล่องดินของมันไปทั่วเมือง แวน เฮลซิงพบที่ซ่อนและชำระกล่องทั้งหมด ทำลายที่หลบภัยของแวมไพร์ ขณะที่แดรกคูลาหลุดรอดหนีไปทางทะเล",
+        "การไล่ล่าพาพวกเขากลับไปที่ทรานซิลเวเนีย ที่ซึ่งพวกเขาต้อนแดรกคูลาให้จนมุมที่ปราสาทของมันในยามตะวันตกดิน โจนาธานแทงมันด้วยมีด และแวน เฮลซิงก็เฉือนคอเคาท์ แวมไพร์กลายเป็นฝุ่นธุลี มินาเป็นอิสระ และคำสาปก็ถูกทำลายตลอดกาล"]
     },
     {
       id: "cur-adv-gulliver", level: "B1", genre: "adventure",
       title: "Gulliver's Travels",
-      pages: [
-        "I am Lemuel Gulliver, a ship's surgeon. My life has been full of strange journeys, but none stranger than my first voyage to the land of Lilliput, where the people were no taller than my thumb.",
-        "After my ship was wrecked, I woke up on the shore. I could not move! Hundreds of tiny ropes held me to the ground, and a crowd of little people climbed over my body with spears and ladders.",
+      pages: ["I'm Lemuel Gulliver, a ship's surgeon. My life has been full of strange journeys, but none stranger than my first voyage to the land of Lilliput, where the people were no taller than my thumb.",
+        "After my ship was wrecked, I woke up on the shore. I couldn't move! Hundreds of tiny ropes held me to the ground, and a crowd of little people climbed over my body with spears and ladders.",
         "They fed me and built a great wooden platform to carry me to their city. I was their prisoner, but they treated me kindly. I learned their language and promised to obey their laws.",
         "The king of Lilliput asked me to help his army fight the neighboring land of Blefuscu. I crossed the channel, tied their whole fleet with one rope, and pulled the ships to Lilliput. The king was delighted.",
-        "But the king wanted me to destroy Blefuscu forever, and I refused. I would not help him enslave an entire nation. From that moment, the king and his court plotted against me, and my life was in danger.",
-        "I escaped to Blefuscu, where I found a small boat and sailed away. A passing ship rescued me and carried me home to England, where I told my friends the most amazing story they had ever heard."
-      ],
-      thPages: [
-        "ฉันคือเลมูเอล กัลลิเวอร์ ศัลยแพทย์ประจำเรือ ชีวิตของฉันเต็มไปด้วยการเดินทางแปลกประหลาด แต่ไม่มีครั้งไหนแปลกกว่าการเดินทางครั้งแรกไปยังดินแดนลิลลิพุต ที่ซึ่งผู้คนตัวเล็กไม่สูงกว่านิ้วหัวแม่มือของฉัน",
-        "หลังจากเรือของฉันอับปาง ฉันตื่นขึ้นบนชายฝั่ง ขยับไม่ได้! เชือกเล็กๆ นับร้อยมัดฉันไว้กับพื้น และฝูงคนตัวเล็กปีนขึ้นมาบนร่างกายของฉันพร้อมหอกและบันได",
-        "พวกเขาเลี้ยงอาหารฉันและสร้างแท่นไม้ขนาดใหญ่เพื่อขนฉันไปยังเมืองของพวกเขา ฉันเป็นนักโทษของพวกเขา แต่พวกเขาปฏิบัติกับฉันอย่างใจดี ฉันเรียนรู้ภาษาของพวกเขาและสัญญาว่าจะเชื่อฟังกฎหมายของพวกเขา",
-        "กษัตริย์แห่งลิลลิพุตขอให้ฉันช่วยกองทัพของเขาต่อสู้กับดินแดนเพื่อนบ้านเบลฟุสคู ฉันข้ามช่องแคบ ผูกกองเรือทั้งหมดของพวกเขาด้วยเชือกเส้นเดียว แล้วลากเรือมาที่ลิลลิพุต กษัตริย์พอใจมาก",
-        "แต่กษัตริย์ต้องการให้ฉันทำลายเบลฟุสคูให้สิ้นซาก และฉันปฏิเสธ ฉันจะไม่ช่วยเขาทำให้ชาติทั้งชาติเป็นทาส ตั้งแต่นั้นมา กษัตริย์และข้าราชสำนักก็วางแผนร้ายต่อฉัน และชีวิตของฉันก็ตกอยู่ในอันตราย",
-        "ฉันหนีไปเบลฟุสคู ที่ซึ่งฉันพบเรือเล็กและแล่นจากไป เรือที่แล่นผ่านช่วยฉันไว้และพาฉันกลับบ้านที่อังกฤษ ที่ซึ่งฉันเล่าเรื่องที่น่าทึ่งที่สุดที่เพื่อนๆ เคยได้ยิน"
-      ]
+        "But the king wanted me to destroy Blefuscu forever, and I refused. I wouldn't help him enslave an entire nation. From that moment, the king and his court plotted against me, and my life was in danger.",
+        "I escaped to Blefuscu, where I found a small boat and sailed away. A passing ship rescued me and carried me home to England, where I told my friends the most amazing story they had ever heard."],
+      thPages: ["ฉันคือเลมูเอล กัลลิเวอร์ ศัลยแพทย์ประจำเรือ ชีวิตของฉันเต็มไปด้วยการเดินทางแปลกประหลาด แต่ไม่มีครั้งไหนแปลกไปกว่าการเดินทางครั้งแรกสู่ดินแดนลิลลิพุต ที่ซึ่งผู้คนตัวเล็กไม่สูงไปกว่านิ้วหัวแม่มือของฉัน",
+        "หลังจากเรือของฉันอับปาง ฉันตื่นขึ้นมาบนชายฝั่ง ขยับไม่ได้เลย! เชือกเส้นเล็กๆ นับร้อยมัดฉันแน่นกับพื้น และฝูงคนตัวเล็กปีนขึ้นมาบนตัวฉันพร้อมหอกและบันได",
+        "พวกเขาเลี้ยงอาหารฉันและสร้างแท่นไม้ขนาดใหญ่เพื่อขนฉันไปยังเมืองของพวกเขา ฉันเป็นนักโทษของพวกเขา แต่พวกเขาปฏิบัติกับฉันดีมาก ฉันเรียนรู้ภาษาของพวกเขาและสัญญาว่าจะเชื่อฟังกฎหมาย",
+        "กษัตริย์แห่งลิลลิพุตขอให้ฉันช่วยกองทัพของเขาสู้กับดินแดนเพื่อนบ้านเบลฟุสคู ฉันข้ามช่องแคบ ผูกกองเรือทั้งหมดของพวกเขาด้วยเชือกเส้นเดียว แล้วลากเรือทั้งหมดมาที่ลิลลิพุต กษัตริย์พอใจมาก",
+        "แต่กษัตริย์ต้องการให้ฉันทำลายเบลฟุสคูให้สิ้นซาก และฉันปฏิเสธ ฉันจะไม่ช่วยเขาทำให้คนทั้งชาติตกเป็นทาส ตั้งแต่นั้นมา กษัตริย์และข้าราชสำนักก็วางแผนร้ายต่อฉัน และชีวิตของฉันก็ตกอยู่ในอันตราย",
+        "ฉันหนีไปเบลฟุสคู ซึ่งฉันพบเรือเล็กและแล่นจากไป เรือที่แล่นผ่านช่วยฉันไว้และพาฉันกลับบ้านที่อังกฤษ ซึ่งฉันได้เล่าเรื่องสุดอัศจรรย์ที่สุดเท่าที่เพื่อนๆ เคยได้ยินมา"]
     },
     {
       id: "cur-adv-monkey-temple", level: "B1", genre: "adventure",
       title: "The Lost Temple of the Monkey God",
-      pages: [
-        "Dr. Elena Rivera was a young archaeologist who had spent ten years hunting for the lost Monkey Temple of the Amazon. An old map, passed down in her family, showed its secret location high in the green mountains.",
+      pages: ["Dr. Elena Rivera was a young archaeologist who had spent ten years hunting for the lost Monkey Temple of the Amazon. An old map, passed down in her family, showed its secret location high in the green mountains.",
         "She gathered a small team: Marcos, a brave guide, and Lena, a botanist who knew every plant in the jungle. They paddled upriver for days, past howling monkeys and giant trees, until the river turned to rocks.",
-        "Deep in the forest they found a stone wall covered in moss. Behind it lay a hidden staircase that led down into the earth. Torches in their hands, they descended into a cool, dark hall carved with golden monkeys.",
+        "Deep in the forest they found a stone wall covered in moss. Behind it lay a hidden staircase that led down into the earth. Torches in hand, they descended into a cool, dark hall carved with golden monkeys.",
         "At the center of the hall stood a great stone altar, and on it rested a box of solid gold. Lena gasped. 'We found it!' she whispered. But the floor began to tremble, and the walls started to close in.",
-        "A trap! The ancient builders had guarded their treasure. Marcos spotted a small hole in the altar, shaped like a monkey's head. Elena pressed it, and the walls stopped moving. The treasure was theirs to take.",
-        "They carried the golden box to the surface and shared its wealth with the nearby village, which had protected the secret for generations. Elena kept only one golden monkey, a token of the greatest adventure of her life."
-      ],
-      thPages: [
-        "ดร.เอเลน่า ริเวร่าเป็นนักโบราณคดีสาวที่ใช้เวลาสิบปีตามล่าวัดลิงแห่งอเมซอนที่สูญหาย แผนที่เก่าที่สืบทอดในครอบครัวของเธอ แสดงตำแหน่งลับของมันบนภูเขาสีเขียวสูงตระหง่าน",
-        "เธอรวบรวมทีมเล็กๆ: มาร์คอส ไกด์ผู้กล้าหาญ และลีน่า นักพฤกษศาสตร์ที่รู้จักต้นไม้ทุกชนิดในป่า พวกเขาพายเรือขึ้นแม่น้ำหลายวัน ผ่านลิงที่หอนและต้นไม้ยักษ์ จนแม่น้ำกลายเป็นโขดหิน",
-        "ลึกเข้าไปในป่า พวกเขาพบกำแพงหินที่ปกคลุมด้วยมอส ข้างหลังมันมีบันไดซ่อนที่ทอดลงใต้ดิน ถือคบเพลิงไว้ในมือ พวกเขาลงไปในห้องโถงเย็นและมืดที่แกะสลักด้วยลิงทองคำ",
-        "กลางห้องโถงมีแท่นหินใหญ่ และบนนั้นมีกล่องทองคำบริสุทธิ์วางอยู่ ลีน่าหอบหายใจ 'เราพบมันแล้ว!' เธอกระซิบ แต่พื้นเริ่มสั่นสะเทือน และกำแพงเริ่มเคลื่อนเข้าหากัน",
-        "กับดัก! ผู้สร้างโบราณได้ปกป้องสมบัติของพวกเขา มาร์คอสสังเกตเห็นรูเล็กๆ บนแท่น มีรูปร่างเหมือนหัวลิง เอเลน่ากดมัน และกำแพงก็หยุดเคลื่อน สมบัติเป็นของพวกเขา",
-        "พวกเขาอุ้มกล่องทองคำขึ้นสู่ผิวน้ำและแบ่งความมั่งคั่งให้หมู่บ้านใกล้เคียง ที่ซึ่งปกป้องความลับนี้มาหลายชั่วอายุคน เอเลน่าเก็บลิงทองคำไว้หนึ่งตัว เป็นเครื่องเตือนใจการผจญภัยที่ยิ่งใหญ่ที่สุดในชีวิตของเธอ"
-      ]
+        "A trap! The ancient builders had guarded their treasure well. Marcos spotted a small hole in the altar, shaped like a monkey's head. Elena pressed it, and the walls stopped moving. The treasure was theirs.",
+        "They carried the golden box to the surface and shared its wealth with the nearby village, which had protected the secret for generations. Elena kept only one golden monkey, a memento of the greatest adventure of her life."],
+      thPages: ["ดร.เอเลน่า ริเวร่าเป็นนักโบราณคดีสาวที่ใช้เวลาสิบปีตามล่าวัดลิงแห่งอเมซอนที่สูญหาย แผนที่เก่าที่สืบทอดกันมาในครอบครัวของเธอ เผยตำแหน่งลับของมันบนเทือกเขาสีเขียวสูงตระหง่าน",
+        "เธอจัดตั้งทีมเล็กๆ: มาร์คอส ไกด์ผู้กล้าหาญ และลีน่า นักพฤกษศาสตร์ที่รู้จักต้นไม้ทุกชนิดในป่า พวกเขาพายเรือทวนน้ำขึ้นไปหลายวัน ผ่านลิงที่หอนโหยหวนและต้นไม้ยักษ์ จนแม่น้ำเต็มไปด้วยโขดหิน",
+        "ลึกเข้าไปในป่า พวกเขาพบกำแพงหินที่ปกคลุมไปด้วยมอส ด้านหลังมีบันไดลับทอดลงใต้ดิน ถือคบเพลิงไว้ในมือ พวกเขาลงไปในห้องโถงที่เย็นและมืด ซึ่งสลักเป็นรูปลิงทองคำ",
+        "กลางห้องโถงมีแท่นหินใหญ่ และบนนั้นมีกล่องทองคำบริสุทธิ์วางอยู่ ลีน่าอ้าปากค้าง 'เราพบมันแล้ว!' เธอกระซิบ แต่แล้วพื้นก็เริ่มสั่น และกำแพงก็เริ่มเคลื่อนเข้ามาหาพวกเขา",
+        "กับดัก! ผู้สร้างโบราณวางกับดักไว้ป้องกันสมบัติของตน มาร์คอสสังเกตเห็นรูเล็กๆ บนแท่นหิน รูปทรงคล้ายหัวลิง เอเลน่ากดมัน กำแพงก็หยุดเคลื่อน และสมบัติก็เป็นของพวกเขา",
+        "พวกเขาขนกล่องทองคำขึ้นสู่ผิวน้ำและแบ่งสมบัติให้หมู่บ้านใกล้เคียง ซึ่งปกป้องความลับนี้มาหลายชั่วอายุคน เอเลน่าเก็บลิงทองคำไว้หนึ่งตัวเป็นของที่ระลึกของการผจญภัยที่ยิ่งใหญ่ที่สุดในชีวิตของเธอ"]
     },
     {
       id: "cur-adv-sky-sailors", level: "B1", genre: "adventure",
       title: "The Sky Sailors",
-      pages: [
-        "In the year 1889, the airship Aurora drifted over the clouds with its brave crew: Captain Reyes, the engineer Sofia, and the young navigator Tomas. They were mapping the unknown winds of the Atlantic.",
+      pages: ["In 1889, the airship Aurora drifted over the clouds with its brave crew: Captain Reyes, the engineer Sofia, and the young navigator Tomas. They were mapping the unknown winds of the Atlantic.",
         "One evening a wild storm seized the airship. Lightning struck the rudder, and the engines failed. The Aurora fell through the clouds and crashed onto a plateau hidden high above the ocean, a place no map had ever shown.",
         "The crew found the plateau full of wonders: purple flowers, giant birds, and a great stone tower built by an ancient people. Inside the tower, paintings told the story of a civilization that once ruled the sky.",
         "The paintings showed a secret: the ancients had learned to fill a great balloon with hot air to cross the mountains. Sofia studied the drawings and rebuilt the balloon with the airship's canvas and ropes.",
         "The three friends gathered food and water, filled the great balloon, and rose into the sky just as the storm returned. Below them, the hidden plateau vanished into the clouds forever.",
-        "They sailed back to civilization, where their story of the floating island amazed the world. Captain Reyes wrote it all in his journal, and from that day, no one doubted the courage of the Sky Sailors."
-      ],
-      thPages: [
-        "ในปี ค.ศ. 1889 เรือเหาะออโรร่าลอยอยู่เหนือเมฆพร้อมลูกเรือผู้กล้าหาญ: กัปตันเรเยส วิศวกรโซเฟีย และโทมัสผู้นำทางหนุ่ม พวกเขากำลังทำแผนที่ลมที่ไม่รู้จักของมหาสมุทรแอตแลนติก",
-        "เย็นวันหนึ่งพายุร้ายเข้าครอบงำเรือเหาะ ฟ้าผ่าถูกหางเสือ และเครื่องยนต์ก็ขัดข้อง ออโรร่าตกลงผ่านเมฆและชนบนที่ราบสูงที่ซ่อนอยู่เหนือมหาสมุทร สถานที่ที่ไม่มีแผนที่ใดเคยแสดง",
-        "ลูกเรือพบว่าที่ราบสูงเต็มไปด้วยสิ่งมหัศจรรย์: ดอกไม้สีม่วง นกยักษ์ และหอคอยหินใหญ่ที่สร้างโดยคนโบราณ ภายในหอคอย ภาพวาดเล่าเรื่องราวของอารยธรรมที่เคยครองท้องฟ้า",
-        "ภาพวาดเผยความลับ: คนโบราณเรียนรู้ที่จะเติมบอลลูนใหญ่ด้วยลมร้อนเพื่อข้ามภูเขา โซเฟียศึกษาภาพวาดและสร้างบอลลูนขึ้นใหม่ด้วยผ้าใบและเชือกของเรือเหาะ",
-        "เพื่อนสามคนเก็บอาหารและน้ำ เติมบอลลูนใหญ่ และลอยขึ้นสู่ท้องฟ้าพอดีกับที่พายุกลับมา เบื้องล่างพวกเขา ที่ราบสูงที่ซ่อนอยู่ก็หายไปในเมฆตลอดกาล",
-        "พวกเขาแล่นกลับสู่อารยธรรม ที่ซึ่งเรื่องราวเกาะลอยฟ้าของพวกเขาทำให้โลกตะลึง กัปตันเรเยสเขียนมันทั้งหมดลงในสมุดบันทึก และตั้งแต่วันนั้น ไม่มีใครสงสัยความกล้าหาญของนักบินนภา"
-      ]
+        "They sailed back to civilization, where their story of the floating island amazed the world. Captain Reyes wrote it all in his journal, and from that day, no one doubted the courage of the Sky Sailors."],
+      thPages: ["ในปี ค.ศ. 1889 เรือเหาะออโรร่าลอยเหนือเมฆพร้อมลูกเรือผู้กล้าหาญ: กัปตันเรเยส วิศวกรโซเฟีย และโทมัสผู้นำทางหนุ่ม พวกเขากำลังสำรวจลมที่ไม่เคยรู้จักของมหาสมุทรแอตแลนติก",
+        "เย็นวันหนึ่งพายุร้ายก็โจมตีเรือเหาะ ฟ้าผ่าลงที่หางเสือ และเครื่องยนต์ก็ขัดข้อง ออโรร่าตกลงผ่านเมฆและชนบนที่ราบสูงที่ซ่อนตัวอยู่เหนือมหาสมุทร สถานที่ที่ไม่ปรากฏบนแผนที่ใดเลย",
+        "ลูกเรือพบว่าที่ราบสูงเต็มไปด้วยสิ่งมหัศจรรย์: ดอกไม้สีม่วง นกยักษ์ และหอคอยหินใหญ่ที่สร้างโดยคนโบราณ ภายในหอคอย ภาพวาดบนผนังเล่าเรื่องราวของอารยธรรมที่เคยครองท้องฟ้า",
+        "ภาพวาดเผยความลับ: คนโบราณเรียนรู้ที่จะเติมบอลลูนใหญ่ด้วยลมร้อนเพื่อข้ามภูเขา โซเฟียศึกษาแบบภาพวาดแล้วสร้างบอลลูนขึ้นใหม่ด้วยผ้าใบและเชือกของเรือเหาะ",
+        "เพื่อนสามคนเก็บอาหารและน้ำ เติมลมร้อนใส่บอลลูนใหญ่ แล้วลอยขึ้นสู่ท้องฟ้าพอดีกับที่พายุหวนกลับมา เบื้องล่าง ที่ราบสูงลับตาก็หายไปในหมู่เมฆตลอดกาล",
+        "พวกเขาแล่นกลับสู่อารยธรรม ซึ่งเรื่องราวของเกาะลอยฟ้าทำให้คนทั้งโลกตะลึง กัปตันเรเยสจดเรื่องราวทั้งหมดลงในสมุดบันทึก และตั้งแต่วันนั้น ไม่มีใครสงสัยความกล้าหาญของนักบินนภา"]
     },
     {
       id: "cur-adv-volcano-island", level: "B1", genre: "adventure",
       title: "The Secret Volcano Island",
-      pages: [
-        "Professor Aldo Bruno believed that an island of fire rose and sank in the southern ocean. His students laughed, but the government sent a ship to search, and Aldo went along as a guest.",
-        "After three weeks at sea, a sailor saw smoke on the horizon. There, rising from the waves, was a black volcanic island covered in green forests. Aldo cried with joy. 'There she is! I was right!'",
+      pages: ["Professor Aldo Bruno believed that an island of fire rose and sank in the southern ocean. His students laughed at the idea, but the government sent a ship to search, and Aldo went along as a guest.",
+        "After three weeks at sea, a sailor saw smoke on the horizon. There, rising from the waves, was a black volcanic island covered in green forests. Aldo cried out with joy. 'There she is! I was right!'",
         "The crew anchored the ship and explored the island. They found hot springs, caves full of glowing crystals, and strange birds that sang like flutes. But at the mountain's heart, something rumbled like thunder.",
-        "Aldo studied the rocks and saw the truth. The volcano was waking up. 'We must leave!' he shouted. 'The mountain is about to explode!' The crew raced back to the ship, but the sea was already boiling.",
+        "Aldo studied the rocks and saw the truth. The volcano was waking up. 'We have to leave!' he shouted. 'The mountain is about to explode!' The crew raced back to the ship, but the sea was already boiling.",
         "They launched the lifeboats just as the volcano erupted. Fire and smoke filled the sky, and the whole island began to sink into the waves. The ship was lost, but every sailor was saved.",
-        "Back home, Aldo published his discovery. The island he had dreamed of had risen from the sea, and he had seen it with his own eyes. His students honored him, and his name entered the history of great explorers."
-      ],
-      thPages: [
-        "ศาสตราจารย์อัลโด บรูโนเชื่อว่าเกาะไฟลอยขึ้นและจมลงในมหาสมุทรทางใต้ ลูกศิษย์ของเขาหัวเราะเยาะ แต่รัฐบาลส่งเรือออกค้นหา และอัลโดก็ไปด้วยในฐานะแขก",
-        "หลังอยู่กลางทะเลสามสัปดาห์ กะลาสีคนหนึ่งเห็นควันบนขอบฟ้า ที่นั่น ลอยขึ้นจากคลื่น คือเกาะภูเขาไฟสีดำที่ปกคลุมด้วยป่าเขียวขจี อัลโดร้องด้วยความยินดี 'มันอยู่ที่นั่น! ฉันพูดถูก!'",
-        "ลูกเรือทอดสมอและสำรวจเกาะ พวกเขาพบน้ำพุร้อน ถ้ำที่เต็มไปด้วยคริสตัลเรืองแสง และนกแปลกที่ร้องเพลงเหมือนขลุ่ย แต่ที่ใจกลางภูเขา มีบางอย่างคำรามเหมือนฟ้าร้อง",
-        "อัลโดศึกษาหินและเห็นความจริง ภูเขาไฟกำลังตื่นขึ้น 'เราต้องออกไป!' เขาตะโกน 'ภูเขากำลังจะระเบิด!' ลูกเรือวิ่งกลับไปที่เรือ แต่ทะเลเดือดพล่านแล้ว",
-        "พวกเขาปล่อยเรือชูชีพพอดีกับที่ภูเขาไฟปะทุ ไฟและควันเต็มท้องฟ้า และทั้งเกาะเริ่มจมลงสู่คลื่น เรือสูญหาย แต่กะลาสีทุกคนรอดชีวิต",
-        "กลับบ้าน อัลโดตีพิมพ์การค้นพบของเขา เกาะที่เขาเคยฝันถึงได้ลอยขึ้นจากทะเล และเขาได้เห็นมันด้วยตาตัวเอง ลูกศิษย์ยกย่องเขา และชื่อของเขาเข้าสู่ประวัติศาสตร์ของนักสำรวจผู้ยิ่งใหญ่"
-      ]
+        "Back home, Aldo published his discovery. The island he had dreamed of had risen from the sea, and he had seen it with his own eyes. His students honored him, and his name entered the history of great explorers."],
+      thPages: ["ศาสตราจารย์อัลโด บรูโนเชื่อว่ามีเกาะไฟโผล่ขึ้นมาและจมลงในมหาสมุทรทางใต้ ลูกศิษย์ของเขาหัวเราะเยาะความคิดนั้น แต่รัฐบาลส่งเรือออกค้นหา และอัลโดก็ขอร่วมเดินทางไปด้วย",
+        "หลังจากอยู่กลางทะเลสามสัปดาห์ กะลาสีคนหนึ่งเห็นควันบนขอบฟ้า ที่นั่น เกาะภูเขาไฟสีดำที่ปกคลุมด้วยป่าเขียวขจีโผล่พ้นคลื่นขึ้นมา อัลโดร้องด้วยความดีใจ 'มันอยู่ที่นั่น! ฉันพูดถูก!'",
+        "ลูกเรือทอดสมอแล้วขึ้นสำรวจเกาะ พวกเขาพบน้ำพุร้อน ถ้ำที่เต็มไปด้วยคริสตัลเรืองแสง และนกแปลกๆ ที่ร้องเหมือนเสียงขลุ่ย แต่ที่ใจกลางภูเขา มีเสียงบางอย่างคำรามราวกับฟ้าร้อง",
+        "อัลโดศึกษาหินและเห็นความจริง ภูเขาไฟกำลังตื่นขึ้น 'เราต้องหนีออกไป!' เขาตะโกน 'ภูเขากำลังจะระเบิด!' ลูกเรือวิ่งกลับไปที่เรือ แต่ทะเลเดือดพล่านไปหมดแล้ว",
+        "พวกเขาปล่อยเรือชูชีพลงน้ำพอดีกับที่ภูเขาไฟปะทุ ไฟและควันเต็มท้องฟ้า และทั้งเกาะเริ่มจมลงสู่คลื่น เรือหลักจมสูญหายไป แต่กะลาสีทุกคนรอดชีวิต",
+        "เมื่อกลับถึงบ้าน อัลโดตีพิมพ์การค้นพบของเขา เกาะที่เขาเคยฝันถึงได้โผล่ขึ้นมาจากทะเล และเขาได้เห็นมันด้วยตาตัวเอง ลูกศิษย์ยกย่องเขา และชื่อของเขาถูกจารึกไว้ในประวัติศาสตร์ของนักสำรวจผู้ยิ่งใหญ่"]
     },
     {
       id: "cur-sf-martian-encounter", level: "B2", genre: "scifi",
@@ -6937,322 +6935,258 @@
     {
       id: "cur-sf-time-paradox", level: "B2", genre: "scifi",
       title: "The Time Paradox",
-      pages: [
-        "Professor Liu Wei had spent thirty years building a machine that could send letters into the past. His goal was simple: warn his younger self not to trust the man who would betray him.",
-        "He typed the warning and pressed the send button. Nothing happened at first. But when he returned to his office the next morning, he found a reply on the machine — written in his own hand, dated thirty years ago.",
-        "The letter was not what he expected. It said: 'Do not change the past. Your betrayal made you strong. The man you fear becomes your greatest teacher. Let him come.'",
-        "Confused and angry, Liu Wei ignored the letter and sent another warning. This time, the reply came faster. 'You have already tried this before. In every version of time, you send the same warning. And in every version, you fail.'",
-        "Liu Wei sat down, shaken. He realized that his machine was not sending messages across time — it was sending them to himself, over and over, in an endless loop. There was only one way to break the circle: forgive.",
-        "He deleted the warning, wrote a letter of thanks to the man who had betrayed him, and sent it. The reply that came back was full of tears and peace. Time had not changed, but Liu Wei had — and that was enough."
-      ],
-      thPages: [
-        "ศาสตราจารย์หลิว เว่ยใช้เวลาสามสิบปีสร้างเครื่องจักรที่สามารถส่งจดหมายไปยังอดีตได้ เป้าหมายของเขาง่ายๆ: เตือนตัวเองในวัยหนุ่มไม่ให้ไว้ใจชายผู้ที่จะทรยศเขา",
-        "เขาพิมพ์คำเตือนและกดปุ่มส่ง ตอนแรกไม่มีอะไรเกิดขึ้น แต่เมื่อเขากลับมาที่ห้องทำงานในเช้าวันรุ่งขึ้น เขาก็พบคำตอบบนเครื่องจักร — เขียนด้วยลายมือของเขาเอง ลงวันที่สามสิบปีก่อน",
-        "จดหมายไม่ใช่สิ่งที่เขาคาดหวัง มันกล่าวว่า 'อย่าเปลี่ยนอดีต การทรยศทำให้คุณแข็งแกร่ง ชายที่คุณกลัวจะกลายเป็นครูที่ดีที่สุดของคุณ ปล่อยให้เขามา'",
-        "หลิว เว่ยสับสนและโกรธ เขาเพิกเฉยต่อจดหมายและส่งคำเตือนอีกครั้ง คราวนี้ คำตอบกลับมาเร็วขึ้น 'คุณเคยลองทำแบบนี้มาก่อนแล้ว ในทุกเวอร์ชันของเวลา คุณส่งคำเตือนเดียวกัน และในทุกเวอร์ชัน คุณล้มเหลว'",
-        "หลิว เว่ยนั่งลง ตัวสั่น เขาตระหนักว่าเครื่องจักรของเขาไม่ได้ส่งข้อความข้ามเวลา — มันส่งข้อความถึงตัวเขาเอง ซ้ำแล้วซ้ำเล่า ในวงวนที่ไม่มีวันจบ มีเพียงวิธีเดียวที่จะทำลายวงจรนี้: ให้อภัย",
-        "เขาลบคำเตือน เขียนจดหมายขอบคุณชายที่ทรยศเขา และส่งมัน คำตอบที่กลับมาเต็มไปด้วยน้ำตาและความสงบ เวลาไม่ได้เปลี่ยน แต่หลิว เว่ยเปลี่ยน — และนั่นก็เพียงพอแล้ว"
-      ]
+      pages: ["Professor Liu Wei had spent thirty years building a machine that could send letters into the past. His goal was simple: to warn his younger self not to trust the man who would betray him.",
+        "He typed the warning and pressed send. Nothing happened at first. But when he returned to his office the next morning, he found a reply on the machine — written in his own hand, dated thirty years ago.",
+        "The letter wasn't what he expected. It said: 'Don't change the past. Your betrayal made you strong. The man you fear becomes your greatest teacher. Let him come.'",
+        "Confused and angry, Liu Wei ignored the letter and sent another warning. This time, the reply came faster. 'You've already tried this before. In every version of time, you send the same warning. And in every version, you fail.'",
+        "Liu Wei sat down, shaken. He realized that his machine wasn't sending messages across time — it was sending them to himself, over and over, in an endless loop. There was only one way to break the circle: forgive.",
+        "He deleted the warning, wrote a letter of thanks to the man who had betrayed him, and sent it. The reply that came back was full of tears and peace. Time hadn't changed, but Liu Wei had — and that was enough."],
+      thPages: ["ศาสตราจารย์หลิว เว่ยใช้เวลาสามสิบปีสร้างเครื่องจักรที่สามารถส่งจดหมายไปยังอดีตได้ เป้าหมายของเขานั้นง่ายดาย: เตือนตัวเขาในวัยหนุ่มไม่ให้ไว้ใจชายที่จะทรยศเขา",
+        "เขาพิมพ์คำเตือนแล้วกดปุ่มส่ง ตอนแรกไม่มีอะไรเกิดขึ้น แต่เมื่อเขากลับมาที่ห้องทำงานในเช้าวันรุ่งขึ้น เขาก็พบจดหมายตอบกลับบนเครื่องจักร — เขียนด้วยลายมือของเขาเอง ลงวันที่สามสิบปีก่อน",
+        "จดหมายไม่ตรงกับที่เขาคาดไว้ มันเขียนว่า 'อย่าเปลี่ยนอดีต การทรยศทำให้คุณแข็งแกร่ง ชายที่คุณกลัวจะกลายเป็นครูที่ดีที่สุดของคุณ ปล่อยให้เขามาเถิด'",
+        "หลิว เว่ยสับสนและโกรธ เขาไม่สนใจจดหมายฉบับนั้นและส่งคำเตือนอีกครั้ง คราวนี้ คำตอบกลับมาเร็วขึ้น 'คุณเคยลองทำแบบนี้มาก่อนแล้ว ในทุกห้วงเวลา คุณส่งคำเตือนเดียวกัน และในทุกห้วงเวลา คุณล้มเหลว'",
+        "หลิว เว่ยนั่งลง ตัวสั่นเทา เขาตระหนักว่าเครื่องจักรของเขาไม่ได้ส่งข้อความข้ามเวลา — มันส่งข้อความถึงตัวเขาเอง ซ้ำแล้วซ้ำเล่า ในวงวนที่ไม่มีวันจบ มีเพียงวิธีเดียวที่จะทำลายวงจรนี้: ให้อภัย",
+        "เขาลบคำเตือน เขียนจดหมายขอบคุณชายที่ทรยศเขา แล้วส่งออกไป จดหมายตอบกลับที่มาถึงเต็มไปด้วยน้ำตาและความสงบ เวลาไม่ได้เปลี่ยน แต่หลิว เว่ยเปลี่ยน — และนั่นก็เพียงพอแล้ว"]
     },
     {
       id: "cur-sf-silent-station", level: "B2", genre: "scifi",
       title: "The Silent Station",
-      pages: [
-        "Deep under the frozen sea of Europa, the research station Aquarius hummed with life. Twenty scientists studied the strange ocean below the ice, but they had stopped answering Earth for three days.",
+      pages: ["Deep under the frozen sea of Europa, the research station Aquarius hummed with life. Twenty scientists studied the strange ocean below the ice, but they had stopped answering Earth for three days.",
         "Commander Imani Cole traveled from Mars to find out why. The station was silent when she arrived. The lights were on, the machines were running, but there was no sign of the crew.",
-        "In the lab she found a note: 'Follow the bubbles. They are not gas. They are messages.' Imani walked to the ice window and watched. Bubbles rose from the dark water below, arranging themselves into shapes.",
-        "The bubbles formed words: 'We went below. The ocean is alive. It sings to us, and we cannot resist.' Imani's blood ran cold. The crew had walked into the water, one by one, drawn by a voice from the deep.",
+        "In the lab she found a note: 'Follow the bubbles. They aren't gas. They're messages.' Imani walked to the ice window and watched. Bubbles rose from the dark water below, arranging themselves into shapes.",
+        "The bubbles formed words: 'We went below. The ocean is alive. It sings to us, and we can't resist.' Imani's blood ran cold. The crew had walked into the water, one by one, drawn by a voice from the deep.",
         "Imani felt the song then — a gentle hum that filled her mind with peace and belonging. Her hand moved toward the lock. But she stopped, shook herself, and sealed the station with an emergency wall.",
-        "She reported the truth to Earth and stayed to guard the station. The ocean below was alive, and its song was beautiful beyond words. Imani listened to it every night, and she remembered the crew who had gone where no human should go."
-      ],
-      thPages: [
-        "ลึกใต้ทะเลน้ำแข็งของดวงจันทร์ยูโรปา สถานีวิจัยอควอเรียสยังคงมีเสียงชีวิต นักวิทยาศาสตร์ยี่สิบคนศึกษามหาสมุทรประหลาดใต้แผ่นน้ำแข็ง แต่พวกเขาหยุดตอบโลกสามวันแล้ว",
-        "ผู้บัญชาการอิมาอานี โคลเดินทางจากดาวอังคารเพื่อค้นหาสาเหตุ สถานีเงียบงันเมื่อเธอมาถึง ไฟยังสว่าง เครื่องจักรยังทำงาน แต่ไม่มีวี่แววของลูกเรือ",
-        "ในห้องแล็บ เธอพบข้อความ: 'ตามฟองอากาศไป พวกมันไม่ใช่แก๊ส พวกมันคือข้อความ' อิมาอานีเดินไปที่หน้าต่างน้ำแข็งและเฝ้าดู ฟองอากาศลอยขึ้นจากน้ำมืดเบื้องล่าง จัดเรียงตัวเองเป็นรูปร่าง",
-        "ฟองอากาศก่อตัวเป็นคำ: 'เราลงไปข้างล่าง มหาสมุทรมีชีวิต มันร้องเพลงให้เรา และเราต้านทานไม่ได้' เลือดของอิมาอานีเย็นฉ่ำ ลูกเรือได้เดินลงไปในน้ำ ทีละคน ถูกดึงดูดด้วยเสียงจากห้วงลึก",
-        "อิมาอานีรู้สึกถึงเพลงนั้น — เสียงก้องเบาๆ ที่เติมเต็มหัวใจของเธอด้วยความสงบและการเป็นส่วนหนึ่ง มือของเธอขยับไปที่ล็อก แต่เธอหยุด สะบัดตัวเอง และผนึกสถานีด้วยกำแพงฉุกเฉิน",
-        "เธอรายงานความจริงสู่โลกและอยู่เฝ้าสถานี มหาสมุทรเบื้องล่างมีชีวิต และเพลงของมันสวยงามเกินคำบรรยาย อิมาอานีฟังมันทุกคืน และเธอคิดถึงลูกเรือที่ไปยังที่ที่มนุษย์ไม่ควรไป"
-      ]
+        "She reported the truth to Earth and stayed to guard the station. The ocean below was alive, and its song was beautiful beyond words. Imani listened to it every night, and she remembered the crew who had gone where no human should go."],
+      thPages: ["ลึกลงไปใต้ทะเลน้ำแข็งของดวงจันทร์ยูโรปา สถานีวิจัยอควอเรียสยังคงเต็มไปด้วยเสียงชีวิตชีวา นักวิทยาศาสตร์ยี่สิบคนศึกษามหาสมุทรประหลาดใต้แผ่นน้ำแข็ง แต่พวกเขาหยุดติดต่อกับโลกมานานสามวันแล้ว",
+        "ผู้บัญชาการอิมาอานี โคลเดินทางจากดาวอังคารเพื่อมาหาสาเหตุ สถานีเงียบงันเมื่อเธอมาถึง ไฟยังสว่าง เครื่องจักรยังทำงาน แต่ไม่พบวี่แววของลูกเรือแม้แต่คนเดียว",
+        "ในห้องแล็บ เธอพบข้อความหนึ่ง: 'ตามฟองอากาศไป พวกมันไม่ใช่แก๊ส พวกมันคือข้อความ' อิมาอานีเดินไปที่หน้าต่างน้ำแข็งและเฝ้าดู ฟองอากาศลอยขึ้นจากน้ำมืดเบื้องล่าง เรียงตัวกันเป็นรูปร่าง",
+        "ฟองอากาศก่อตัวเป็นคำ: 'เราลงไปข้างล่าง มหาสมุทรมีชีวิต มันร้องเพลงให้เรา และเราต้านทานไม่ได้' เลือดของอิมาอานีเย็นฉ่ำ ลูกเรือต่างเดินลงไปในน้ำ ทีละคน ถูกดึงดูดด้วยเสียงจากห้วงลึก",
+        "อิมาอานีรู้สึกถึงเพลงนั้น — เสียงก้องเบาๆ ที่เติมเต็มจิตใจของเธอด้วยความสงบและความรู้สึกเป็นส่วนหนึ่ง มือของเธอค่อยๆ ขยับไปที่ล็อก แต่เธอหยุด สลัดสติกลับมา แล้วผนึกสถานีด้วยกำแพงฉุกเฉิน",
+        "เธอรายงานความจริงสู่โลกและอยู่เฝ้าสถานี มหาสมุทรเบื้องล่างมีชีวิต และเพลงของมันสวยงามเกินคำบรรยาย อิมาอานีฟังมันทุกคืน และเธอคิดถึงลูกเรือที่จากไปยังที่ที่มนุษย์ไม่ควรไป"]
     },
     {
       id: "cur-sf-solar-sail", level: "B2", genre: "scifi",
       title: "The Solar Sail",
-      pages: [
-        "The ship Satori carried no fuel. Its great silver sail, as wide as a city, caught the light of the sun and pushed the crew gently toward the stars. Captain Reiko Tanaka commanded the longest journey humans had ever attempted.",
+      pages: ["The ship Satori carried no fuel. Its great silver sail, as wide as a city, caught the light of the sun and pushed the crew gently toward the stars. Captain Reiko Tanaka commanded the longest journey humans had ever attempted.",
         "The goal was a planet called Haven, orbiting a star forty light-years away. The crew slept in cold sleep, waking for only a few weeks each year to check the ship and watch the stars slide past.",
         "In her waking time, Reiko studied the messages from Earth. Her daughter, grown now, sent recordings of the ocean. Reiko listened to the waves and felt the years stretching like a long, quiet river.",
         "Then the signal came. The sail had torn, just a small rip, but the ship's course was drifting. Reiko had to repair it while wearing a suit, floating in the endless light between the sun and the dark.",
         "She fixed the tear with trembling hands, and the ship steadied. Below her, Earth shrank to a dot. Ahead, the star of Haven grew brighter with every passing year, a promise written in light.",
-        "At last the crew woke for good. Haven filled the window with green and blue. Reiko smiled. 'We are home,' she said. And behind her, a small flag with her daughter's drawing of the ocean floated in the gentle light."
-      ],
-      thPages: [
-        "เรือซาโตริไม่บรรทุกเชื้อเพลิง ใบเรือสีเงินขนาดใหญ่ กว้างเท่าเมือง รับแสงของดวงอาทิตย์และผลักลูกเรือไปสู่ดวงดาวอย่างอ่อนโยน กัปตันเรย์โกะ ทานากะนำการเดินทางที่ยาวนานที่สุดที่มนุษย์เคยพยายาม",
-        "เป้าหมายคือดาวเคราะห์ชื่อเฮเวน โคจรรอบดาวฤกษ์ที่อยู่ห่างออกไปสี่สิบปีแสง ลูกเรือหลับในภาวะเย็นจัด ตื่นเพียงไม่กี่สัปดาห์ต่อปีเพื่อตรวจเรือและเฝ้าดูดวงดาวเคลื่อนผ่าน",
-        "ในช่วงเวลาที่ตื่น เรย์โกะศึกษาข้อความจากโลก ลูกสาวของเธอ ซึ่งโตแล้ว ส่งบันทึกเสียงของมหาสมุทร เรย์โกะฟังคลื่นและรู้สึกถึงปีที่ยืดยาวราวกับแม่น้ำอันเงียบสงบ",
-        "แล้วสัญญาณก็มา ใบเรือฉีกขาด เป็นเพียงรอยฉีกเล็กๆ แต่เส้นทางของเรือเริ่มเบี่ยง เรย์โกะต้องซ่อมมันขณะสวมชุดอวกาศ ลอยอยู่ในแสงที่ไม่มีที่สิ้นสุดระหว่างดวงอาทิตย์กับความมืด",
-        "เธอซ่อมรอยฉีกด้วยมือที่สั่น และเรือก็ทรงตัว เบื้องล่างเธอ โลกหดเล็กลงเป็นจุด ข้างหน้า ดาวของเฮเวนสว่างขึ้นทุกปีที่ผ่านไป เป็นคำสัญญาที่เขียนด้วยแสง",
-        "ในที่สุดลูกเรือก็ตื่นอย่างถาวร เฮเวนเต็มหน้าต่างด้วยสีเขียวและสีน้ำเงิน เรย์โกะยิ้ม 'เราถึงบ้านแล้ว' เธอกล่าว และข้างหลังเธอ ธงผืนเล็กที่มีภาพวาดมหาสมุทรของลูกสาว ลอยอยู่ในแสงอันอ่อนโยน"
-      ]
+        "At last the crew woke for good. Haven filled the window with green and blue. Reiko smiled. 'We're home,' she said. And behind her, a small flag with her daughter's drawing of the ocean floated in the gentle light."],
+      thPages: ["เรือซาโตริไม่บรรทุกเชื้อเพลิง ใบเรือสีเงินขนาดใหญ่ กว้างเท่าเมือง รับแสงของดวงอาทิตย์และพาเรือมุ่งหน้าสู่ดวงดาวอย่างนุ่มนวล กัปตันเรย์โกะ ทานากะนำการเดินทางที่ยาวนานที่สุดเท่าที่มนุษย์เคยพยายามมา",
+        "เป้าหมายคือดาวเคราะห์ชื่อเฮเวน โคจรรอบดาวฤกษ์ที่อยู่ห่างออกไปสี่สิบปีแสง ลูกเรือหลับในสภาวะเย็นจัด ตื่นเพียงไม่กี่สัปดาห์ต่อปีเพื่อตรวจเรือและเฝ้าดูดวงดาวเคลื่อนผ่าน",
+        "ในช่วงที่ตื่นขึ้น เรย์โกะศึกษาข้อความจากโลก ลูกสาวของเธอ ซึ่งโตแล้ว ส่งเสียงบันทึกของมหาสมุทรมาให้ เรย์โกะฟังคลื่นและรู้สึกว่าหลายปีเหยียดยาวไปราวกับแม่น้ำสายเงียบสงบ",
+        "แล้วสัญญาณก็มา ใบเรือฉีกขาด เป็นเพียงรอยฉีกเล็กๆ แต่เรือเริ่มเบี่ยงออกจากเส้นทาง เรย์โกะต้องซ่อมมันขณะสวมชุดอวกาศ ลอยอยู่ท่ามกลางแสงอันไม่มีที่สิ้นสุดระหว่างดวงอาทิตย์กับความมืด",
+        "เธอซ่อมรอยฉีกด้วยมือที่สั่น และเรือก็ทรงตัวได้ เบื้องล่างของเธอ โลกเล็กลงจนเป็นจุด ข้างหน้า ดาวของเฮเวนสว่างขึ้นทุกปีที่ผ่านไป เป็นคำสัญญาที่เขียนด้วยแสง",
+        "ในที่สุดลูกเรือก็ตื่นขึ้นถาวร เฮเวนเต็มหน้าต่างด้วยสีเขียวและสีฟ้า เรย์โกะยิ้ม 'เราถึงบ้านแล้ว' เธอพูด และข้างหลังเธอ ธงผืนเล็กที่ประดับภาพวาดมหาสมุทรของลูกสาว ลอยอยู่ในแสงอันอ่อนโยน"]
     },
     {
       id: "cur-mys-northguard-murders", level: "B2", genre: "mystery",
       title: "The Northguard Murders",
-      pages: [
-        "The village of Northguard was quiet and perfect, until the day the baker was found dead in his own oven room. The door was locked from inside, and the only key lay beside his cold body.",
+      pages: ["The village of Northguard was quiet and perfect, until the day the baker was found dead in his own oven room. The door was locked from inside, and the only key lay beside his cold body.",
         "Inspector Vera Stone arrived from the city. She spoke to everyone: the jealous blacksmith, the silent innkeeper, and the baker's pretty young wife, who wept at the door and seemed to know nothing.",
-        "Vera noticed something odd: the baker's hands were clean, but he had worked with flour all his life. A baker who touches flour never has clean hands. 'He did not knead dough that morning,' she said softly.",
+        "Vera noticed something odd: the baker's hands were clean, but he had worked with flour all his life. A baker who touches flour never has clean hands. 'He didn't knead dough that morning,' she said softly.",
         "She studied the oven and found a hidden door behind it, leading to a small tunnel. The tunnel opened into the inn's cellar. The silent innkeeper went pale when Vera held up the key.",
-        "The truth came out at last. The innkeeper had owed the baker a great debt, and the baker had threatened to expose him. They had argued, and the innkeeper had struck him, then locked the door to hide his crime.",
-        "Vera took the innkeeper away in handcuffs. The village breathed again, and the people whispered that Inspector Vera Stone saw what others could not see. Peace returned to Northguard, and justice had found its voice."
-      ],
-      thPages: [
-        "หมู่บ้านนอร์ธการ์ดเงียบสงบและสมบูรณ์แบบ จนกระทั่งวันหนึ่งพบคนทำขนมปังเสียชีวิตในห้องเตาอบของตัวเอง ประตูล็อกจากด้านใน และกุญแจดอกเดียววางอยู่ข้างร่างเย็นของเขา",
-        "สารวัตรเวร่า สโตนมาจากเมือง เธอพูดคุยกับทุกคน: ช่างตีเหล็กที่อิจฉา เจ้าของโรงแรมที่เงียบขรึม และภรรยาสาวสวยของคนทำขนมปัง ที่ร้องไห้ที่ประตูและดูเหมือนไม่รู้อะไรเลย",
-        "เวร่าสังเกตเห็นบางอย่างแปลก: มือของคนทำขนมปังสะอาด แต่เขาทำงานกับแป้งมาตลอดชีวิต คนทำขนมปังที่สัมผัสแป้งไม่มีวันมีมือสะอาด 'เช้านั้นเขาไม่ได้นวดแป้ง' เธอกล่าวเบาๆ",
-        "เธอศึกษาเตาอบและพบประตูซ่อนอยู่ข้างหลัง มันนำไปสู่อุโมงค์เล็ก อุโมงค์เปิดเข้าสู่ห้องใต้ดินของโรงแรม เจ้าของโรงแรมที่เงียบขรึมหน้าซีดเมื่อเวร่าชูกุญแจขึ้น",
-        "ความจริงถูกเปิดเผยในที่สุด เจ้าของโรงแรมติดหนี้คนทำขนมปังจำนวนมาก และคนทำขนมปังข่มขู่จะเปิดโปงเขา พวกเขาทะเลาะกัน และเจ้าของโรงแรมก็ตีเขา แล้วล็อกประตูเพื่อซ่อนอาชญากรรม",
-        "เวร่าควบคุมตัวเจ้าของโรงแรมไปในกุญแจมือ หมู่บ้านหายใจได้อีกครั้ง และผู้คนกระซิบว่าสารวัตรเวร่า สโตนมองเห็นสิ่งที่คนอื่นมองไม่เห็น ความสงบกลับคืนสู่นอร์ธการ์ด และความยุติธรรมได้พบเสียงของมัน"
-      ]
+        "The truth came out at last. The innkeeper had owed the baker a great debt, and the baker had threatened to expose him. They'd argued, and the innkeeper had struck him, then locked the door to hide his crime.",
+        "Vera took the innkeeper away in handcuffs. The village breathed again, and people whispered that Inspector Vera Stone saw what others couldn't see. Peace returned to Northguard, and justice had found its voice."],
+      thPages: ["หมู่บ้านนอร์ธการ์ดเงียบสงบและสมบูรณ์แบบ จนกระทั่งวันหนึ่งคนทำขนมปังถูกพบเสียชีวิตในห้องเตาอบของตัวเอง ประตูล็อกจากด้านใน และกุญแจเพียงดอกเดียววางอยู่ข้างร่างที่เย็นเฉียบของเขา",
+        "สารวัตรเวร่า สโตนมาจากเมือง เธอพูดคุยกับทุกคน: ช่างตีเหล็กที่อิจฉา เจ้าของโรงแรมที่เงียบขรึม และภรรยาสาวสวยของคนทำขนมปังผู้ร้องไห้อยู่หน้าประตูและดูเหมือนไม่รู้เรื่องอะไรเลย",
+        "เวร่าสังเกตเห็นบางอย่างที่แปลก: มือของคนทำขนมปังสะอาด แต่เขาคลุกคลีกับแป้งมาตลอดชีวิต คนทำขนมปังที่คลุกแป้งไม่มีทางมีมือสะอาด 'เช้านั้นเขาไม่ได้นวดแป้ง' เธอพูดเบาๆ",
+        "เธอตรวจดูเตาอบและพบประตูลับที่ซ่อนอยู่ด้านหลัง มันนำไปสู่อุโมงค์เล็ก อุโมงค์ทอดเข้าไปในห้องใต้ดินของโรงแรม เจ้าของโรงแรมที่เงียบขรึมหน้าซีดเมื่อเวร่าชูกุญแจขึ้น",
+        "ความจริงถูกเปิดเผยในที่สุด เจ้าของโรงแรมติดหนี้คนทำขนมปังจำนวนมาก และคนทำขนมปังข่มขู่จะเปิดโปงความลับของเขา พวกเขาทะเลาะกัน และเจ้าของโรงแรมก็ทำร้ายเขา แล้วล็อกประตูเพื่อปกปิดความผิด",
+        "เวร่าควบคุมตัวเจ้าของโรงแรมไปพร้อมกุญแจมือ หมู่บ้านหายใจได้อีกครั้ง และผู้คนกระซิบว่าสารวัตรเวร่า สโตนมองเห็นสิ่งที่คนอื่นมองไม่เห็น ความสงบกลับคืนสู่นอร์ธการ์ด และความยุติธรรมได้พบเสียงของมัน"]
     },
     {
       id: "cur-mys-orchid-mystery", level: "B1", genre: "mystery",
       title: "The Mystery of the Blue Orchid",
-      pages: [
-        "The Blue Orchid was the most famous painting in the museum. Then one morning, it was gone. The glass was broken, the frame was empty, and the guard swore he had seen no one all night.",
+      pages: ["The Blue Orchid was the most famous painting in the museum. Then one morning, it was gone. The glass was broken, the frame was empty, and the guard swore he had seen no one all night.",
         "Detective Liu Xinyi examined the room. The floor was wet near the window, and a single green leaf lay on the carpet. 'A thief who leaves a leaf,' she murmured, 'has a gardener's heart.'",
         "She visited the museum's head gardener, an old man who loved orchids more than people. His greenhouse was full of rare flowers, and in the corner stood a pot with a young blue orchid.",
-        "Xinyi smiled. The painting was worth millions, but the thief had stolen nothing else. 'You did not want the money,' she said. 'You wanted the painting because you love its subject.'",
-        "The old gardener bowed his head. 'I tended that orchid in the painting for forty years,' he said. 'When they sold it, I only wanted to see it once more.' Xinyi found the painting hidden behind his orchids.",
-        "The gardener returned the painting with a gentle smile, and the museum gave him a small copy. The Blue Orchid hung safely again, and Xinyi learned that even a thief could act from love."
-      ],
-      thPages: [
-        "บลูออร์คิดเป็นภาพวาดที่มีชื่อเสียงที่สุดในพิพิธภัณฑ์ แล้วเช้าวันหนึ่ง มันก็หายไป กระจกแตก กรอบว่างเปล่า และยามสาบานว่าเขาไม่เห็นใครตลอดทั้งคืน",
-        "นักสืบหลิว ซินอี้ตรวจห้อง พื้นเปียกใกล้หน้าต่าง และใบไม้สีเขียวใบเดียววางอยู่บนพรม 'ขโมยที่ทิ้งใบไม้ไว้' เธอพึมพำ 'มีหัวใจของคนสวน'",
-        "เธอไปพบหัวหน้าคนสวนของพิพิธภัณฑ์ ชายแก่ที่รักกล้วยไม้มากกว่ามนุษย์ เรือนกระจกของเขาเต็มไปด้วยดอกไม้หายาก และที่มุมห้องมีกระถางกล้วยไม้สีน้ำเงินต้นเล็กๆ",
-        "ซินอี้ยิ้ม ภาพวาดมีค่าหลายล้าน แต่ขโมยไม่ได้ขโมยสิ่งอื่น 'คุณไม่ได้ต้องการเงิน' เธอกล่าว 'คุณต้องการภาพวาดเพราะคุณรักสิ่งที่มันวาด'",
-        "คนสวนแก่ก้มศีรษะ 'ฉันดูแลกล้วยไม้ในภาพวาดนั้นมาสี่สิบปี' เขากล่าว 'เมื่อพวกเขาขายมัน ฉันแค่อยากเห็นมันอีกครั้ง' ซินอี้พบภาพวาดซ่อนอยู่หลังกล้วยไม้ของเขา",
-        "คนสวนคืนภาพวาดด้วยรอยยิ้มอ่อนโยน และพิพิธภัณฑ์มอบสำเนาเล็กๆ ให้เขา บลูออร์คิดแขวนอย่างปลอดภัยอีกครั้ง และซินอี้เรียนรู้ว่าแม้แต่ขโมยก็สามารถกระทำด้วยความรักได้"
-      ]
+        "Xinyi smiled. The painting was worth millions, but the thief had stolen nothing else. 'You didn't want the money,' she said. 'You wanted the painting because you love its subject.'",
+        "The old gardener bowed his head. 'I tended that orchid in the painting for forty years,' he said. 'When they sold it, I just wanted to see it once more.' Xinyi found the painting hidden behind his orchids.",
+        "The gardener returned the painting with a gentle smile, and the museum gave him a small copy. The Blue Orchid hung safely again, and Xinyi learned that even a thief could act from love."],
+      thPages: ["ภาพวาดบลูออร์คิดเป็นภาพที่โด่งดังที่สุดในพิพิธภัณฑ์ แล้วเช้าวันหนึ่ง มันก็หายไป กระจกแตก กรอบว่างเปล่า และยามยืนยันว่าเขาไม่เห็นใครตลอดทั้งคืน",
+        "นักสืบหลิว ซินอี้ตรวจห้อง พื้นเปียกใกล้หน้าต่าง และใบไม้สีเขียวใบหนึ่งวางอยู่บนพรม 'ขโมยที่ทิ้งใบไม้ไว้แบบนี้' เธอพึมพำ 'ต้องมีหัวใจเป็นคนสวน'",
+        "เธอไปพบหัวหน้าคนสวนของพิพิธภัณฑ์ ชายแก่ที่รักกล้วยไม้มากกว่ามนุษย์ เรือนกระจกของเขาเต็มไปด้วยดอกไม้หายาก และที่มุมเรือนกระจกมีกล้วยไม้สีน้ำเงินต้นเล็กๆ อยู่ในกระถาง",
+        "ซินอี้ยิ้ม ภาพวาดมีค่าหลายล้าน แต่ขโมยกลับไม่ได้แตะต้องสิ่งอื่น 'คุณไม่ได้ต้องการเงิน' เธอพูด 'คุณต้องการภาพวาดเพราะคุณรักสิ่งที่มันวาด'",
+        "คนสวนแก่ก้มศีรษะ 'ฉันดูแลกล้วยไม้ในภาพวาดนั้นมาสี่สิบปี' เขาพูด 'เมื่อพวกเขาขายมัน ฉันแค่อยากเห็นมันอีกครั้ง' ซินอี้พบภาพวาดที่ซ่อนอยู่หลังกล้วยไม้ของเขา",
+        "คนสวนคืนภาพวาดด้วยรอยยิ้มอ่อนโยน และพิพิธภัณฑ์มอบสำเนาเล็กๆ ให้เขา ภาพบลูออร์คิดกลับมาแขวนอย่างปลอดภัยอีกครั้ง และซินอี้เรียนรู้ว่าแม้แต่ขโมยก็อาจทำสิ่งต่างๆ ด้วยความรักได้"]
     },
     {
       id: "cur-mys-clockmaker-alibi", level: "B2", genre: "mystery",
       title: "The Clockmaker's Alibi",
-      pages: [
-        "The old clockmaker, Mr. Hargrove, was found dead in his shop at midnight, a broken watch still in his hand. The police suspected his rival, Mr. Grant, who had been seen arguing with him that very evening.",
-        "Grant had a perfect alibi. 'I was at the theater,' he said. 'I have the ticket and the program. I was there from seven to eleven.' The police believed him, but Inspector Alice Nguyen did not.",
-        "Alice studied the broken watch in the clockmaker's hand. It had stopped at exactly nine-fifteen. 'A clockmaker grips the time of his death,' she said. 'He could not reach a pen, so he froze the clock.'",
+      pages: ["The old clockmaker, Mr. Hargrove, was found dead in his shop at midnight, a broken watch still in his hand. The police suspected his rival, Mr. Grant, who had been seen arguing with him that very evening.",
+        "Grant had a perfect alibi. 'I was at the theater,' he said. 'I have the ticket and the program. I was there from seven to eleven.' The police believed him, but Inspector Alice Nguyen didn't.",
+        "Alice studied the broken watch in the clockmaker's hand. It had stopped at exactly nine-fifteen. 'A clockmaker grips the time of his death,' she said. 'He couldn't reach a pen, so he froze the clock.'",
         "She went to the theater and checked the program. The show had run from seven to eleven, but the second act, she learned, was nearly an hour long. Grant could easily have slipped out and returned.",
         "Alice returned to the shop and opened the wall clock. Inside, she found a tiny note in the clockmaker's hand: 'Grant came at nine. He took the jewels.' The watch had stopped when Hargrove's hand fell.",
-        "Grant broke down when Alice showed him the note. He had stolen the jewels and killed the old man. The clock, faithful to the end, had told the truth. Justice, Alice thought, keeps perfect time."
-      ],
-      thPages: [
-        "ช่างทำนาฬิกาแก่ คุณฮาร์โกรฟ ถูกพบเสียชีวิตในร้านของเขาเวลาเที่ยงคืน นาฬิกาที่พังยังอยู่ในมือ สงสัยคู่แข่งของเขาคือคุณแกรนท์ ที่ถูกเห็นทะเลาะกับเขาในเย็นวันนั้นเอง",
-        "แกรนท์มีข้อแก้ตัวที่สมบูรณ์แบบ 'ผมอยู่ที่โรงละคร' เขากล่าว 'ผมมีตั๋วและรายการการแสดง ผมอยู่ที่นั่นตั้งแต่เจ็ดโมงถึงห้าทุ่ม' ตำรวจเชื่อเขา แต่สารวัตรอลิซ เหงียนไม่เชื่อ",
-        "อลิซศึกษานาฬิกาที่พังในมือของช่างทำนาฬิกา มันหยุดที่เก้านาฬิกาสิบห้านาทีพอดี 'ช่างทำนาฬิกาจับเวลาการตายของเขา' เธอกล่าว 'เขาเอื้อมปากกาไม่ถึง จึงหยุดนาฬิกาไว้'",
-        "เธอไปที่โรงละครและตรวจรายการการแสดง ละครฉายตั้งแต่เจ็ดถึงห้าทุ่ม แต่เธอได้เรียนรู้ว่าองก์ที่สองเกือบหนึ่งชั่วโมง แกรนท์สามารถแอบออกไปและกลับมาได้ง่ายๆ",
-        "อลิซกลับไปที่ร้านและเปิดนาฬิกาแขวน ข้างใน เธอพบข้อความเล็กๆ ในลายมือของช่างทำนาฬิกา: 'แกรนท์มาตอนเก้าโมง เขาเอาอัญมณีไป' นาฬิกาหยุดเมื่อมือของฮาร์โกรฟร่วง",
-        "แกรนท์พังทลายเมื่ออลิซแสดงข้อความให้ดู เขาได้ขโมยอัญมณีและฆ่าชายชรา นาฬิกา ที่ซื่อสัตย์จนถึงที่สุด ได้บอกความจริง ความยุติธรรม อลิซคิด เก็บเวลาได้อย่างสมบูรณ์แบบ"
-      ]
+        "Grant broke down when Alice showed him the note. He had stolen the jewels and killed the old man. The clock, faithful to the end, had told the truth. Justice, Alice thought, keeps perfect time."],
+      thPages: ["ช่างทำนาฬิกาแก่ คุณฮาร์โกรฟ ถูกพบเสียชีวิตในร้านของเขาเวลาเที่ยงคืน นาฬิกาที่เสียยังถูกกำอยู่ในมือ ตำรวจสงสัยคู่แข่งของเขาอย่างคุณแกรนท์ ผู้ที่ถูกพบเห็นทะเลาะกับเขาในเย็นวันนั้นเอง",
+        "แกรนท์มีข้อแก้ตัวที่ไม่มีที่ติ 'ผมอยู่ที่โรงละคร' เขาพูด 'ผมมีตั๋วและใบรายการการแสดง ผมอยู่ที่นั่นตั้งแต่เจ็ดโมงถึงห้าทุ่ม' ตำรวจเชื่อเขา แต่สารวัตรอลิซ เหงียนไม่เชื่อเขา",
+        "อลิซตรวจดูนาฬิกาที่พังในมือของช่างทำนาฬิกา เข็มนาฬิกาหยุดอยู่ที่เก้าโมงสิบห้านาทีพอดี 'ช่างทำนาฬิกาย่อมบันทึกเวลาที่ตัวเองตาย' เธอพูด 'เขาเอื้อมปากกาไม่ถึง จึงหยุดนาฬิกาไว้'",
+        "เธอไปที่โรงละครและตรวจใบรายการการแสดง ละครแสดงตั้งแต่เจ็ดถึงห้าทุ่ม แต่เธอพบว่าองก์ที่สองยาวเกือบหนึ่งชั่วโมง แกรนท์จึงสามารถแอบออกไปแล้วกลับมาได้อย่างง่ายดาย",
+        "อลิซกลับไปที่ร้านและเปิดฝานาฬิกาแขวน ข้างใน เธอพบกระดาษข้อความเล็กๆ ในลายมือของช่างทำนาฬิกา: 'แกรนท์มาตอนเก้าโมง เขาเอาอัญมณีไป' นาฬิกาจึงหยุดเมื่อมือของฮาร์โกรฟร่วงลง",
+        "แกรนท์สลายเมื่ออลิซยื่นข้อความให้ดู เขาได้ขโมยอัญมณีและฆ่าชายชรา นาฬิกา ผู้ซื่อสัตย์จนถึงที่สุด ได้บอกความจริง ความยุติธรรม อลิซคิดในใจ ไว้เวลาได้แม่นยำเสมอ"]
     },
     {
       id: "cur-cls-great-gatsby", level: "B2", genre: "classic",
       title: "The Great Gatsby",
-      pages: [
-        "In the summer of 1922, I moved to New York and rented a small house beside a great mansion. Every weekend, music and light spilled from the mansion, and thousands of guests came to its famous parties.",
-        "The mansion belonged to a mysterious man named Jay Gatsby. No one knew where his money came from, but everyone loved his champagne. I was invited to one party, and at last I met the host himself — young, charming, and strangely sad.",
-        "Gatsby took me aside and told me his secret. Years ago he had loved a girl named Daisy, but she had married a rich man named Tom Buchanan. Gatsby had built his fortune for one reason only: to win her back.",
-        "He arranged for me to invite Daisy to tea at my house. When she arrived, Gatsby was so nervous he nearly left. But when they spoke, the old love returned. For a while, Gatsby was the happiest man in the world.",
-        "Daisy's husband Tom grew jealous, and one night the truth exploded. Daisy realized she could not leave Tom's world of safety for Gatsby's world of dreams. In her car, driving too fast and too upset, she struck and killed a woman.",
-        "Tom told the dead woman's husband that Gatsby had been driving. The man, mad with grief, shot Gatsby dead in his pool. I arranged his funeral, but almost no one came. He had lived a dream, and the dream had cost him everything."
-      ],
-      thPages: [
-        "ในฤดูร้อนปี ค.ศ. 1922 ฉันย้ายมาที่นิวยอร์กและเช่าบ้านเล็กๆ ข้างคฤหาสน์ใหญ่ ทุกสุดสัปดาห์ เสียงดนตรีและแสงไฟสาดออกมาจากคฤหาสน์ และแขกนับพันมาที่งานเลี้ยงอันโด่งดังของมัน",
-        "คฤหาสน์เป็นของชายลึกลับชื่อเจย์ แกตส์บี้ ไม่มีใครรู้ว่าเงินของเขามาจากไหน แต่ทุกคนรักแชมเปญของเขา ฉันได้รับเชิญไปงานเลี้ยงหนึ่ง และในที่สุดก็ได้พบเจ้าภาพเอง — หนุ่ม หล่อเหลา และเศร้าอย่างประหลาด",
-        "แกตส์บี้พาฉันไปด้านข้างและเล่าความลับของเขา หลายปีก่อนเขารักสาวชื่อเดซี่ แต่เธอแต่งงานกับเศรษฐีชื่อทอม บูคานัน แกตส์บี้สร้างโชคลาภด้วยเหตุผลเดียว: เพื่อชนะใจเธอกลับคืนมา",
-        "เขาจัดให้ฉันเชิญเดซี่มาดื่มชาที่บ้านฉัน เมื่อเธอมาถึง แกตส์บี้ประหม่าจนเกือบหนี แต่เมื่อพวกเขาพูดคุย ความรักเก่าก็กลับมา ชั่วขณะหนึ่ง แกตส์บี้เป็นคนที่มีความสุขที่สุดในโลก",
-        "ทอมสามีของเดซี่เริ่มอิจฉา และคืนหนึ่งความจริงก็ระเบิด เดซี่ตระหนักว่าเธอไม่สามารถละทิ้งโลกที่ปลอดภัยของทอมเพื่อโลกแห่งความฝันของแกตส์บี้ ในรถของเธอ ที่ขับเร็วเกินไปและอารมณ์เสียเกินไป เธอชนหญิงคนหนึ่งเสียชีวิต",
-        "ทอมบอกสามีของหญิงที่ตายว่าแกตส์บี้เป็นคนขับ ชายคนนั้น คลั่งด้วยความโศกเศร้า ยิงแกตส์บี้เสียชีวิตในสระของเขา ฉันจัดงานศพของเขา แต่แทบไม่มีใครมา เขาใช้ชีวิตในความฝัน และความฝันก็พรากทุกอย่างจากเขา"
-      ]
+      pages: ["In the summer of 1922, I moved to New York and rented a small house next to a grand mansion. Every weekend, music and light spilled out of that place, and thousands of guests came to its famous parties.",
+        "The mansion belonged to a mysterious man named Jay Gatsby. Nobody knew where his money came from, but everybody loved his champagne. I got invited to one party, and at last I met the host himself — young, charming, and strangely sad.",
+        "Gatsby took me aside and told me his secret. Years ago, he'd loved a girl named Daisy, but she'd married a rich man named Tom Buchanan. Gatsby had built his whole fortune for one reason only: to win her back.",
+        "He arranged for me to invite Daisy to tea at my house. When she arrived, Gatsby was so nervous he almost left. But once they talked, the old love came rushing back. For a while, Gatsby was the happiest man in the world.",
+        "Daisy's husband, Tom, grew jealous, and one night the truth exploded. Daisy realized she couldn't leave Tom's world of safety for Gatsby's world of dreams. Driving too fast and too upset, she struck and killed a woman.",
+        "Tom told the dead woman's husband that Gatsby had been behind the wheel. The man, mad with grief, shot Gatsby dead in his own pool. I arranged the funeral, but almost nobody came. He'd lived a dream, and the dream had cost him everything."],
+      thPages: ["ในฤดูร้อนปี 1922 ฉันย้ายมาอยู่นิวยอร์กและเช่าบ้านหลังเล็กข้างคฤหาสน์ใหญ่โต ทุกสุดสัปดาห์ เสียงดนตรีกับแสงไฟจะสาดส่องออกมาจากคฤหาสน์หลังนั้น และแขกนับพันก็หลั่งไหลมาร่วมงานปาร์ตี้ชื่อดังของมัน",
+        "คฤหาสน์หลังนั้นเป็นของชายลึกลับนามว่าเจย์ แกตส์บี้ ไม่มีใครรู้ว่าเงินของเขามาจากไหน แต่ทุกคนต่างชื่นชอบแชมเปญของเขา ฉันได้รับเชิญไปงานปาร์ตี้งานหนึ่ง และในที่สุดก็ได้พบเจ้าภาพตัวจริง — หนุ่มหล่อ มีเสน่ห์ แต่เศร้าอย่างบอกไม่ถูก",
+        "แกตส์บี้พาฉันออกไปข้างๆ แล้วเล่าความลับให้ฟัง หลายปีก่อน เขาเคยรักสาวชื่อเดซี่ แต่เธอกลับไปแต่งงานกับเศรษฐีอย่างทอม บูคานัน แกตส์บี้สร้างโชคลาภทั้งหมดขึ้นมาด้วยเหตุผลเดียวเท่านั้น: เพื่อชนะใจเธอกลับมา",
+        "เขาจัดให้ฉันเชิญเดซี่มาดื่มน้ำชาที่บ้านฉัน พอเธอมาถึง แกตส์บี้ประหม่าจนเกือบจะหนีออกไป แต่เมื่อทั้งคู่ได้คุยกัน ความรักเก่าก็พุ่งกลับมาอย่างเต็มเปี่ยม ชั่วครู่หนึ่ง แกตส์บี้คือคนที่มีความสุขที่สุดในโลก",
+        "ทอมสามีของเดซี่เริ่มกินใจ แกตส์บี้จนทนไม่ไหว และคืนหนึ่งความจริงก็ระเบิดออกมา เดซี่ตระหนักได้ว่าเธอไม่สามารถทิ้งโลกที่ปลอดภัยของทอมเพื่อโลกแห่งความฝันของแกตส์บี้ได้ เธอขับรถเร็วเกินไปและหัวใจวุ่นวายเกินไป จนชนหญิงคนหนึ่งเสียชีวิต",
+        "ทอมบอกสามีของหญิงที่ตายว่าแกตส์บี้เป็นคนขับ ชายคนนั้นคลุ้มคลั่งด้วยความเศร้าโศก ยิงแกตส์บี้เสียชีวิตในสระว่ายน้ำของเขาเอง ฉันเป็นคนจัดงานศพให้ แต่แทบไม่มีใครมา เขาใช้ชีวิตอยู่ในความฝัน และความฝันนั่นเองที่พรากทุกอย่างจากเขา"]
     },
     {
       id: "cur-cls-oliver-twist", level: "B2", genre: "classic",
       title: "Oliver Twist",
-      pages: [
-        "In a cold workhouse in London, a poor boy named Oliver Twist was born and grew up. The workhouse gave him little food and no kindness, and when he asked for more, the masters were horrified.",
-        "Oliver was sold to a cruel undertaker, where he was beaten and starved. One night he ran away to London, hungry and alone, hoping to find a better life among the busy streets.",
-        "In London, a boy named the Artful Dodger took Oliver under his wing and led him to the house of an old criminal named Fagin. Fagin taught boys to pick pockets, and Oliver, innocent as he was, became one of them.",
-        "Oliver was caught on his first job and taken to court. A kind gentleman named Mr. Brownlow believed in him and took him home. For the first time in his life, Oliver knew warmth and love.",
-        "But Fagin's men dragged Oliver back into their world, and he was forced to help them rob a great house. Oliver was shot and left behind, but the people of the house, the Maylies, nursed him back to health.",
-        "In the end, the criminals were caught and the truth was told. Oliver was not an orphan at all — he was the son of a good family. Mr. Brownlow and the Maylies adopted him, and Oliver Twist, who had known only suffering, finally found a happy home."
-      ],
-      thPages: [
-        "ในสถานสงเคราะห์เย็นเยือกแห่งหนึ่งในลอนดอน เด็กชายผู้น่าสงสารชื่อโอลิเวอร์ ทวิสต์ถือกำเนิดและเติบโต สถานสงเคราะห์ให้อาหารน้อยและไม่มีความเมตตา และเมื่อเขาขออาหารเพิ่ม ผู้ดูแลก็ตกใจมาก",
-        "โอลิเวอร์ถูกขายให้กับสัปเหร่อที่โหดร้าย ที่ซึ่งเขาถูกทุบตีและอดอยาก คืนหนึ่งเขาหนีไปลอนดอน หิวโหยและโดดเดี่ยว หวังว่าจะพบชีวิตที่ดีกว่าท่ามกลางถนนที่วุ่นวาย",
-        "ในลอนดอน เด็กชายชื่อจอมเจ้าเล่ห์ดอดเจอร์รับโอลิเวอร์ไว้ใต้ปีกและพาเขาไปที่บ้านของอาชญากรแก่ชื่อเฟกิน เฟกินสอนเด็กๆ ให้ล้วงกระเป๋า และโอลิเวอร์ ผู้ซึ่งไร้เดียงสา ได้กลายเป็นหนึ่งในพวกเขา",
-        "โอลิเวอร์ถูกจับในงานแรกของเขาและถูกนำตัวขึ้นศาล สุภาพบุรุษใจดีชื่อมิสเตอร์บราวน์โลว์เชื่อในตัวเขาและพาเขากลับบ้าน เป็นครั้งแรกในชีวิตที่โอลิเวอร์ได้รู้จักความอบอุ่นและความรัก",
-        "แต่คนของเฟกินลากโอลิเวอร์กลับเข้าสู่โลกของพวกเขา และเขาถูกบังคับให้ช่วยพวกเขาปล้นคฤหาสน์ใหญ่ โอลิเวอร์ถูกยิงและถูกทิ้งไว้ แต่ผู้คนในบ้านนั้น ครอบครัวเมย์ลี พยาบาลเขาจนหายดี",
-        "ในที่สุด อาชญากรก็ถูกจับ และความจริงก็ถูกเปิดเผย โอลิเวอร์ไม่ใช่เด็กกำพร้าเลย — เขาเป็นลูกของครอบครัวที่ดี มิสเตอร์บราวน์โลว์และครอบครัวเมย์ลีรับเลี้ยงเขา และโอลิเวอร์ ทวิสต์ ผู้รู้จักแต่ความทุกข์ ในที่สุดก็พบบ้านที่มีความสุข"
-      ]
+      pages: ["In a cold, grim workhouse in London, a poor boy named Oliver Twist was born and grew up. The workhouse gave him little food and no kindness at all, and when he dared to ask for more, the masters were horrified.",
+        "Oliver was sold to a cruel undertaker, who beat him and starved him. One night he ran away to London — hungry, alone, and hoping to find a better life among the busy streets.",
+        "In London, a boy called the Artful Dodger took Oliver under his wing and led him to the house of an old criminal named Fagin. Fagin taught the boys to pick pockets, and Oliver, innocent as he was, became one of them.",
+        "Oliver was caught on his very first job and taken to court. A kind gentleman named Mr. Brownlow believed in him and brought him home. For the first time in his life, Oliver knew what warmth and love felt like.",
+        "But Fagin's men dragged Oliver back into their world and forced him to help rob a great house. Oliver was shot and left behind, but the people of the house — the Maylies — nursed him back to health.",
+        "In the end, the criminals were caught and the truth came out. Oliver wasn't an orphan at all — he was the son of a good family. Mr. Brownlow and the Maylies adopted him, and Oliver Twist, who had known only suffering, finally found a happy home."],
+      thPages: ["ในสถานสงเคราะห์เย็นเยือกแห่งหนึ่งในลอนดอน เด็กชายยากจนชื่อโอลิเวอร์ ทวิสต์ถือกำเนิดและเติบโตขึ้นมา สถานสงเคราะห์ให้อาหารเพียงน้อยนิดและไม่มีความเมตตาใดๆ เลย พอเขากล้าขออาหารเพิ่ม ผู้ดูแลถึงกับตกตะลึง",
+        "โอลิเวอร์ถูกขายให้กับสัปเหร่อใจโหดที่ทุบตีและข่มเหงเขา คืนหนึ่งเขาหนีไปลอนดอน ตัวหิวโหยและเดียวดาย หวังว่าจะได้พบชีวิตที่ดีกว่าท่ามกลางถนนที่วุ่นวาย",
+        "ในลอนดอน เด็กชายที่ชื่อว่าจอมเจ้าเล่ห์ดอดเจอร์รับโอลิเวอร์ไว้ใต้ปีก แล้วพาไปที่บ้านของอาชญากรชรานามเฟกิน เฟกินสอนเด็กๆ ให้ล้วงกระเป๋า และโอลิเวอร์ผู้ไร้เดียงสา ก็กลายเป็นหนึ่งในพวกเขาโดยไม่รู้ตัว",
+        "โอลิเวอร์ถูกจับได้ตั้งแต่ภารกิจแรก แล้วถูกนำตัวขึ้นศาล สุภาพบุรุษใจดีนามมิสเตอร์บราวน์โลว์เชื่อมั่นในตัวเขา และพาเขากลับบ้าน เป็นครั้งแรกในชีวิตที่โอลิเวอร์ได้รู้จักว่าความอบอุ่นและความรักเป็นอย่างไร",
+        "แต่ลูกน้องของเฟกินลากโอลิเวอร์กลับเข้าสู่โลกของพวกเขา และบังคับให้เขาช่วยกันปล้นคฤหาสน์หลังใหญ่ โอลิเวอร์ถูกยิงและถูกทิ้งไว้ข้างหลัง แต่ผู้คนในบ้านนั้น — ครอบครัวเมย์ลี — ช่วยกันพยาบาลจนเขาหายดี",
+        "ในที่สุด เหล่าอาชญากรก็ถูกจับ และความจริงก็ถูกเปิดเผย โอลิเวอร์ไม่ใช่เด็กกำพร้าเลยแม้แต่น้อย — เขาคือลูกของครอบครัวที่ดี มิสเตอร์บราวน์โลว์และครอบครัวเมย์ลีรับเลี้ยงเขาไว้ และโอลิเวอร์ ทวิสต์ ผู้เคยรู้จักแต่ความทุกข์ ก็ได้พบกับบ้านอันอบอุ่นในที่สุด"]
     },
     {
       id: "cur-cls-moby-dick", level: "B1", genre: "classic",
       title: "Moby Dick",
-      pages: [
-        "Call me Ishmael. I went to sea to escape the sadness of the shore, and I signed onto the whaling ship Pequod. On the deck I met a tattooed harpooner named Queequeg, who became my dearest friend.",
-        "The captain of the Pequod was Ahab, a tall man with a scarred face and a leg carved from whalebone. He had lost his leg to a great white whale called Moby Dick, and revenge burned in his heart.",
-        "Ahab gathered the crew and nailed a gold coin to the mast. 'Whoever first sights the white whale,' he cried, 'shall have this coin!' The men cheered, but I saw madness in the captain's eyes.",
-        "For months we hunted whales across the wide oceans, and the sea took its toll. Men were lost and boats were smashed. But Ahab never rested. His one thought, his one dream, was the white whale.",
-        "At last the lookout cried, 'There she blows!' And there was Moby Dick, white as milk, rising from the deep. Ahab laughed and ordered the boats into the water, chasing the whale that had taken his leg.",
-        "Moby Dick fought back with terrible power. It smashed the boats and sank the Pequod into the waves. All the crew drowned, and only I, Ishmael, floated on an empty coffin, rescued by a passing ship. I alone lived to tell the tale."
-      ],
-      thPages: [
-        "เรียกฉันว่าอิชมาเอล ฉันออกทะเลเพื่อหนีความเศร้าของฝั่ง และลงนามบนเรือล่าปลาวาฬเพควอด บนดาดฟ้าฉันได้พบคนฉมวกที่สักเต็มตัวชื่อคิวควีก ซึ่งกลายเป็นเพื่อนรักของฉัน",
-        "กัปตันของเพควอดคืออาฮับ ชายร่างสูงที่มีใบหน้าเป็นรอยแผลเป็นและขาข้างหนึ่งแกะสลักจากกระดูกวาฬ เขาสูญเสียขาให้กับวาฬขาวยักษ์ชื่อโมบี ดิค และการแก้แค้นก็ลุกโชนในหัวใจของเขา",
-        "อาฮับรวบรวมลูกเรือและตอกเหรียญทองบนเสากระโดง 'ใครเห็นวาฬขาวเป็นคนแรก' เขาร้อง 'จะได้เหรียญนี้!' ลูกเรือส่งเสียงเชียร์ แต่ฉันเห็นความบ้าคลั่งในดวงตาของกัปตัน",
-        "เป็นเวลาหลายเดือนที่เราล่าปลาวาฬข้ามมหาสมุทรกว้าง และทะเลก็เก็บเกี่ยวความเสียหาย ลูกเรือสูญหาย และเรือถูกทุบแตก แต่อาฮับไม่เคยพักผ่อน ความคิดเดียวของเขา ความฝันเดียวของเขา คือวาฬขาว",
-        "ในที่สุดคนเฝ้ายามก็ร้อง 'วาฬพ่นน้ำ!' และโมบี ดิคก็อยู่ที่นั่น ขาวราวกับนม ลอยขึ้นจากห้วงลึก อาฮับหัวเราะและสั่งเรือลงน้ำ ไล่ตามวาฬที่เอาขาของเขาไป",
-        "โมบี ดิคต่อสู้กลับด้วยพลังอันน่ากลัว มันทุบเรือแตกและจมเพควอดลงสู่คลื่น ลูกเรือทั้งหมดจมน้ำตาย และมีเพียงฉัน อิชมาเอล ที่ลอยบนโลงศพเปล่า ได้รับการช่วยเหลือจากเรือที่แล่นผ่าน ฉันเพียงคนเดียวที่รอดชีวิตมาเล่าเรื่องราว"
-      ]
+      pages: ["Call me Ishmael. I went to sea to escape the sadness of the shore, and I signed on to the whaling ship Pequod. On deck I met a tattooed harpooner named Queequeg, and he became my dearest friend.",
+        "The captain of the Pequod was Ahab — a tall man with a scarred face and a leg carved from whalebone. He'd lost that leg to a great white whale called Moby Dick, and revenge was burning in his heart.",
+        "Ahab gathered the crew and nailed a gold coin to the mast. 'Whoever first sights the white whale,' he cried, 'shall have this coin!' The men cheered, but I could see the madness in the captain's eyes.",
+        "For months we hunted whales across the wide oceans, and the sea took its toll. Men were lost, boats were smashed. But Ahab never rested. His one thought, his one dream, was the white whale.",
+        "At last the lookout cried, 'There she blows!' And there was Moby Dick, white as milk, rising out of the deep. Ahab laughed and ordered the boats into the water, chasing the whale that had taken his leg.",
+        "Moby Dick fought back with terrible power. It smashed the boats and dragged the Pequod down beneath the waves. All the crew drowned, and only I, Ishmael, floated on an empty coffin until a passing ship rescued me. I alone lived to tell the tale."],
+      thPages: ["เรียกฉันว่าอิชมาเอลเถอะ ฉันออกทะเลเพื่อหนีความเศร้าหมองบนฝั่ง และลงประจำเรือล่าปลาวาฬชื่อเพควอด บนดาดฟ้าเรือ ฉันได้พบกับคนฉมวกที่สักเต็มตัวชื่อคิวควีก และเขาก็กลายเป็นเพื่อนรักของฉัน",
+        "กัปตันของเพควอดคืออาฮับ ชายร่างสูง ใบหน้าเป็นรอยแผลเป็น และขาข้างหนึ่งแกะสลักจากกระดูกวาฬ เขาสูญเสียขาข้างนั้นให้กับวาฬขาวยักษ์นามโมบี ดิค และการแก้แค้นก็ลุกโชนอยู่ในใจเขา",
+        "อาฮับรวบรวมลูกเรือ แล้วตอกเหรียญทองไว้ที่เสากระโดง 'ใครเห็นวาฬขาวเป็นคนแรก' เขาตะโกน 'คนนั้นจะได้เหรียญนี้!' ลูกเรือส่งเสียงเชียร์ แต่ฉันเห็นความบ้าคลั่งอยู่ในดวงตาของกัปตัน",
+        "หลายเดือนที่เราล่าปลาวาฬข้ามมหาสมุทรอันกว้างใหญ่ และทะเลก็เก็บค่าผ่านทางเสมอ ลูกเรือสูญหาย เรือถูกชนแตก แต่อาฮับไม่เคยหยุดพัก ความคิดเดียว ความฝันเดียวของเขาคือวาฬขาว",
+        "ในที่สุดคนเฝ้ายามก็ร้องขึ้นว่า 'มันพ่นน้ำแล้ว!' และโมบี ดิคก็อยู่ตรงนั้น ขาวราวกับน้ำนม ผุดขึ้นจากห้วงลึก อาฮับหัวเราะแล้วสั่งปล่อยเรือลงน้ำ ไล่ตามวาฬที่คร่าขาของเขาไป",
+        "โมบี ดิคสู้กลับด้วยพลังอันน่ากลัว มันทุบเรือแตกกระจาย และลากเพควอดจมลงใต้คลื่น ลูกเรือทั้งหมดจมน้ำตาย เหลือเพียงฉัน อิชมาเอล ที่ลอยอยู่บนโลงศพเปล่า จนมีเรือแล่นผ่านมาช่วยไว้ ฉันเพียงคนเดียวที่รอดชีวิตมาเล่าเรื่องนี้"]
     },
     {
       id: "cur-cls-jane-eyre", level: "B2", genre: "classic",
       title: "Jane Eyre",
-      pages: [
-        "I am Jane Eyre, an orphan raised by an unkind aunt who treated me as an unwanted burden. At last she sent me to a charity school, where cold walls and strict rules were my daily bread.",
+      pages: ["I am Jane Eyre, an orphan raised by an unkind aunt who treated me like an unwanted burden. At last she packed me off to a charity school, where cold walls and strict rules were my daily bread.",
         "I grew up to be a quiet, plain governess, and I found a post at the great house of Thornfield, caring for a small girl named Adele. The master of the house, Mr. Rochester, was a dark and restless man.",
-        "Mr. Rochester and I spoke often, and slowly I came to love him. He was proud and wild, but he understood me. One night he declared his love and asked me to marry him. I was filled with joy.",
-        "But on our wedding day, a terrible secret was revealed. Mr. Rochester was already married — to a mad woman locked in the attic of Thornfield. My heart broke, and I fled the house that very night.",
-        "I wandered hungry and lost until the Rivers family took me in. They became my kin, and when an unknown relative left me a fortune, I shared it with them. But in my heart, I still remembered Thornfield.",
-        "I returned to Thornfield at last, and found it a blackened ruin — a fire had burned it down. Mr. Rochester, blind and wounded, had tried to save his mad wife and lost everything. I found him, and I took his hand. Where there is love, I told him, there is light."
-      ],
-      thPages: [
-        "ฉันคือเจน ไอร์ เด็กกำพร้าที่ถูกเลี้ยงดูโดยป้าที่ไร้เมตตาซึ่งปฏิบัติต่อฉันราวกับภาระที่ไม่พึงประสงค์ ในที่สุดเธอก็ส่งฉันไปโรงเรียนการกุศล ที่ซึ่งกำแพงเย็นและกฎเกณฑ์เคร่งครัดเป็นอาหารประจำวันของฉัน",
-        "ฉันเติบโตเป็นผู้ปกครองที่เงียบขรึมและหน้าตาธรรมดา และได้ตำแหน่งที่คฤหาสน์ใหญ่ธอร์นฟิลด์ ดูแลเด็กหญิงตัวเล็กชื่ออเดล นายใหญ่ของบ้าน มิสเตอร์โรเชสเตอร์ เป็นชายที่มืดมนและกระสับกระส่าย",
-        "มิสเตอร์โรเชสเตอร์กับฉันพูดคุยกันบ่อย และค่อยๆ ฉันก็รักเขา เขาหยิ่งและป่าเถื่อน แต่เขาเข้าใจฉัน คืนหนึ่งเขาประกาศความรักและขอฉันแต่งงาน ฉันเต็มไปด้วยความยินดี",
-        "แต่ในวันแต่งงาน ความลับอันน่ากลัวก็ถูกเปิดเผย มิสเตอร์โรเชสเตอร์แต่งงานแล้ว — กับหญิงวิกลจริตที่ถูกขังอยู่ในห้องใต้หลังคาของธอร์นฟิลด์ หัวใจของฉันแตกสลาย และฉันหนีออกจากบ้านในคืนนั้นเอง",
-        "ฉันเร่ร่อนหิวโหยและหลงทางจนครอบครัวริเวอร์สรับฉันไว้ พวกเขากลายเป็นญาติของฉัน และเมื่อญาติที่ไม่รู้จักทิ้งมรดกให้ฉัน ฉันแบ่งมันกับพวกเขา แต่ในใจฉัน ฉันยังคงคิดถึงธอร์นฟิลด์",
-        "ในที่สุดฉันก็กลับมาที่ธอร์นฟิลด์ และพบว่ามันกลายเป็นซากปรักหักพังที่ดำคล้ำ — ไฟไหม้มันราบ มิสเตอร์โรเชสเตอร์ ตาบอดและบาดเจ็บ พยายามช่วยภรรยาที่วิกลจริตของเขาและสูญเสียทุกอย่าง ฉันพบเขา และฉันจับมือของเขา ที่ซึ่งมีความรัก ฉันบอกเขา ที่นั่นมีแสงสว่าง"
-      ]
+        "Mr. Rochester and I talked often, and little by little I fell in love with him. He was proud and wild, but he understood me. One night he declared his love and asked me to marry him. I was filled with joy.",
+        "But on our wedding day, a terrible secret came out. Mr. Rochester was already married — to a madwoman locked in the attic of Thornfield. My heart broke, and I fled the house that very night.",
+        "I wandered, hungry and lost, until the Rivers family took me in. They became my kin, and when an unknown relative left me a fortune, I shared it with them. But in my heart, I still remembered Thornfield.",
+        "I returned to Thornfield at last, only to find it a blackened ruin — a fire had burned it down. Mr. Rochester, blind and wounded, had tried to save his mad wife and lost everything. I found him, and I took his hand. Where there is love, I told him, there is light."],
+      thPages: ["ฉันชื่อเจน ไอร์ เด็กกำพร้าที่ถูกป้าผู้ไร้เมตตาเลี้ยงดู ราวกับฉันเป็นภาระที่ไม่พึงปรารถนา ในที่สุดเธอก็ส่งฉันไปโรงเรียนการกุศล ที่ซึ่งกำแพงเย็นเฉียบและกฎเหล็กเคร่งครัดกลายเป็นชีวิตประจำวันของฉัน",
+        "ฉันเติบโตเป็นผู้ปกครองที่เงียบขรึมและหน้าตาธรรมดา แล้วได้งานที่คฤหาสน์ใหญ่ธอร์นฟิลด์ ดูแลเด็กหญิงตัวน้อยชื่ออเดล เจ้าของบ้าน มิสเตอร์โรเชสเตอร์ เป็นชายที่มืดมนและไม่สงบสุขนัก",
+        "มิสเตอร์โรเชสเตอร์กับฉันคุยกันบ่อยๆ และฉันก็ค่อยๆ รักเขาขึ้นมา เขาหยิ่งและดุร้าย แต่เขาเข้าใจฉัน คืนหนึ่งเขาบอกรักและขอฉันแต่งงาน ฉันเต็มไปด้วยความสุข",
+        "แต่ในวันแต่งงาน ความลับอันน่ากลัวก็ถูกเปิดเผย มิสเตอร์โรเชสเตอร์แต่งงานแล้ว — กับหญิงวิกลจริตที่ถูกขังอยู่ในห้องใต้หลังคาของธอร์นฟิลด์ หัวใจฉันแตกสลาย และฉันหนีออกจากบ้านหลังนั้นในคืนเดียวกัน",
+        "ฉันเร่ร่อนด้วยความหิวโหยและหลงทาง จนกระทั่งครอบครัวริเวอร์สรับฉันไว้ พวกเขากลายเป็นญาติของฉัน และเมื่อญาติที่ไม่รู้จักทิ้งมรดกไว้ให้ฉัน ฉันก็แบ่งให้พวกเขา แต่ในใจฉัน ยังคงคิดถึงธอร์นฟิลด์เสมอ",
+        "ในที่สุดฉันก็กลับมาที่ธอร์นฟิลด์ ได้แต่พบว่ามันกลายเป็นซากปรักหักพังดำคล้ำ — ไฟได้เผามันจนหมดสิ้น มิสเตอร์โรเชสเตอร์ตาบอดและบาดเจ็บ เขาพยายามช่วยภรรยาที่วิกลจริตของเขาแต่กลับสูญเสียทุกอย่าง ฉันพบเขาและจับมือเขาไว้ ที่ใดมีความรัก ฉันบอกเขา ที่นั่นย่อมมีแสงสว่าง"]
     },
     {
       id: "cur-cls-peter-pan", level: "A2", genre: "classic",
       title: "Peter Pan",
-      pages: [
-        "The three Darling children — Wendy, John, and Michael — lived in London with their father and mother and their dog Nana. One night a strange boy flew through their window. His name was Peter Pan.",
-        "Peter taught the children to fly by thinking lovely thoughts and sprinkling them with fairy dust from his friend Tinker Bell. 'Follow me to Neverland!' he cried, and they flew away through the night sky.",
+      pages: ["The three Darling children — Wendy, John, and Michael — lived in London with their mother and father and their dog, Nana. One night a strange boy flew in through their window. His name was Peter Pan.",
+        "Peter taught the children to fly by thinking lovely thoughts while he sprinkled them with fairy dust from his friend Tinker Bell. 'Follow me to Neverland!' he cried, and away they flew through the night sky.",
         "In Neverland, the children met the Lost Boys, the pirates of Captain Hook, and the beautiful mermaids who sang in the lagoon. Wendy became a mother to them all, telling stories by the fire.",
-        "Captain Hook, who hated Peter for cutting off his hand and feeding it to a crocodile, captured the children. The crocodile, which had swallowed a clock, ticked as it followed Hook everywhere.",
-        "Peter rescued his friends from the pirate ship in a daring battle. He fought Hook himself, and Hook, who feared the ticking crocodile, fell into the sea and was swallowed by the beast.",
-        "The children flew home to London, where their mother agreed to adopt the Lost Boys. Wendy grew up, but she never forgot Peter, who promised to return every spring. And so, in the nursery window, a boy's shadow still waited."
-      ],
-      thPages: [
-        "เด็กสามคนของครอบครัวดาร์ลิ่ง — เวนดี้ จอห์น และไมเคิล — อาศัยอยู่ในลอนดอนกับพ่อแม่และสุนัขนานา คืนหนึ่งเด็กชายแปลกหน้าบินผ่านหน้าต่างของพวกเขา ชื่อของเขาคือปีเตอร์แพน",
-        "ปีเตอร์สอนเด็กๆ ให้บินด้วยการคิดความสุขและโรยฝุ่นนางฟ้าจากทิงเกอร์เบลล์เพื่อนของเขา 'ตามฉันไปเนเวอร์แลนด์!' เขาร้อง และพวกเขาก็บินหนีไปผ่านท้องฟ้ายามค่ำคืน",
-        "ในเนเวอร์แลนด์ เด็กๆ พบเด็กหลงทาง โจรสลัดของกัปตันฮุค และนางเงือกสวยงามที่ร้องเพลงในทะเลสาบ เวนดี้กลายเป็นแม่ของพวกเขาทั้งหมด เล่านิทานข้างกองไฟ",
-        "กัปตันฮุค ผู้เกลียดปีเตอร์ที่ตัดมือของเขาและโยนให้จระเข้กิน จับเด็กๆ ไว้ จระเข้ที่กลืนนาฬิกาเข้าไป เดินดักดักตามฮุคไปทุกที่",
-        "ปีเตอร์ช่วยเพื่อนๆ ของเขาจากเรือโจรสลัดในการต่อสู้ที่กล้าหาญ เขาสู้กับฮุคด้วยตัวเอง และฮุค ผู้กลัวจระเข้ที่เดินดักดัก ตกลงไปในทะเลและถูกสัตว์ร้ายกลืน",
-        "เด็กๆ บินกลับบ้านที่ลอนดอน ที่ซึ่งแม่ของพวกเขาตกลงรับเลี้ยงเด็กหลงทาง เวนดี้โตขึ้น แต่เธอไม่เคยลืมปีเตอร์ ผู้สัญญาว่าจะกลับมาทุกฤดูใบไม้ผลิ และในหน้าต่างห้องเด็กเล็ก เงาของเด็กชายคนหนึ่งยังคงรออยู่"
-      ]
+        "Captain Hook, who hated Peter for cutting off his hand and feeding it to a crocodile, captured the children. The crocodile, which had swallowed a clock, went tick-tock wherever it followed Hook.",
+        "Peter rescued his friends from the pirate ship in a daring battle. He fought Hook himself, and Hook, who feared that ticking crocodile, fell into the sea — and the beast swallowed him whole.",
+        "The children flew home to London, where their mother agreed to adopt the Lost Boys. Wendy grew up, but she never forgot Peter, who promised to return every spring. And so, in the nursery window, a boy's shadow still waited."],
+      thPages: ["เด็กทั้งสามของครอบครัวดาร์ลิ่ง — เวนดี้ จอห์น และไมเคิล — อาศัยอยู่ในลอนดอนกับพ่อแม่และนานาสุนัขของพวกเขา คืนหนึ่ง มีเด็กชายแปลกหน้าคนหนึ่งบินทะลุหน้าต่างเข้ามา เขาชื่อปีเตอร์แพน",
+        "ปีเตอร์สอนให้เด็กๆ บินโดยการคิดถึงเรื่องสนุกๆ ระหว่างที่โรยฝุ่นนางฟ้าจากทิงเกอร์เบลล์เพื่อนของเขาให้ 'ตามฉันมาเนเวอร์แลนด์!' เขาร้อง แล้วพวกเขาก็บินโผออกไปสู่ท้องฟ้ายามค่ำคืน",
+        "ในเนเวอร์แลนด์ เด็กๆ ได้พบกับเด็กหลงทาง เหล่าโจรสลัดของกัปตันฮุค และนางเงือกสวยๆ ที่ร้องเพลงอยู่ในทะเลสาบ เวนดี้กลายเป็นแม่ของพวกเขาทุกคน คอยเล่านิทานข้างกองไฟ",
+        "กัปตันฮุค ผู้เกลียดปีเตอร์ที่ตัดมือเขาทิ้งให้จระเข้กิน จับตัวเด็กๆ ไป จระเข้ที่กลืนนาฬิกาเข้าไปนั้น เดินดักดักตามฮุคไปทุกที่",
+        "ปีเตอร์บุกช่วยเพื่อนๆ ของเขาจากเรือโจรสลัดด้วยการต่อสู้อันกล้าหาญ เขาสู้กับฮุคด้วยตัวเอง และฮุคผู้หวาดกลัวจระเข้ที่เดินดักดักนั้นก็พลัดตกทะเลไป — แล้วสัตว์ร้ายก็กลืนเขาทั้งเป็น",
+        "เด็กๆ บินกลับบ้านที่ลอนดอน ซึ่งแม่ของพวกเขาตกลงรับเลี้ยงเด็กหลงทางทุกคน เวนดี้เติบโตขึ้น แต่เธอไม่เคยลืมปีเตอร์ ผู้สัญญาว่าจะกลับมาทุกฤดูใบไม้ผลิ และที่หน้าต่างห้องเด็กเล็ก เงาของเด็กชายคนหนึ่งก็ยังคงรออยู่"]
     },
     {
       id: "cur-fairy-snow-queen", level: "A2", genre: "fairy",
       title: "The Snow Queen",
-      pages: [
-        "In a little town lived two friends, Kai and Gerda. They were poor, but they were happy, and they shared everything — even the rose bush that grew between their two windows.",
-        "One winter, a splinter of the evil mirror flew into Kai's eye and pierced his heart. He became cold and cruel. Then the Snow Queen appeared and kissed him, and he forgot Gerda and followed her into the frozen north.",
-        "Gerda refused to believe Kai was lost. She set out in the spring, alone and determined. Along the way she met an old witch with a lovely garden, a clever crow, and a kind prince and princess who helped her on her journey.",
-        "Gerda rode north through the snow with a gentle reindeer. They crossed the frozen plains and came at last to the palace of the Snow Queen, where ice shone like crystal and the wind sang a lonely song.",
-        "Inside the palace, Gerda found Kai, cold and still, trying to spell a word with blocks of ice. He did not remember her. But Gerda's warm tears fell on his chest, melted the splinter in his heart, and woke him from the frozen spell.",
-        "Kai and Gerda flew home on a reindeer, through spring and summer, until they reached their little town. The rose bush had bloomed, and they sat beneath it, once more children, once more friends — and the Snow Queen never found them again."
-      ],
-      thPages: [
-        "ในเมืองเล็กๆ มีเพื่อนสองคนชื่อไคและเกอร์ดา พวกเขายากจนแต่มีความสุข และแบ่งปันทุกอย่าง — แม้แต่ต้นกุหลาบที่งอกระหว่างหน้าต่างสองบานของพวกเขา",
-        "ฤดูหนาวปีหนึ่ง เศษกระจกวิเศษชิ้นหนึ่งปลิวเข้าตาไคและแทงเข้าไปในหัวใจของเขา เขากลายเป็นคนเย็นชาและโหดร้าย แล้วราชินีหิมะก็ปรากฏตัวและจูบเขา และเขาก็ลืมเกอร์ดาและตามเธอไปสู่แดนเหนืออันหนาวเย็น",
-        "เกอร์ดาปฏิเสธที่จะเชื่อว่าไคสูญหาย เธอออกเดินทางในฤดูใบไม้ผลิ อย่างโดดเดี่ยวและมุ่งมั่น ระหว่างทางเธอพบแม่มดแก่ที่มีสวนสวย กาที่ฉลาด และเจ้าชายกับเจ้าหญิงผู้ใจดีที่ช่วยเหลือเธอในการเดินทาง",
-        "เกอร์ดาขี่เหนือไปทางเหนือท่ามกลางหิมะพร้อมกวางเรนเดียร์ผู้ใจดี พวกเขาข้ามที่ราบน้ำแข็งและมาถึงพระราชวังของราชินีหิมะในที่สุด ที่ซึ่งน้ำแข็งส่องประกายเหมือนคริสตัลและสายลมร้องเพลงอันโดดเดี่ยว",
-        "ในพระราชวัง เกอร์ดาพบไค หนาวเหน็บและนิ่งสงบ กำลังพยายามสะกดคำด้วยก้อนน้ำแข็ง เขาจำเธอไม่ได้ แต่หยาดน้ำตาอันอบอุ่นของเกอร์ดาตกลงบนหน้าอกของเขา ละลายเศษกระจกในหัวใจของเขา และปลุกเขาจากมนต์น้ำแข็ง",
-        "ไคและเกอร์ดาบินกลับบ้านด้วยกวางเรนเดียร์ ผ่านฤดูใบไม้ผลิและฤดูร้อน จนกระทั่งถึงเมืองเล็กๆ ของพวกเขา ต้นกุหลาบเบ่งบาน และพวกเขาก็นั่งอยู่ใต้มัน อีกครั้งในฐานะเด็ก อีกครั้งในฐานะเพื่อน — และราชินีหิมะก็ไม่เคยพบพวกเขาอีกเลย"
-      ]
+      pages: ["In a little town lived two friends, Kai and Gerda. They were poor, but they were happy, and they shared everything — even the rose bush that grew between their two windows.",
+        "One winter, a splinter from the evil mirror flew into Kai's eye and pierced his heart. He turned cold and cruel. Then the Snow Queen appeared and kissed him, and he forgot Gerda and followed her into the frozen north.",
+        "Gerda refused to believe that Kai was lost. She set out in the spring, alone and determined. Along the way she met an old witch with a lovely garden, a clever crow, and a kind prince and princess who helped her on her journey.",
+        "Gerda rode north through the snow on a gentle reindeer. They crossed the frozen plains and finally reached the Snow Queen's palace, where ice shone like crystal and the wind sang a lonely song.",
+        "Inside the palace, Gerda found Kai — cold and still, trying to spell a word with blocks of ice. He didn't remember her. But Gerda's warm tears fell on his chest, melted the splinter in his heart, and woke him from the frozen spell.",
+        "Kai and Gerda flew home on a reindeer, through spring and summer, until they reached their little town. The rose bush had bloomed, and they sat beneath it — children again, friends again. And the Snow Queen never found them again."],
+      thPages: ["ในเมืองเล็กๆ แห่งหนึ่งมีเพื่อนสองคนชื่อไคกับเกอร์ดา พวกเขายากจนแต่ก็มีความสุข และแบ่งปันทุกอย่างกัน — แม้แต่ต้นกุหลาบที่งอกอยู่ระหว่างหน้าต่างสองบานของพวกเขา",
+        "ฤดูหนาวปีหนึ่ง เศษกระจกวิเศษชิ้นเล็กๆ ปลิวเข้าตาไคและแทงลึกเข้าไปในหัวใจของเขา เขากลายเป็นคนเย็นชาและโหดร้าย แล้วราชินีหิมะก็ปรากฏตัวและจูบเขา เขาลืมเกอร์ดาไปสิ้น และตามเธอไปยังดินแดนทางเหนืออันหนาวเหน็บ",
+        "เกอร์ดาไม่ยอมเชื่อว่าไคหายไป เธอออกเดินทางในฤดูใบไม้ผลิ อย่างโดดเดี่ยวและมุ่งมั่น ระหว่างทางเธอได้พบแม่มดแก่ที่มีสวนสวย กาฉลาดๆ ตัวหนึ่ง และเจ้าชายกับเจ้าหญิงใจดีที่ช่วยเหลือเธอตลอดทาง",
+        "เกอร์ดาขี่กวางเรนเดียร์ผู้ใจดีมุ่งหน้าเหนือไปท่ามกลางหิมะ พวกเขาข้ามที่ราบน้ำแข็งอันกว้างใหญ่ และในที่สุดก็มาถึงพระราชวังของราชินีหิมะ ที่ซึ่งน้ำแข็งส่องประกายราวคริสตัล และสายลมขับขานเพลงอันโดดเดี่ยว",
+        "ในพระราชวัง เกอร์ดาพบไค — ตัวเย็นเฉียบและนิ่งงัน กำลังพยายามสะกดคำด้วยก้อนน้ำแข็ง เขาจำเธอไม่ได้เลย แต่หยาดน้ำตาอันอบอุ่นของเกอร์ดาหล่นลงบนอกของเขา ละลายเศษกระจกในหัวใจ และปลุกเขาจากมนต์น้ำแข็ง",
+        "ไคและเกอร์ดาบินกลับบ้านบนหลังกวางเรนเดียร์ ผ่านฤดูใบไม้ผลิและฤดูร้อน จนกระทั่งถึงเมืองเล็กๆ ของพวกเขา ต้นกุหลาบเบ่งบานแล้ว และทั้งคู่ก็นั่งลงใต้ต้นไม้นั้น — เป็นเด็กอีกครั้ง เป็นเพื่อนอีกครั้ง และราชินีหิมะก็ไม่เคยตามพวกเขาพบอีกเลย"]
     },
     {
       id: "cur-fairy-rumpelstiltskin", level: "A1", genre: "fairy",
       title: "Rumpelstiltskin",
-      pages: [
-        "A poor miller told the king a lie: 'My daughter can spin straw into gold!' The king was greedy, so he locked the girl in a tower full of straw. 'Spin this into gold by morning,' he said, 'or you will die.'",
-        "The poor girl wept. Suddenly, a strange little man appeared. 'What will you give me if I spin your gold?' he asked. 'My necklace,' she said. He took it, spun the straw into gold, and vanished.",
-        "The king was delighted, but his greed grew. He locked the girl in an even larger room of straw. This time the little man asked for her ring, and he spun the gold again while she slept.",
-        "The king was amazed and promised her the throne if she could spin a whole mountain of straw. The little man appeared a third time. 'I will help you,' he said, 'if you promise to give me your first-born child.' The girl, desperate, agreed.",
-        "A year later, the girl was queen and held her first baby. The little man returned and demanded the child. The queen wept and begged. 'Very well,' said the little man. 'If you can guess my name, you may keep your child.'",
-        "The queen sent messengers across the land to collect names. At last, a messenger heard a strange voice singing in a forest: 'The queen will never guess that my name is Rumpelstiltskin!' The queen guessed the name, and the little man, furious, stamped his foot so hard that he vanished forever."
-      ],
-      thPages: [
-        "ช่างสีข้าวผู้ยากจนโกหกกษัตริย์: 'ลูกสาวของฉันปั่นฟางเป็นทองคำได้!' กษัตริย์โลภ จึงขังหญิงสาวในหอคอยที่เต็มไปด้วยฟาง 'ปั่นสิ่งนี้เป็นทองคำให้ได้ภายในเช้า' เขากล่าว 'หรือเจ้าจะตาย'",
-        "หญิงสาวผู้น่าสงสารร้องไห้ ทันใดนั้น ชายตัวเล็กแปลกหน้าก็ปรากฏตัว 'เจ้าจะให้อะไรฉัน ถ้าฉันปั่นทองคำให้เจ้า?' เขาถาม 'สร้อยคอของฉัน' เธอกล่าว เขารับมัน ปั่นฟางเป็นทองคำ แล้วหายไป",
-        "กษัตริย์พอใจมาก แต่ความโลภของเขาก็มากขึ้น เขาขังหญิงสาวในห้องฟางที่ใหญ่กว่าเดิม คราวนี้ชายตัวเล็กขอแหวนของเธอ และเขาก็ปั่นทองคำอีกครั้งในขณะที่เธอหลับ",
-        "กษัตริย์ประหลาดใจและสัญญาว่าจะให้บัลลังก์แก่เธอ ถ้าเธอปั่นภูเขาฟางทั้งหมดได้ ชายตัวเล็กปรากฏตัวเป็นครั้งที่สาม 'ฉันจะช่วยเจ้า' เขากล่าว 'ถ้าเจ้าสัญญาว่าจะยกบุตรคนแรกของเจ้าให้ฉัน' หญิงสาว อย่างสิ้นหวัง ตกลง",
-        "หนึ่งปีต่อมา หญิงสาวเป็นราชินีและอุ้มลูกคนแรกของเธอ ชายตัวเล็กกลับมาและเรียกร้องเด็ก ราชินีร้องไห้และวิงวอน 'เอาล่ะ' ชายตัวเล็กกล่าว 'ถ้าเจ้าทายชื่อฉันได้ เจ้าอาจจะเก็บลูกของเจ้าไว้'",
-        "ราชินีส่งผู้สื่อสารไปทั่วดินแดนเพื่อเก็บชื่อ ในที่สุด ผู้สื่อสารคนหนึ่งได้ยินเสียงแปลกๆ ร้องเพลงในป่า: 'ราชินีจะไม่มีวันเดาว่าฉันชื่อรัมเพลสติลต์สกิน!' ราชินีทายชื่อถูก และชายตัวเล็ก ด้วยความโกรธแค้น กระทืบเท้าอย่างแรงจนหายตัวไปตลอดกาล"
-      ]
+      pages: ["A poor miller told the king a lie: 'My daughter can spin straw into gold!' The king was greedy, so he locked the girl in a tower full of straw. 'Spin this into gold by morning,' he said, 'or you'll die.'",
+        "The poor girl wept. Suddenly, a strange little man appeared. 'What will you give me if I spin the gold for you?' he asked. 'My necklace,' she said. He took it, spun the straw into gold, and vanished.",
+        "The king was delighted, but his greed only grew. He locked the girl in an even bigger room full of straw. This time the little man asked for her ring, and he spun the gold again while she slept.",
+        "The king was amazed and promised her the throne if she could spin a whole mountain of straw. The little man appeared a third time. 'I'll help you,' he said, 'if you promise to give me your first-born child.' The girl, desperate, agreed.",
+        "A year later, the girl was queen and held her first baby. The little man came back and demanded the child. The queen wept and begged. 'Very well,' said the little man. 'If you can guess my name, you may keep your child.'",
+        "The queen sent messengers all over the land to gather names. At last, one messenger heard a strange voice singing in the forest: 'The queen will never guess that my name is Rumpelstiltskin!' The queen guessed the name, and the furious little man stamped his foot so hard that he vanished forever."],
+      thPages: ["ช่างสีข้าวยากจนคนหนึ่งโกหกกษัตริย์ว่า 'ลูกสาวของฉันปั่นฟางให้เป็นทองคำได้!' กษัตริย์ผู้โลภจึงขังหญิงสาวไว้ในหอคอยที่เต็มไปด้วยฟาง 'ปั่นสิ่งนี้ให้เป็นทองภายในเช้า' เขาสั่ง 'ไม่งั้นเจ้าจะตาย'",
+        "หญิงสาวผู้น่าสงสารร้องไห้ ทันใดนั้นชายตัวเล็กๆ แปลกหน้าก็โผล่มา 'เจ้าจะให้อะไรฉัน ถ้าฉันปั่นทองให้เจ้า?' เขาถาม 'สร้อยคอของฉัน' เธอตอบ เขารับสร้อย ปั่นฟางให้เป็นทองคำ แล้วก็หายวับไป",
+        "กษัตริย์ดีใจมาก แต่ความโลภของเขากลับเพิ่มขึ้นเรื่อยๆ เขาขังหญิงสาวไว้ในห้องฟางที่ใหญ่กว่าเดิม คราวนี้ชายตัวเล็กขอแหวนของเธอ และเขาก็ปั่นทองคำให้อีกครั้งในขณะที่เธอหลับ",
+        "กษัตริย์ตะลึงมาก ถึงกับสัญญาจะมอบบัลลังก์ให้เธอถ้าปั่นฟางทั้งภูเขาได้ ชายตัวเล็กโผล่มาเป็นครั้งที่สาม 'ฉันจะช่วยเจ้า' เขาว่า 'ถ้าเจ้าสัญญาว่าจะยกลูกคนแรกให้ฉัน' หญิงสาวสิ้นหวัง จึงตอบตกลง",
+        "หนึ่งปีต่อมา หญิงสาวกลายเป็นราชินีและอุ้มลูกคนแรกของเธอ ชายตัวเล็กกลับมาและเรียกร้องเด็กคนนั้น ราชินีร้องไห้และอ้อนวอน 'ก็ได้' ชายตัวเล็กว่า 'ถ้าเจ้าทายชื่อฉันได้ เจ้าก็เก็บลูกไว้ได้'",
+        "ราชินีส่งคนออกไปทั่วแผ่นดินเพื่อเก็บรวบรวมชื่อ ในที่สุด คนรับใช้คนหนึ่งได้ยินเสียงแปลกๆ ร้องเพลงอยู่ในป่า 'ราชินีไม่มีทางเดาได้ว่าฉันชื่อรัมเพลสติลต์สกิน!' ราชินีทายชื่อถูก แล้วชายตัวเล็กผู้เดือดดาลก็กระทืบเท้าอย่างแรงจนหายตัวไปตลอดกาล"]
     },
     {
       id: "cur-fairy-little-mermaid", level: "A2", genre: "fairy",
       title: "The Little Mermaid",
-      pages: [
-        "Far out in the deep blue sea lived the Sea King and his six beautiful daughters. The youngest mermaid was the most wonderful of all. She loved to hear stories about the world above the waves.",
-        "When she turned fifteen, she swam to the surface for the first time. She saw a ship and a handsome prince, and she fell in love with him at once. A storm broke the ship, and she saved the prince from drowning.",
-        "The little mermaid took the prince to the shore, where a girl from the palace found him. He never knew who had saved him, and the mermaid returned to the sea with a heavy heart.",
-        "She went to the Sea Witch and traded her voice for legs. 'Every step will feel like knives,' warned the witch, 'and if the prince marries another, you will turn to foam.' The mermaid agreed without a moment's doubt.",
-        "The prince loved the mermaid and took her everywhere, but he never loved her enough to marry her. Then the prince met the girl from the shore — the one he thought had saved him — and he married her.",
-        "On the wedding night, the mermaid's sisters gave her a knife. 'Kill the prince, and you may live!' they cried. But the mermaid could not hurt him. She threw the knife into the sea and rose to the light, where the spirits of the air welcomed her with open arms."
-      ],
-      thPages: [
-        "ไกลออกไปในทะเลสีน้ำเงินเข้ม อาศัยราชาแห่งท้องทะเลและลูกสาวผู้งดงามหกคน นางเงือกน้อยที่สุดคือผู้ที่วิเศษที่สุด เธอชอบฟังเรื่องราวเกี่ยวกับโลกเหนือคลื่น",
-        "เมื่อเธออายุสิบห้า เธอว่ายขึ้นสู่ผิวน้ำเป็นครั้งแรก เธอเห็นเรือและเจ้าชายรูปงาม และตกหลุมรักเขาทันที พายุทำเรือแตก และเธอก็ช่วยเจ้าชายไม่ให้จมน้ำ",
-        "นางเงือกน้อยพาเจ้าชายไปที่ชายฝั่ง ที่ซึ่งหญิงสาวจากพระราชวังพบเขา เขาไม่เคยรู้ว่าใครช่วยเขาไว้ และนางเงือกก็กลับสู่ทะเลด้วยหัวใจที่หนักอึ้ง",
-        "เธอไปหาแม่มดทะเลและแลกเสียงของเธอกับขา 'ทุกย่างก้าวจะเจ็บราวกับถูกมีดบาด' แม่มดเตือน 'และถ้าเจ้าชายแต่งงานกับคนอื่น เจ้าจะกลายเป็นฟองคลื่น' นางเงือกตกลงโดยไม่ลังเลแม้แต่น้อย",
-        "เจ้าชายรักนางเงือกและพาเธอไปทุกที่ แต่เขาไม่เคยรักเธอมากพอที่จะแต่งงาน แล้วเจ้าชายก็ได้พบหญิงสาวจากชายฝั่ง — คนที่เขาคิดว่าช่วยเขาไว้ — และเขาก็แต่งงานกับเธอ",
-        "ในคืนแต่งงาน พี่สาวของนางเงือกยื่นมีดให้เธอ 'ฆ่าเจ้าชาย แล้วเจ้าจะมีชีวิตอยู่!' พวกเธอร้อง แต่บางเงือกทำร้ายเขาไม่ได้ เธอโยนมีดลงทะเลและลอยขึ้นสู่แสง ที่ซึ่งวิญญาณแห่งอากาศต้อนรับเธอด้วยอ้อมแขนที่เปิดกว้าง"
-      ]
+      pages: ["Far out in the deep blue sea lived the Sea King and his six beautiful daughters. The youngest mermaid was the most wonderful of them all. She loved to hear stories about the world above the waves.",
+        "When she turned fifteen, she swam to the surface for the first time. She saw a ship and a handsome prince, and she fell in love with him at once. A storm broke the ship apart, and she saved the prince from drowning.",
+        "The little mermaid carried the prince to the shore, where a girl from the palace found him. He never knew who had saved him, and the mermaid went back to the sea with a heavy heart.",
+        "She went to the Sea Witch and traded her voice for legs. 'Every step will feel like knives,' warned the witch, 'and if the prince marries another, you'll turn into sea foam.' The mermaid agreed without a moment's hesitation.",
+        "The prince loved the mermaid and took her everywhere, but he never loved her enough to marry her. Then the prince met the girl from the shore — the one he believed had saved him — and he married her.",
+        "On the wedding night, the mermaid's sisters gave her a knife. 'Kill the prince, and you'll live!' they cried. But the mermaid couldn't hurt him. She threw the knife into the sea and rose toward the light, where the spirits of the air welcomed her with open arms."],
+      thPages: ["ไกลออกไปในทะเลสีน้ำเงินเข้ม มีราชาแห่งท้องทะเลและลูกสาวทั้งหกคนอาศัยอยู่ นางเงือกน้อยคนสุดท้องเป็นคนที่วิเศษที่สุด เธอชอบฟังเรื่องราวเกี่ยวกับโลกเหนือคลื่นเหลือเกิน",
+        "พอเธออายุครบสิบห้า เธอก็ว่ายขึ้นสู่ผิวน้ำเป็นครั้งแรก เธอเห็นเรือลำหนึ่งและเจ้าชายรูปงาม แล้วก็ตกหลุมรักเขาทันที พายุพัดเรือแตกเป็นเสี่ยงๆ และเธอก็ช่วยเจ้าชายไว้ไม่ให้จมน้ำ",
+        "นางเงือกน้อยอุ้มเจ้าชายขึ้นฝั่ง ที่ซึ่งหญิงสาวจากพระราชวังมาเจอเขาเข้า เขาไม่เคยรู้เลยว่าใครช่วยเขาไว้ และนางเงือกก็กลับสู่ทะเลด้วยหัวใจที่หนักอึ้ง",
+        "เธอไปหาแม่มดทะเลและแลกเสียงของเธอกับขาสองข้าง 'ทุกย่างก้าวจะเจ็บราวกับถูกมีดบาด' แม่มดเตือน 'และถ้าเจ้าชายแต่งงานกับคนอื่น เจ้าจะกลายเป็นฟองคลื่น' นางเงือกตอบตกลงโดยไม่ลังเลแม้เสี้ยววินาที",
+        "เจ้าชายรักนางเงือกและพาเธอไปทุกที่ แต่เขาไม่เคยรักเธอมากพอจะแต่งงาน แล้วเจ้าชายก็ได้พบหญิงสาวจากชายฝั่ง — คนที่เขาเชื่อว่าช่วยเขาไว้ — และเขาก็แต่งงานกับเธอ",
+        "คืนวันแต่งงาน พี่สาวของนางเงือกยื่นมีดให้เธอ 'ฆ่าเจ้าชายซะ แล้วเจ้าจะได้มีชีวิต!' พวกเธอร้อง แต่นางเงือกทำร้ายเขาไม่ลง เธอโยนมีดทิ้งลงทะเล แล้วลอยขึ้นสู่แสงสว่าง ที่ซึ่งวิญญาณแห่งอากาศต้อนรับเธอด้วยอ้อมแขนที่เปิดกว้าง"]
     },
     {
       id: "cur-ghost-carmilla", level: "B2", genre: "ghost",
       title: "Carmilla",
-      pages: [
-        "My name is Laura, and I live with my father in a lonely castle in the mountains of Styria. One night, a carriage crashed near our gates, and from the wreck they carried a beautiful girl, pale as moonlight, named Carmilla.",
-        "Carmilla was sweet and gentle, and she became my dearest companion. But there was something strange about her. She slept all day, she never ate, and she spoke of a childhood she could not remember.",
-        "Then I fell ill. I grew weak and pale, and strange dreams filled my sleep. I dreamed of a cold kiss on my throat, and I woke each morning more tired than before. My father sent for the great doctor, Dr. Spielberg.",
+      pages: ["My name is Laura, and I live with my father in a lonely castle in the mountains of Styria. One night, a carriage crashed near our gates, and from the wreck they carried a beautiful girl, pale as moonlight, whose name was Carmilla.",
+        "Carmilla was sweet and gentle, and she became my dearest companion. But there was something strange about her. She slept all day, she never ate, and she spoke of a childhood she couldn't remember.",
+        "Then I fell ill. I grew weak and pale, and strange dreams filled my sleep. I dreamed of a cold kiss on my throat, and every morning I woke more tired than before. My father sent for a famous doctor, Dr. Spielberg.",
         "The doctor examined me and shook his head. 'She is losing blood,' he said darkly. 'Something is feeding on her at night.' He studied Carmilla, and his face grew grave. 'I have seen this sickness before — in a village that lost three girls.'",
-        "One of Carmilla's portraits, painted long ago, showed a woman who looked exactly like her. The doctor was sure now. Carmilla was a vampire, and she had been feeding on me as she had fed on countless victims for centuries.",
-        "The villagers surrounded the castle and found Carmilla's grave. They opened it and drove a stake through the pale figure that lay within. The next morning, the sickness left my body. I have lived to tell this story, but I will never forget the beautiful, terrible face of Carmilla."
-      ],
-      thPages: [
-        "ฉันชื่อลอร่า และอาศัยอยู่กับพ่อในปราสาทอันโดดเดี่ยวบนภูเขาของสติเรีย คืนหนึ่ง รถม้าชนใกล้ประตูของเรา และจากซากรถ พวกเขาอุ้มหญิงสาวงดงาม ผิวขาวราวแสงจันทร์ ชื่อคาร์มิลลา",
-        "คาร์มิลลาเป็นคนหวานและอ่อนโยน และกลายเป็นเพื่อนที่รักที่สุดของฉัน แต่มีบางอย่างแปลกเกี่ยวกับเธอ เธอนอนทั้งวัน ไม่เคยกิน และพูดถึงวัยเด็กที่เธอจำไม่ได้",
-        "แล้วฉันก็ป่วย ฉันอ่อนแอและหน้าซีด และความฝันแปลกๆ เติมเต็มการนอนของฉัน ฉันฝันถึงจูบเย็นบนลำคอ และตื่นขึ้นทุกเช้าด้วยความเหนื่อยกว่าที่เคย พ่อส่งคนไปตามหมอผู้ยิ่งใหญ่ ดร.สปีลเบิร์ก",
-        "หมอตรวจฉันและส่ายหัว 'เธอเสียเลือด' เขากล่าวอย่างมืดมน 'มีบางอย่างกำลังดูดเลือดเธอในตอนกลางคืน' เขาศึกษาคาร์มิลลา และใบหน้าของเขาก็เคร่งเครียด 'ฉันเคยเห็นโรคนี้มาก่อน — ในหมู่บ้านที่สูญเสียเด็กสาวสามคน'",
-        "ภาพเหมือนของคาร์มิลลาหนึ่งภาพ ที่วาดไว้นานแล้ว แสดงผู้หญิงที่หน้าตาเหมือนเธอเป๊ะ หมอมั่นใจแล้ว คาร์มิลลาคือแวมไพร์ และเธอได้ดูดเลือดฉันเช่นเดียวกับที่เธอดูดเลือดเหยื่อนับไม่ถ้วนมานานหลายศตวรรษ",
-        "ชาวบ้านล้อมปราสาทและพบหลุมศพของคาร์มิลลา พวกเขาเปิดมันและตอกหลักผ่านร่างซีดเผือกที่นอนอยู่ข้างใน เช้าวันรุ่งขึ้น โรคร้ายจากร่างกายของฉัน ฉันรอดชีวิตมาเล่าเรื่องนี้ แต่ฉันจะไม่มีวันลืมใบหน้าที่งดงามและน่าสะพรึงกลัวของคาร์มิลลา"
-      ]
+        "One of Carmilla's portraits, painted long ago, showed a woman who looked exactly like her. Now the doctor was sure. Carmilla was a vampire, and she had been feeding on me just as she had fed on countless victims for centuries.",
+        "The villagers surrounded the castle and found Carmilla's grave. They opened it and drove a stake through the pale figure lying inside. The next morning, the sickness left my body. I have lived to tell this story, but I will never forget the beautiful, terrible face of Carmilla."],
+      thPages: ["ฉันชื่อลอร่า อาศัยอยู่กับพ่อในปราสาทอันเงียบเหงาบนภูเขาของสติเรีย คืนหนึ่งมีรถม้าชนใกล้ประตูบ้านเรา และจากซากรถ พวกเขาอุ้มหญิงสาวงดงามคนหนึ่งออกมา ผิวขาวราวแสงจันทร์ ชื่อคาร์มิลลา",
+        "คาร์มิลลาเป็นคนอ่อนหวานและอ่อนโยน และกลายเป็นเพื่อนที่ฉันรักที่สุด แต่เธอมีอะไรแปลกๆ อยู่ เธอนอนทั้งวัน ไม่เคยกินข้าว และพูดถึงวัยเด็กที่เธอจำไม่ได้เลย",
+        "แล้วฉันก็เริ่มป่วย ฉันอ่อนแอลง หน้าซีดลง และฝันประหลาดๆ เต็มไปหมด ฉันฝันว่ามีใครบางคนจูบเย็นๆ ที่ลำคอ และทุกเช้าตื่นขึ้นมาก็เหนื่อยล้ายิ่งกว่าเดิม พ่อจึงส่งคนไปตามหมอชื่อดัง ดร.สปีลเบิร์ก",
+        "หมอตรวจฉันแล้วก็ส่ายหัว 'เด็กคนนี้เสียเลือด' เขากล่าวด้วยสีหน้าหม่น 'มีบางอย่างกำลังดูดเลือดเธอตอนกลางคืน' เขาจ้องคาร์มิลลาอยู่นาน แล้วสีหน้าก็เคร่งเครียด 'ฉันเคยเห็นโรคแบบนี้มาก่อน — ในหมู่บ้านที่เด็กสาวหายไปสามคน'",
+        "ภาพเหมือนคาร์มิลลาภาพหนึ่งที่วาดไว้นานมาก เป็นภาพของผู้หญิงที่หน้าตาเหมือนเธอราวกับพิมพ์เดียวกัน คราวนี้หมอมั่นใจเต็มที่ คาร์มิลลาคือแวมไพร์ และเธอดูดเลือดฉันมาโดยตลอด เหมือนที่เธอเคยดูดเลือดเหยื่ออีกนับไม่ถ้วนตลอดหลายศตวรรษ",
+        "ชาวบ้านล้อมปราสาทไว้และหาเจอหลุมศพของคาร์มิลลา พวกเขาเปิดหลุมและตอกหลักผ่านร่างซีดเผือกที่นอนอยู่ข้างใน เช้าวันรุ่งขึ้น ความเจ็บป่วยก็หายไปจากตัวฉัน ฉันรอดมาได้จนได้เล่าเรื่องนี้ แต่ฉันจะไม่มีวันลืมใบหน้าที่ทั้งงดงามและน่าสะพรึงกลัวของคาร์มิลลา"]
     },
     {
       id: "cur-ghost-whistle-lady", level: "B1", genre: "ghost",
       title: "The Whistling Lady",
-      pages: [
-        "The old train station of Millbrook had been closed for years. People said you could still hear a whistle at midnight — the whistle of a lady who waited for a train that never came.",
-        "A curious reporter named Sam came to Millbrook to write about the legend. He stayed in the station house with only a lantern, and at midnight, he heard it: a soft, sad whistle echoing through the empty hall.",
-        "Sam followed the sound to the old platform. There, under the last lamp, stood a woman in a long coat, her face hidden. 'Can I help you?' Sam asked. She did not turn. 'I am waiting for my husband,' she whispered.",
-        "'He was a conductor on this line,' she said. 'He promised to come home on the midnight train, but it was delayed by snow, and he never returned. I have waited here every night since.'",
-        "Sam checked the old records and found her story. The woman had waited for her husband for forty years, then died alone. But her love had not died. 'She still believes he will come,' Sam thought, and his heart ached.",
-        "The next night, Sam brought a white rose and placed it on the platform. The lady smiled through her tears. 'Thank you,' she said. 'Now I can rest.' She faded like morning mist, and the station has been silent ever since."
-      ],
-      thPages: [
-        "สถานีรถไฟเก่าของมิลบรูกปิดมานานหลายปี ผู้คนบอกว่ายังได้ยินเสียงผิวปากตอนเที่ยงคืน — เสียงผิวปากของหญิงสาวที่รอรถไฟที่ไม่เคยมา",
-        "นักข่าวที่อยากรู้อยากเห็นชื่อแซมมาที่มิลบรูกเพื่อเขียนเรื่องราวเกี่ยวกับตำนาน เขาพักในตัวสถานีด้วยตะเกียงเพียงดวงเดียว และตอนเที่ยงคืน เขาก็ได้ยินมัน: เสียงผิวปากที่อ่อนโยนและเศร้า ก้องสะท้อนผ่านห้องโถงว่างเปล่า",
-        "แซมตามเสียงไปที่ชานชาลาเก่า ที่นั่น ใต้โคมไฟดวงสุดท้าย มีหญิงสาวในเสื้อคลุมยาวยืนอยู่ ใบหน้าถูกซ่อน 'ให้ฉันช่วยไหม?' แซมถาม เธอไม่หันมา 'ฉันกำลังรอสามีของฉัน' เธอกระซิบ",
-        "'เขาเป็นพนักงานขับรถไฟบนเส้นนี้' เธอกล่าว 'เขาสัญญาว่าจะกลับบ้านด้วยรถไฟเที่ยงคืน แต่รถไฟดีเลย์เพราะหิมะ และเขาไม่เคยกลับมา ฉันรอที่นี่ทุกคืนตั้งแต่นั้นมา'",
-        "แซมตรวจบันทึกเก่าและพบเรื่องราวของเธอ หญิงสาวรอสามีมาสี่สิบปี แล้วก็ตายอย่างโดดเดี่ยว แต่ความรักของเธอไม่ตาย 'เธอยังคงเชื่อว่าเขาจะมา' แซมคิด และหัวใจของเขาเจ็บปวด",
-        "คืนถัดมา แซมนำดอกกุหลาบขาวมาวางบนชานชาลา หญิงสาวยิ้มทั้งน้ำตา 'ขอบคุณ' เธอกล่าว 'ตอนนี้ฉันพักได้แล้ว' เธอจางหายเหมือนหมอกยามเช้า และสถานีก็เงียบสงบตั้งแต่นั้นมา"
-      ]
+      pages: ["The old train station of Millbrook had been closed for years. People said you could still hear a whistle at midnight — the whistle of a lady who waited for a train that never came.",
+        "A curious reporter named Sam came to Millbrook to write about the legend. He stayed in the station house with nothing but a lantern, and at midnight he heard it: a soft, sad whistle echoing through the empty hall.",
+        "Sam followed the sound to the old platform. There, under the last lamp, stood a woman in a long coat, her face hidden. 'Can I help you?' Sam asked. She didn't turn. 'I'm waiting for my husband,' she whispered.",
+        "'He was a conductor on this line,' she said. 'He promised to come home on the midnight train, but it was delayed by snow, and he never returned. I've waited here every night since.'",
+        "Sam checked the old records and found her story. The woman had waited for her husband for forty years, then died alone. But her love hadn't died. 'She still believes he will come,' Sam thought, and his heart ached.",
+        "The next night, Sam brought a white rose and placed it on the platform. The lady smiled through her tears. 'Thank you,' she said. 'Now I can rest.' She faded like morning mist, and the station has been silent ever since."],
+      thPages: ["สถานีรถไฟเก่าเมืองมิลบรูกปิดตัวมานานหลายปีแล้ว ผู้คนเล่าว่าเที่ยงคืนยังได้ยินเสียงผิวปากอยู่ — เสียงผิวปากของหญิงสาวที่รอรถไฟขบวนหนึ่งซึ่งไม่มีวันมา",
+        "นักข่าวผู้อยากรู้อยากเห็นชื่อแซมเดินทางมาที่มิลบรูกเพื่อเขียนเรื่องราวเกี่ยวกับตำนานนี้ เขาพักค้างในสถานีโดยมีตะเกียงเพียงดวงเดียว พอเที่ยงคืน เขาก็ได้ยินมัน: เสียงผิวปากที่เบาและเศร้า ก้องสะท้อนไปทั่วห้องโถงอันว่างเปล่า",
+        "แซมตามเสียงไปจนถึงชานชาลาเก่า ที่นั่น ใต้โคมไฟดวงสุดท้าย มีหญิงสาวคนหนึ่งในเสื้อคลุมยาวยืนอยู่ ใบหน้าถูกปิดไว้ 'ให้ฉันช่วยไหม?' แซมถาม เธอไม่หันมา 'ฉันกำลังรอสามีอยู่' เธอกระซิบ",
+        "'สามีฉันเป็นพนักงานขับรถไฟบนเส้นนี้' เธอกล่าว 'เขาสัญญาว่าจะกลับบ้านด้วยรถไฟเที่ยงคืน แต่รถไฟมาช้าเพราะหิมะตก เขาจึงไม่เคยกลับมา ฉันรออยู่ที่นี่ทุกคืนตั้งแต่วันนั้น'",
+        "แซมค้นบันทึกเก่าและพบเรื่องราวของเธอ หญิงสาวรอคอยสามีมาถึงสี่สิบปี แล้วก็ตายจากไปอย่างโดดเดี่ยว แต่ความรักของเธอไม่เคยตาย 'เธอยังคงเชื่อว่าเขาจะมา' แซมคิด และหัวใจของเขาก็เจ็บปวด",
+        "คืนถัดมา แซมนำดอกกุหลาบขาวมาวางไว้บนชานชาลา หญิงสาวยิ้มทั้งน้ำตา 'ขอบคุณ' เธอกล่าว 'ตอนนี้ฉันได้พักเสียที' เธอจางหายไปราวกับหมอกยามเช้า และตั้งแต่นั้นมา สถานีก็เงียบสนิทตลอดมา"]
     },
     {
       id: "cur-ghost-green-door", level: "B2", genre: "ghost",
@@ -7277,42 +7211,34 @@
     {
       id: "cur-ghost-pier-music", level: "B2", genre: "ghost",
       title: "The Music at the Old Pier",
-      pages: [
-        "The old pier of Harborview had stood empty for years, its wooden planks rotting in the salt wind. Local children said that on foggy nights, you could hear music drifting across the water — old songs no one played anymore.",
-        "A young musician named Nina came to Harborview to rest and write new songs. The first foggy night, she heard the music too, soft and sweet, coming from the end of the pier. She walked out, lantern in hand.",
-        "At the end of the pier, a shadowy figure played an old piano that had long been lost to the sea. The player was a woman, young and pale, who did not seem to see Nina. 'Your song,' Nina said softly. 'It is beautiful.'",
-        "The woman looked up, surprised. 'You can hear me?' she asked. She told Nina her story: she had been a pianist on a steamship that sank in the storm eighty years ago. Every night since, she played for the passengers who never came home.",
+      pages: ["The old pier of Harborview had stood empty for years, its wooden planks rotting in the salt wind. Local children said that on foggy nights you could hear music drifting across the water — old songs that no one played anymore.",
+        "A young musician named Nina came to Harborview to rest and write new songs. On the first foggy night, she heard the music too — soft and sweet, coming from the end of the pier. She walked out onto the pier, lantern in hand.",
+        "At the end of the pier, a shadowy figure played an old piano that had long been lost to the sea. The player was a woman, young and pale, who didn't seem to notice Nina. 'Your song,' Nina said softly. 'It's beautiful.'",
+        "The woman looked up, surprised. 'You can hear me?' she asked. She told Nina her story: she had been a pianist on a steamship that sank in a storm eighty years ago. Every night since, she had played for the passengers who never came home.",
         "Nina listened, and her heart was moved. 'Let me play with you,' she said. She found an old guitar and played beside the ghost, song after song, until the fog began to lift and the first light touched the sea.",
-        "The ghost smiled for the first time in eighty years. 'Thank you,' she said. 'Now I can rest.' She faded into the morning mist, and the piano vanished with her. But Nina wrote down every song they had played, and the music of the old pier lived on in her hands."
-      ],
-      thPages: [
-        "ท่าเรือเก่าของฮาร์เบอร์วิวร้างมานานหลายปี ไม้กระดานผุพังในสายลมเค็ม เด็กๆ ในท้องถิ่นเล่าว่าในคืนที่มีหมอก คุณจะได้ยินเสียงดนตรีลอยข้ามน้ำ — เพลงเก่าๆ ที่ไม่มีใครเล่นอีกแล้ว",
-        "นักดนตรีสาวชื่อนีน่ามาที่ฮาร์เบอร์วิวเพื่อพักผ่อนและเขียนเพลงใหม่ คืนที่มีหมอกครั้งแรก เธอได้ยินเสียงดนตรีด้วยเช่นกัน นุ่มนวลและไพเราะ มาจากปลายท่าเรือ เธอเดินออกไป ถือตะเกียงในมือ",
-        "ที่ปลายท่าเรือ ร่างเงามัวๆ เล่นเปียโนเก่าที่สูญหายไปในทะเลนานแล้ว ผู้เล่นคือหญิงสาว หน้าตาอ่อนเยาว์และซีด ซึ่งดูเหมือนไม่เห็นนีน่า 'เพลงของคุณ' นีน่ากล่าวเบาๆ 'มันสวยงาม'",
-        "หญิงสาวมองขึ้น ด้วยความประหลาดใจ 'คุณได้ยินฉัน?' เธอถาม เธอเล่าเรื่องของเธอ: เธอเคยเป็นนักเปียโนบนเรือกลไฟที่จมในพายุเมื่อแปดสิบปีก่อน ทุกคืนตั้งแต่นั้น เธอเล่นเพลงให้ผู้โดยสารที่ไม่เคยกลับบ้าน",
-        "นีน่าฟัง และหัวใจของเธอก็ถูกสัมผัส 'ให้ฉันเล่นกับคุณ' เธอกล่าว เธอพบกีตาร์เก่าและเล่นข้างๆ ผี อย่างเพลงแล้วเพลงเล่า จนหมอกเริ่มจางและแสงแรกสัมผัสทะเล",
-        "ผียิ้มเป็นครั้งแรกในรอบแปดสิบปี 'ขอบคุณ' เธอกล่าว 'ตอนนี้ฉันพักได้แล้ว' เธอจางหายไปในหมอกยามเช้า และเปียโนก็หายไปพร้อมกับเธอ แต่นีน่าเขียนเพลงทั้งหมดที่พวกเขาเล่นลงไป และดนตรีของท่าเรือเก่าก็ยังคงมีชีวิตอยู่ในมือของเธอ"
-      ]
+        "The ghost smiled for the first time in eighty years. 'Thank you,' she said. 'Now I can rest.' She faded into the morning mist, and the piano vanished with her. But Nina wrote down every song they had played, and the music of the old pier lived on in her hands."],
+      thPages: ["ท่าเรือเก่าของฮาร์เบอร์วิวร้างมานานหลายปี แผ่นไม้ผุพังไปตามสายลมทะเลเค็ม เด็กๆ ในเมืองเล่าว่าในคืนที่มีหมอก คุณจะได้ยินเสียงดนตรีลอยข้ามน้ำมา — เพลงเก่าๆ ที่ไม่มีใครเล่นอีกแล้ว",
+        "นักดนตรีสาวชื่อนีน่ามาที่ฮาร์เบอร์วิวเพื่อพักผ่อนและแต่งเพลงใหม่ คืนหมอกคืนแรก เธอก็ได้ยินเสียงดนตรีนั้นเหมือนกัน นุ่มนวลและไพเราะ ดังมาจากปลายท่าเรือ เธอเดินออกไปพร้อมกับถือตะเกียงในมือ",
+        "ที่ปลายท่าเรือ มีร่างพร่ามัวเล่นเปียโนเก่าตัวหนึ่งที่จมหายไปในทะเลนานแล้ว ผู้เล่นเป็นหญิงสาว หน้าตายังสาวและซีดเซียว เธอดูเหมือนไม่เห็นนีน่า 'เพลงของคุณ' นีน่าพูดเบาๆ 'เพราะมากเลย'",
+        "หญิงสาวเงยหน้าขึ้นด้วยความประหลาดใจ 'คุณได้ยินฉันเหรอ?' เธอถาม แล้วก็เล่าเรื่องของเธอ: เธอเคยเป็นนักเปียโนบนเรือกลไฟที่จมลงในพายุเมื่อแปดสิบปีก่อน ทุกคืนตั้งแต่นั้นมา เธอเล่นเพลงให้ผู้โดยสารที่ไม่เคยได้กลับบ้าน",
+        "นีน่าฟังเรื่องของเธอแล้วรู้สึกซาบซึ้งใจ 'ให้ฉันเล่นกับคุณ' เธอกล่าว เธอหากีตาร์เก่าๆ มาเล่นอยู่ข้างๆ ผี เพลงแล้วเพลงเล่า จนหมอกเริ่มจางลงและแสงแรกแตะผิวทะเล",
+        "ผียิ้มเป็นครั้งแรกในรอบแปดสิบปี 'ขอบคุณ' เธอกล่าว 'ตอนนี้ฉันได้พักเสียที' เธอจางหายไปในหมอกยามเช้า เปียโนก็หายไปพร้อมกับเธอ แต่นีน่าจดเพลงทั้งหมดที่พวกเขาเล่นเอาไว้ และดนตรีของท่าเรือเก่าก็ยังคงมีชีวิตอยู่ในมือของเธอ"]
     },
     {
       id: "cur-classic-don-quixote", level: "B1", genre: "classic",
       title: "Don Quixote",
-      pages: [
-        "In a village of La Mancha, an old gentleman named Alonso Quijano read so many tales of knights that he went mad. He decided to become a knight himself, took the name Don Quixote, and rode out on his thin horse Rocinante.",
-        "He needed a lady to protect, so he chose a farm girl named Dulcinea and promised to fight for her honor. He needed a squire too, so he persuaded a simple farmer, Sancho Panza, to follow him with promises of an island to rule.",
-        "On the road, they came upon tall windmills. 'Those are giants!' cried Don Quixote. 'Their arms are swinging!' He charged at the windmill with his lance, and the spinning blade lifted him into the air and dropped him.",
-        "Sancho laughed and helped him up. 'I told you they were windmills,' he said. But Don Quixote was sure an evil wizard had turned the giants into windmills to mock him. Onward he rode, chasing adventures that existed only in his mind.",
-        "He fought a flock of sheep, mistaking them for an army, and he freed prisoners who thanked him by stealing his donkey. Every defeat, Sancho noticed, was blamed on enchanters. Yet the old knight's heart never lost its fire.",
-        "At last his friends brought him home, and the old man slept and woke as plain Alonso Quijano. 'I was mad,' he said, 'but I was happy.' He died peacefully, and the world remembered the knight who had taught us that dreams are worth dreaming, even if they end."
-      ],
-      thPages: [
-        "ในหมู่บ้านแห่งลามันชา สุภาพบุรุษชรานามอัลอนโซ กิฮาโนอ่านนิทานอัศวินมากมายจนสติคลั่ง เขาตัดสินใจเป็นอัศวินด้วยตัวเอง ใช้ชื่อว่าดอนกิโฮเต้ และขี่ม้าผอมบางของเขาชื่อโรซินันเตออกไป",
-        "เขาต้องการหญิงสาวให้ปกป้อง จึงเลือกสาวชาวนาชื่อดุลซิเนียและสัญญาว่าจะต่อสู้เพื่อเกียรติของเธอ เขาต้องการมหาดเล็กด้วย จึงชักชวนชาวนาที่ซื่อๆ ชื่อซานโช ปานซา ให้ติดตามเขาด้วยคำสัญญาว่าจะมอบเกาะให้ปกครอง",
-        "ระหว่างทาง พวกเขาเจอกังหันลมสูง 'พวกนั้นคือยักษ์!' ดอนกิโฮเต้ร้อง 'แขนของพวกมันกำลังแกว่ง!' เขาวิ่งเข้าชนกังหันด้วยหอก และใบพัดที่หมุนก็ยกเขาขึ้นไปในอากาศแล้วปล่อยเขาตกลงมา",
-        "ซานโชหัวเราะและช่วยเขาลุก 'ฉันบอกแล้วว่ามันคือกังหันลม' เขากล่าว แต่ดอนกิโฮเต้แน่ใจว่าพ่อมดชั่วร้ายเปลี่ยนยักษ์เป็นกังหันลมเพื่อล้อเลียนเขา เขาขี่ม้าต่อไป ไล่ล่าการผจญภัยที่มีอยู่เพียงในความคิดของเขา",
-        "เขาต่อสู้กับฝูงแกะ โดยเข้าใจผิดว่ามันคือกองทัพ และปลดปล่อยนักโทษที่ขอบคุณเขาด้วยการขโมยลาของเขา ทุกความพ่ายแพ้ ซานโชสังเกต ถูกตำหนิว่ามาจากนักเวทมนตร์ แต่หัวใจของอัศวินชราไม่เคยสูญเสียไฟ",
-        "ในที่สุด เพื่อนๆ ของเขาก็พาเขากลับบ้าน และชายชราก็นอนหลับและตื่นขึ้นในฐานะอัลอนโซ กิฮาโนธรรมดา 'ฉันบ้า' เขากล่าว 'แต่ฉันมีความสุข' เขาตายอย่างสงบ และโลกก็จดจำอัศวินผู้สอนเราว่าความฝันนั้นมีค่าที่จะฝัน แม้ว่ามันจะจบลงก็ตาม"
-      ]
+      pages: ["In a village in La Mancha, an old gentleman named Alonso Quijano read so many tales of knights that he went a little mad. He decided to become a knight himself, took the name Don Quixote, and rode out on his skinny horse, Rocinante.",
+        "He needed a lady to protect, so he chose a farm girl named Dulcinea and promised to fight for her honor. He needed a squire too, so he talked a simple farmer, Sancho Panza, into following him with the promise of an island to rule.",
+        "On the road they came upon some tall windmills. 'Those are giants!' cried Don Quixote. 'Look at their arms swinging!' He charged at one with his lance, and the spinning blade lifted him into the air and dropped him.",
+        "Sancho laughed and helped him up. 'I told you they were windmills,' he said. But Don Quixote was sure an evil wizard had turned the giants into windmills just to mock him. Onward he rode, chasing adventures that existed only in his own mind.",
+        "He fought a flock of sheep, mistaking them for an army, and he freed some prisoners who thanked him by stealing his donkey. Every defeat, Sancho noticed, got blamed on enchanters. Yet the old knight's heart never lost its fire.",
+        "At last his friends brought him home, and the old man slept and woke as plain Alonso Quijano again. 'I was mad,' he said, 'but I was happy.' He died peacefully, and the world remembered the knight who taught us that dreams are worth dreaming — even if they come to an end."],
+      thPages: ["ในหมู่บ้านแห่งหนึ่งในลามันชา สุภาพบุรุษชรานามอัลอนโซ กิฮาโนอ่านนิทานอัศวินมากมายจนสติคลั่งไปนิดหน่อย เขาตัดสินใจเป็นอัศวินเสียเอง ตั้งชื่อตัวเองว่าดอนกิโฮเต้ แล้วขี่ม้าผอมกะหร่องชื่อโรซินันเตออกเดินทาง",
+        "เขาต้องการหญิงงามให้ปกป้อง จึงเลือกสาวชาวนาชื่อดุลซิเนีย และสัญญาว่าจะต่อสู้เพื่อเกียรติของเธอ เขาต้องการมหาดเล็กด้วย จึงเกลี้ยกล่อมชาวนาที่ซื่อๆ ชื่อซานโช ปานซา ให้ติดตามไป ด้วยคำสัญญาว่าจะมอบเกาะให้เป็นรางวัล",
+        "ระหว่างทาง พวกเขาเจอกังหันลมสูงใหญ่ 'พวกนั้นคือยักษ์!' ดอนกิโฮเต้ร้อง 'ดูแขนของมันแกว่งสิ!' เขาควบม้าเข้าชนกังหันด้วยหอกทวน แล้วใบพัดที่หมุนอยู่ก็พาเขาลอยขึ้นไปในอากาศก่อนจะปล่อยให้ร่วงหล่นลงมา",
+        "ซานโชหัวเราะแล้วช่วยเขาลุก 'ฉันบอกแล้วไงว่ามันคือกังหันลม' เขาว่า แต่ดอนกิโฮเต้กลับมั่นใจว่าพ่อมดชั่วร้ายแปลงยักษ์ให้กลายเป็นกังหันลมเพื่อล้อเลียนเขา เขาควบม้าต่อไป ไล่ล่าการผจญภัยที่มีอยู่เพียงในหัวของตัวเอง",
+        "เขาสู้กับฝูงแกะ โดยเข้าใจผิดว่ามันคือกองทัพ และปลดปล่อยนักโทษกลุ่มหนึ่ง ซึ่งตอบแทนเขาด้วยการขโมยลาของเขา ทุกความพ่ายแพ้ ซานโชสังเกตว่า มักถูกโยนความผิดให้นักเวทมนตร์เสมอ แต่ไฟในใจของอัศวินชราไม่เคยดับ",
+        "ในที่สุด เพื่อนๆ ก็พาเขากลับบ้าน และชายชราผู้นั้นก็นอนหลับแล้วตื่นขึ้นในฐานะอัลอนโซ กิฮาโนธรรมดาอีกครั้ง 'ฉันบ้า' เขายอมรับ 'แต่ฉันมีความสุข' เขาจากไปอย่างสงบ และโลกก็จดจำอัศวินผู้สอนเราว่าความฝันนั้นมีค่าให้ฝันเสมอ — แม้สุดท้ายมันจะจบลงก็ตาม"]
     }
   ];
 
@@ -7394,21 +7320,30 @@
     return pool[daySeed(todayStr() + currentActiveLevelFilter + currentGenreFilter) % pool.length];
   }
 
+  function storyLevelBadgeHtml(s) {
+    const info = (window.CEFR_LEVELS && CEFR_LEVELS[s.level]) || { color: "var(--primary)", name: s.level, th: "" };
+    const color = info.color;
+    const name = (settings.lang === "th" && info.th) ? info.th : info.name;
+    return '<div class="story-hover-badge" style="--lvl-color:' + color + ';">' + svgIcon("award", "ico sm") + " " + s.level + " · " + name + "</div>";
+  }
+
   // Featured card for Story of the Day — spans the full grid width.
   function sotdCardHtml(s) {
-    return '<div class="story-card sotd-card" data-story-id="' + s.id + '">' +
+    return '<div class="story-card sotd-card" data-story-id="' + s.id + '" style="padding:24px;border-radius:16px;background:var(--panel-solid);border:1px solid var(--border);">' +
+      storyLevelBadgeHtml(s) +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
       '<div class="sotd-badge">' + svgIcon("sparkle", "ico sm") + " " + t("stories.sotd") + "</div>" +
+      '</div>' +
       '<div class="sotd-body">' +
-      '<h4>' + esc(s.title) + "</h4>" +
-      '<p>' + esc(s.text) + "</p>" +
-      '<div class="sotd-meta">' +
-      '<span class="badge" style="background:var(--primary);color:#fff;">' + s.level + "</span>" +
+      '<h4 style="font-size:20px;font-weight:700;margin-bottom:8px;">' + esc(s.title) + "</h4>" +
+      '<p style="line-height:1.6;margin-bottom:16px;color:var(--muted);">' + esc(s.text) + "</p>" +
+      '<div class="sotd-meta" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:16px;font-size:13px;color:var(--muted);">' +
       '<span class="sotd-genre">' + svgIcon(storyGenreIcon(s.genre), "ico sm") + " " + storyGenreLabel(s.genre) + "</span>" +
       '<span>' + svgIcon("clock", "ico sm") + " ~" + storyReadMins(s) + " " + t("stories.minutes") + "</span>" +
       (s.pages ? '<span>' + svgIcon("book", "ico sm") + " " + s.pages.length + " " + t("stories.pages") + "</span>" : "") +
       "</div>" +
       "</div>" +
-      '<button class="btn btn-sm btn-primary" data-sotd-read>' + t("stories.readNow") + "</button>" +
+      '<button class="btn btn-sm btn-primary" data-sotd-read style="padding:10px 20px;border-radius:10px;">' + t("stories.readNow") + "</button>" +
       "</div>";
   }
 
@@ -7889,6 +7824,43 @@ bookPageIdx = 0;
     if (isStoryRead(story.id)) renderStoryQuiz(story);
   }
 
+  async function generateAiCustomStory() {
+    const weak = getWeakWords();
+    if (!weak || weak.length === 0) {
+      toast("ยังไม่มีคำศัพท์ที่อ่อนในระบบ — ลองไปเรียนหรือตอบคำถามในโหมดต่างๆ ก่อน!", "warn", "alert-circle");
+      return;
+    }
+    const words = weak.slice(0, 8).map(function(w) { return w.word; });
+    toast("กำลังให้ AI เขียนเรื่องราวพิเศษจากคำศัพท์ที่คุณจำไม่ได้ (" + words.join(", ") + ")...", "info", "cpu");
+    
+    try {
+      const res = await fetch("http://localhost:3001/api/ai/generate-story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ words: words })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Failed to generate story");
+      }
+      
+      const aiStory = {
+        id: "ai_story_" + Date.now(),
+        title: "AI Custom Story (Weak Words)",
+        level: "Custom",
+        genre: "article",
+        text: data.story,
+        thText: "เรื่องราวพิเศษที่สร้างขึ้นโดย AI จากคำศัพท์ที่คุณเพิ่งฝึกฝน",
+        words: words
+      };
+      
+      openStory(aiStory);
+      toast("สร้างเรื่องราวสำเร็จ!", "ok", "check");
+    } catch (e) {
+      toast("เกิดข้อผิดพลาดในการสร้างเรื่องราว: " + e.message, "err", "alert-circle");
+    }
+  }
+
   function renderStories() {
     const list = $("storiesList");
     const reader = $("storyReader");
@@ -7900,6 +7872,19 @@ bookPageIdx = 0;
     reader.classList.add("hidden");
     if (filtersContainer) filtersContainer.classList.remove("hidden");
     if (genreFilters) genreFilters.classList.remove("hidden");
+
+    // Prepend AI Custom Story Button if not present
+    let aiBtnWrap = $("aiStoryBtnWrap");
+    if (!aiBtnWrap && genreFilters && genreFilters.parentNode) {
+      aiBtnWrap = document.createElement("div");
+      aiBtnWrap.id = "aiStoryBtnWrap";
+      aiBtnWrap.style.cssText = "margin-bottom:16px;text-align:center;";
+      aiBtnWrap.innerHTML = '<button id="aiStoryBtn" class="btn primary" style="background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;font-weight:700;padding:12px 24px;border-radius:12px;box-shadow:0 4px 12px rgba(99,102,241,0.3);cursor:pointer;display:inline-flex;align-items:center;gap:8px;">' +
+        svgIcon("sparkle", "ico") + " สร้างเรื่องราวพิเศษด้วย AI (จากคำศัพท์ที่คุณจำไม่ได้)</button>";
+      genreFilters.parentNode.insertBefore(aiBtnWrap, genreFilters);
+      const btn = $("aiStoryBtn");
+      if (btn) btn.onclick = generateAiCustomStory;
+    }
 
     if (genreFilters) {
       const genreOptions = [
@@ -7958,21 +7943,23 @@ bookPageIdx = 0;
       const mins = storyReadMins(s);
       const read = isStoryRead(s.id);
       const isBook = !!(s.pages && s.pages.length > 1);
-      return '<div class="story-card' + (read ? " read" : "") + '" data-story-id="' + s.id + '" style="background:var(--panel-solid);border:1px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-        '<span style="display:flex;gap:6px;align-items:center;">' +
-        '<span class="badge" style="background:var(--primary);color:#fff;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;">' + s.level + '</span>' +
+      return '<div class="story-card' + (read ? " read" : "") + '" data-story-id="' + s.id + '" style="background:var(--panel-solid);border:1px solid var(--border);border-radius:16px;padding:24px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;justify-content:space-between;">' +
+        storyLevelBadgeHtml(s) +
+        '<div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;flex-wrap:wrap;">' +
         (s.genre && s.genre !== "article"
           ? '<span class="story-genre-badge" data-genre="' + s.genre + '">' + svgIcon(storyGenreIcon(s.genre), "ico sm") + " " + storyGenreLabel(s.genre) + "</span>"
-          : "") +
-        '</span>' +
-        '<span style="font-size:12px;color:var(--muted);">' + (read ? svgIcon("check", "ico sm") + ' ' + t("stories.read") : (isBook ? svgIcon("book", "ico sm") + " " + s.pages.length + " " + t("stories.pages") : t("stories.article"))) + '</span>' +
+          : '<span class="story-genre-badge" data-genre="article">' + svgIcon("book", "ico sm") + " Article</span>") +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span style="font-size:12px;color:var(--muted);">' + (read ? svgIcon("check", "ico sm") + ' ' + t("stories.read") : (isBook ? svgIcon("book", "ico sm") + " " + s.pages.length + " " + t("stories.pages") : "")) + '</span>' +
         '</div>' +
-        '<h4 style="font-size:18px;font-weight:700;margin:6px 0;">' + esc(s.title) + '</h4>' +
-        '<p style="font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0 0 10px;">' + esc(s.text) + '</p>' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);">' +
-        '<span>' + wc + " " + t("stories.wordsCount") + "</span>" +
-        '<span>' + svgIcon("clock", "ico sm") + " ~" + mins + " " + t("stories.minutes") + "</span>" +
+        '</div>' +
+        '<h4 style="font-size:19px;font-weight:700;margin:0 0 10px;line-height:1.4;">' + esc(s.title) + '</h4>' +
+        '<p style="font-size:13.5px;color:var(--muted);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0 0 16px;">' + esc(s.text) + '</p>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:14px;margin-top:auto;">' +
+        '<span style="display:flex;align-items:center;gap:4px;">' + svgIcon("file", "ico sm") + " " + wc + " " + t("stories.wordsCount") + "</span>" +
+        '<span style="display:flex;align-items:center;gap:4px;">' + svgIcon("clock", "ico sm") + " ~" + mins + " " + t("stories.minutes") + "</span>" +
         "</div>" +
         '</div>';
     }).join("");

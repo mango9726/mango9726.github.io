@@ -1,13 +1,13 @@
 /* ============================================================
-   VOCAB DATA  —  CEFR Levels (A1 to C2, 60 Days per Level)
+   VOCAB DATA  —  CEFR Levels (A1-A2: 60 Days, B1-C2: 90 Days)
    ------------------------------------------------------------
    - A1 Beginner        : Day 1–60 (600 unique words, 1 collocation/day, no idiom)
    - A2 Elementary      : Day 61–120 (600 unique words, 2 collocations/day, no idiom)
-   - B1 Intermediate    : Day 121–180 (600 unique words, 3 collocations/day + 1 unique idiom)
-   - B2 Upper-Int.      : Day 181–240 (600 unique words, 3 collocations/day + unique idiom)
-   - C1 Advanced        : Day 241–300 (600 unique words, 3 collocations/day + idiom)
-   - C2 Expert          : Day 301–360 (600 unique words, 3 collocations/day + idiom)
-   Total: 360 days, 3,600 completely unique vocabulary words.
+   - B1 Intermediate    : Day 121–210 (900 unique words, 3 collocations/day + 1 unique idiom)
+   - B2 Upper-Int.      : Day 211–300 (900 unique words, 3 collocations/day + unique idiom)
+   - C1 Advanced        : Day 301–390 (900 unique words, 3 collocations/day + idiom)
+   - C2 Expert          : Day 391–480 (900 unique words, 3 collocations/day + idiom)
+   Total: 480 days, 4,800 completely unique vocabulary words.
    Zero duplication, strictly aligned with CEFR difficulty levels,
    with real Thai dictionary meanings.
    ============================================================ */
@@ -23,12 +23,12 @@ const VOCAB_DAYS = {};
   }
 
   const levelConfigs = [
-    { level: "A1", name: "A1 Beginner", start: 1, end: 60, thName: "ผู้เริ่มต้น" },
-    { level: "A2", name: "A2 Elementary", start: 61, end: 120, thName: "ระดับประถม" },
-    { level: "B1", name: "B1 Intermediate", start: 121, end: 180, thName: "ระดับกลาง" },
-    { level: "B2", name: "B2 Upper-Intermediate", start: 181, end: 240, thName: "ระดับกลางสูง" },
-    { level: "C1", name: "C1 Advanced", start: 241, end: 300, thName: "ระดับสูง" },
-    { level: "C2", name: "C2 Expert", start: 301, end: 360, thName: "ระดับเชี่ยวชาญ" }
+    { level: "A1", name: "A1 Beginner", start: 1, end: 60, targetWords: 600, thName: "ผู้เริ่มต้น" },
+    { level: "A2", name: "A2 Elementary", start: 61, end: 120, targetWords: 600, thName: "ระดับประถม" },
+    { level: "B1", name: "B1 Intermediate", start: 121, end: 210, targetWords: 900, thName: "ระดับกลาง" },
+    { level: "B2", name: "B2 Upper-Intermediate", start: 211, end: 300, targetWords: 900, thName: "ระดับกลางสูง" },
+    { level: "C1", name: "C1 Advanced", start: 301, end: 390, targetWords: 900, thName: "ระดับสูง" },
+    { level: "C2", name: "C2 Expert", start: 391, end: 480, targetWords: 900, thName: "ระดับเชี่ยวชาญ" }
   ];
 
   // Comprehensive Thai meaning dictionary for common English words
@@ -1107,7 +1107,7 @@ const VOCAB_DAYS = {};
       : [];
     rawList = rawList.concat(extraPool);
     rawList = [...new Set(rawList)];
-    while (rawList.length < 600) {
+    while (rawList.length < lvl.targetWords) {
       rawList.push(lvl.level.toLowerCase() + "_word_" + rawList.length);
     }
 

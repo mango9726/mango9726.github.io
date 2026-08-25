@@ -18,6 +18,22 @@ const DB_FILE = path.join(__dirname, "vocab-db.json");
 app.use(cors({ origin: ["http://localhost:8000", "http://127.0.0.1:8000"] }));
 app.use(express.json());
 
+// --- Load .env if present ---
+const envPath = path.join(__dirname, ".env");
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, "utf-8");
+  envContent.split("\n").forEach(line => {
+    const parts = line.split("=");
+    if (parts.length >= 2) {
+      const key = parts[0].trim();
+      const val = parts.slice(1).join("=").trim();
+      if (key && val && !process.env[key]) {
+        process.env[key] = val;
+      }
+    }
+  });
+}
+
 // Serve static files from web/vocab/ (parent of server/)
 app.use(express.static(path.join(__dirname, "..")));
 
@@ -323,6 +339,40 @@ app.post("/api/auth/change-email", (req, res) => {
   user.email = newEmail;
   saveDB(db);
   res.json({ ok: true, message: "Email updated" });
+});
+
+// --- POST /api/ai/generate-story ---
+app.post("/api/ai/generate-story", async (req, res) => {
+  const { words } = req.body;
+  if (!words || !Array.isArray(words) || words.length === 0) {
+    return res.status(400).json({ error: "Words array required" });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: "AI API key not configured on server (.env)" });
+  }
+
+  try {
+    const prompt = `Write a short, engaging daily-life story (about 3 paragraphs) in English incorporating these vocabulary words: ${words.join(", ")}. Provide both the English story and a natural Thai translation below it. Highlight the vocabulary words in bold.`;
+    
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    
+    const data = await response.json();
+    if (data.error) {
+      return res.status(400).json({ error: data.error.message || "Gemini API error" });
+    }
+    
+    const storyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No story generated.";
+    res.json({ ok: true, story: storyText });
+  } catch (e) {
+    console.error("[server] AI story generation error:", e.message);
+    res.status(500).json({ error: "Failed to generate AI story: " + e.message });
+  }
 });
 
 app.listen(PORT, () => {

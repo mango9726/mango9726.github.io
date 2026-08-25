@@ -205,7 +205,9 @@
       }
       overlay.querySelector("#promptClose").onclick = function () { close(null); };
       overlay.querySelector("#promptCancel").onclick = function () { close(null); };
-      overlay.onclick = function (e) { if (e.target === overlay) close(null); };
+      let promptMdTarget = null;
+      overlay.onmousedown = function (e) { promptMdTarget = e.target; };
+      overlay.onclick = function (e) { if (e.target === overlay && promptMdTarget === overlay) close(null); promptMdTarget = null; };
       okBtn.onclick = function () {
         const v = input.value.trim();
         if (!v) {
@@ -1342,7 +1344,9 @@
 
     toggle.onclick = function (e) { e.preventDefault(); setMode(mode === "login" ? "register" : "login"); };
     overlay.querySelector("#authClose").onclick = function () { closeAuthModal(); };
-    overlay.onclick = function (e) { if (e.target === overlay) closeAuthModal(); };
+    let authMdTarget = null;
+    overlay.onmousedown = function (e) { authMdTarget = e.target; };
+    overlay.onclick = function (e) { if (e.target === overlay && authMdTarget === overlay) closeAuthModal(); authMdTarget = null; };
 
     // Password visibility toggle
     if (pwdToggle) {
@@ -1559,7 +1563,9 @@
       setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
     }
     overlay.querySelector("#resetClose").onclick = close;
-    overlay.onclick = function (e) { if (e.target === overlay) close(); };
+    let reset1MdTarget = null;
+    overlay.onmousedown = function (e) { reset1MdTarget = e.target; };
+    overlay.onclick = function (e) { if (e.target === overlay && reset1MdTarget === overlay) close(); reset1MdTarget = null; };
     btn.onclick = async function () {
       const code = codeIn.value.trim();
       const np = passIn.value;
@@ -1628,7 +1634,9 @@
       setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
     }
     overlay.querySelector("#sResetClose").onclick = close;
-    overlay.onclick = function (e) { if (e.target === overlay) close(); };
+    let reset2MdTarget = null;
+    overlay.onmousedown = function (e) { reset2MdTarget = e.target; };
+    overlay.onclick = function (e) { if (e.target === overlay && reset2MdTarget === overlay) close(); reset2MdTarget = null; };
     btn.onclick = async function () {
       const np = passIn.value;
       if (np.length < 4) {
@@ -2003,7 +2011,9 @@
         logout();
       }
     };
-    overlay.onclick = function (e) { if (e.target === overlay) closeProfileModal(); };
+    let profileMdTarget = null;
+    overlay.onmousedown = function (e) { profileMdTarget = e.target; };
+    overlay.onclick = function (e) { if (e.target === overlay && profileMdTarget === overlay) closeProfileModal(); profileMdTarget = null; };
 
     overlay.classList.add("open");
     overlay.setAttribute("aria-hidden", "false");

@@ -2174,6 +2174,18 @@
     }
   }
 
+  document.addEventListener("click", function (e) {
+    const btn = e.target.closest("#sidebarAuthBtn");
+    if (btn) {
+      const user = getUser();
+      if (user) {
+        showProfileModal();
+      } else {
+        createAuthModal();
+      }
+    }
+  });
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initAuthUI);
   } else {

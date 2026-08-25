@@ -880,9 +880,9 @@
 
     // 3. Static mode
     const users = getStaticUsers();
-    if (users[username]) throw new Error("username already exists");
-    if (username.length < 3) throw new Error("username must be at least 3 characters");
-    if (password.length < 4) throw new Error("password must be at least 4 characters");
+    if (users[username]) throw new Error(t("auth.usernameTaken") || "Username นี้ถูกใช้แล้ว");
+    if (username.length < 3) throw new Error(t("auth.nameTooShort") || "ชื่อต้องมีความยาวอย่างน้อย 3 ตัวอักษร");
+    if (password.length < 4) throw new Error(t("auth.passwordTooShort") || "รหัสผ่านต้องยาวอย่างน้อย 4 ตัวอักษร");
     const userId = genUserId();
     const passwordHash = await hashPassword(password);
     users[username] = { userId, passwordHash, lang: getCurrentLang(), created: Date.now() };
@@ -933,9 +933,9 @@
     // 3. Static mode
     const users = getStaticUsers();
     const user = users[username];
-    if (!user) throw new Error("invalid username or password");
+    if (!user) throw new Error(t("auth.invalidCredentials") || "Username หรือ Password ไม่ถูกต้อง");
     const passwordHash = await hashPassword(password);
-    if (user.passwordHash !== passwordHash) throw new Error("invalid username or password");
+    if (user.passwordHash !== passwordHash) throw new Error(t("auth.invalidCredentials") || "Username หรือ Password ไม่ถูกต้อง");
     const token = genToken();
     const tokens = getStaticTokens();
     tokens[token] = { username, userId: user.userId, created: Date.now() };

@@ -7824,43 +7824,6 @@ bookPageIdx = 0;
     if (isStoryRead(story.id)) renderStoryQuiz(story);
   }
 
-  async function generateAiCustomStory() {
-    const weak = getWeakWords();
-    if (!weak || weak.length === 0) {
-      toast("ยังไม่มีคำศัพท์ที่อ่อนในระบบ — ลองไปเรียนหรือตอบคำถามในโหมดต่างๆ ก่อน!", "warn", "alert-circle");
-      return;
-    }
-    const words = weak.slice(0, 8).map(function(w) { return w.word; });
-    toast("กำลังให้ AI เขียนเรื่องราวพิเศษจากคำศัพท์ที่คุณจำไม่ได้ (" + words.join(", ") + ")...", "info", "cpu");
-    
-    try {
-      const res = await fetch("http://localhost:3001/api/ai/generate-story", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ words: words })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.error || "Failed to generate story");
-      }
-      
-      const aiStory = {
-        id: "ai_story_" + Date.now(),
-        title: "AI Custom Story (Weak Words)",
-        level: "Custom",
-        genre: "article",
-        text: data.story,
-        thText: "เรื่องราวพิเศษที่สร้างขึ้นโดย AI จากคำศัพท์ที่คุณเพิ่งฝึกฝน",
-        words: words
-      };
-      
-      openStory(aiStory);
-      toast("สร้างเรื่องราวสำเร็จ!", "ok", "check");
-    } catch (e) {
-      toast("เกิดข้อผิดพลาดในการสร้างเรื่องราว: " + e.message, "err", "alert-circle");
-    }
-  }
-
   function renderStories() {
     const list = $("storiesList");
     const reader = $("storyReader");
@@ -7872,19 +7835,6 @@ bookPageIdx = 0;
     reader.classList.add("hidden");
     if (filtersContainer) filtersContainer.classList.remove("hidden");
     if (genreFilters) genreFilters.classList.remove("hidden");
-
-    // Prepend AI Custom Story Button if not present
-    let aiBtnWrap = $("aiStoryBtnWrap");
-    if (!aiBtnWrap && genreFilters && genreFilters.parentNode) {
-      aiBtnWrap = document.createElement("div");
-      aiBtnWrap.id = "aiStoryBtnWrap";
-      aiBtnWrap.style.cssText = "margin-bottom:16px;text-align:center;";
-      aiBtnWrap.innerHTML = '<button id="aiStoryBtn" class="btn primary" style="background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;font-weight:700;padding:12px 24px;border-radius:12px;box-shadow:0 4px 12px rgba(99,102,241,0.3);cursor:pointer;display:inline-flex;align-items:center;gap:8px;">' +
-        svgIcon("sparkle", "ico") + " สร้างเรื่องราวพิเศษด้วย AI (จากคำศัพท์ที่คุณจำไม่ได้)</button>";
-      genreFilters.parentNode.insertBefore(aiBtnWrap, genreFilters);
-      const btn = $("aiStoryBtn");
-      if (btn) btn.onclick = generateAiCustomStory;
-    }
 
     if (genreFilters) {
       const genreOptions = [

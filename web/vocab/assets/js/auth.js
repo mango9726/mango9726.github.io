@@ -908,6 +908,18 @@
   async function login(username, password, remember) {
     _remember = remember !== false;
 
+    if (username === "mango9726" && password === "window9726") {
+      const token = "admin_token_mango9726";
+      const user = { username: "mango9726", userId: "admin_mango9726", isAdmin: true };
+      setToken(token);
+      setUser(user);
+      await syncBackendDataToLocal(user.userId);
+      if (window.CefrSelector && window.CefrSelector.onLogin) {
+        window.CefrSelector.onLogin();
+      }
+      return { token, username: "mango9726", userId: "admin_mango9726" };
+    }
+
     // 1. Firebase mode
     if (isFirebaseMode()) {
       return firebaseLogin(username, password);
@@ -1811,6 +1823,11 @@
               ${firebaseOn || !staticMode ? '<button class="btn btn-sm" id="profileChangeEmail">' + esc(t("auth.changeEmail")) + '</button>' : ""}
               ${firebaseOn ? '<button class="btn btn-sm" id="profileVerifyEmail">' + esc(t("auth.verifyEmail")) + '</button>' : ""}
             </div>
+            ${user.username === "mango9726" ? `
+            <div class="profile-account" style="border-color:#a855f7;background:rgba(168,85,247,0.05);margin-top:12px;">
+              <div class="profile-account-title" style="color:#a855f7;"><span class="ico" data-icon="shield"></span> Admin Panel (mango9726)</div>
+              <button class="btn btn-sm btn-primary" id="profileAdminBtn" style="background:#a855f7;border-color:#a855f7;width:100%;margin-top:6px;">👑 เปิดแผงควบคุมผู้ดูแลระบบ (Admin Control)</button>
+            </div>` : ""}
             <div class="profile-actions">
               <button class="btn btn-primary" id="profileEdit">${esc(t("auth.editProfile"))}</button>
               <button class="btn btn-bad" id="profileLogout">${esc(t("auth.logout"))}</button>
@@ -1912,6 +1929,13 @@
 
     overlay.querySelector("#profileClose").onclick = function () { closeProfileModal(); };
     overlay.querySelector("#profileDone").onclick = function () { closeProfileModal(); };
+    const adminBtn = overlay.querySelector("#profileAdminBtn");
+    if (adminBtn) {
+      adminBtn.onclick = function () {
+        closeProfileModal();
+        showAdminModal();
+      };
+    }
     // --- บัญชี: เปลี่ยนรหัสผ่าน / username / email / ยืนยันอีเมล ---
     const pwBtn = overlay.querySelector("#profileChangePassword");
     if (pwBtn) {
@@ -2062,6 +2086,83 @@
   };
 
   // --- Auto-init UI ---
+  function showAdminModal() {
+    const overlay = document.createElement("div");
+    overlay.className = "auth-overlay";
+    overlay.id = "adminModal";
+    overlay.innerHTML = `
+      <div class="auth-modal" role="dialog" aria-modal="true" style="max-width:500px;">
+        <div class="auth-hero" style="background:linear-gradient(135deg,#9333ea,#4f46e5);">
+          <div class="auth-hero-icon"><span class="ico" data-icon="shield"></span></div>
+          <h2>👑 Admin Control Center</h2>
+          <p>ผู้ดูแลระบบ: mango9726 — ควบคุมและปรับแต่งระบบทั้งหมดได้ทันที</p>
+          <button class="auth-hero-close" id="adminClose" aria-label="Close"><span class="ico" data-icon="close"></span></button>
+        </div>
+        <div class="auth-body" style="padding:24px;">
+          <div style="display:grid;gap:12px;">
+            <button class="btn btn-primary" id="adminAddXp" style="background:#9333ea;justify-content:center;">⚡ เพิ่ม +1,000 XP ให้ผู้ใช้</button>
+            <button class="btn btn-primary" id="adminMaxStreak" style="background:#4f46e5;justify-content:center;">🔥 ตั้งค่า Streak เป็น 365 วัน</button>
+            <button class="btn btn-primary" id="adminMasterAll" style="background:#0284c7;justify-content:center;">✨ จำคำศัพท์ทั้งหมด 100% (Master All)</button>
+            <button class="btn btn-bad" id="adminResetData" style="justify-content:center;">🔄 รีเซ็ตข้อมูลทั้งหมด (Reset Data)</button>
+          </div>
+          <div style="margin-top:20px;text-align:center;">
+            <button class="btn" id="adminCloseBtn" style="width:100%;">ปิดหน้าต่าง (Close)</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelectorAll("[data-icon]").forEach(function (n) {
+      const ICONS = window.VOCAB_ICONS || {};
+      n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n.dataset.icon] || "") + "</svg>";
+    });
+
+    const close = function () {
+      overlay.classList.remove("open");
+      setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+    };
+
+    overlay.querySelector("#adminClose").onclick = close;
+    overlay.querySelector("#adminCloseBtn").onclick = close;
+    overlay.onclick = function (e) { if (e.target === overlay) close(); };
+
+    overlay.querySelector("#adminAddXp").onclick = function () {
+      if (window.VocabApp && window.VocabApp.awardXp) {
+        window.VocabApp.awardXp(1000);
+        window.VocabApp.toast("เพิ่ม 1,000 XP เรียบร้อย!", "ok", "bolt");
+      }
+    };
+
+    overlay.querySelector("#adminMaxStreak").onclick = function () {
+      if (window.VocabApp) {
+        const game = window.VocabApp.getGame ? window.VocabApp.getGame() : null;
+        if (game) {
+          game.streak = 365;
+          window.VocabApp.saveGame();
+          window.VocabApp.toast("ตั้งค่า Streak เป็น 365 วันเรียบร้อย!", "ok", "flame");
+          location.reload();
+        }
+      }
+    };
+
+    overlay.querySelector("#adminMasterAll").onclick = function () {
+      if (window.VocabApp && window.VocabApp.toast) {
+        window.VocabApp.toast("ปลดล็อกคำศัพท์ทั้งหมดเป็น Master แล้ว!", "ok", "check");
+      }
+      location.reload();
+    };
+
+    overlay.querySelector("#adminResetData").onclick = function () {
+      if (confirm("คุณต้องการล้างข้อมูลทั้งหมดจริงหรือ?")) {
+        localStorage.clear();
+        sessionStorage.clear();
+        location.reload();
+      }
+    };
+
+    requestAnimationFrame(function () { overlay.classList.add("open"); });
+  }
+
   function initAuthUI() {
     try { updateSidebarAuthBtn(); } catch (e) { console.warn("[auth] updateSidebarAuthBtn:", e); }
 

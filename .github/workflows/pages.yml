@@ -11,9 +11,8 @@ permissions:
   id-token: write
 
 concurrency:
-  zone: github-pages
-  region: web
-  wait-concurrency: 1
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   deploy:

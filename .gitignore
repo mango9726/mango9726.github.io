@@ -1,0 +1,9 @@
+# Environment and secrets
+.env
+**/server/.env
+
+# Temporary / Office lock files
+~$*
+**/~$*
+.DS_Store
+Thumbs.db

@@ -3,7 +3,7 @@
 (function () {
   "use strict";
   function boot() {
-    if (window.MiniMusicPlayer) window.MiniMusicPlayer.init({ autoStart: true });
+    if (window.MiniMusicPlayer) window.MiniMusicPlayer.init({ autoStart: false });
   }
   if (window.SecureStore && window.SecureStore.ready) {
     window.SecureStore.ready.then(boot).catch(boot);

@@ -74,6 +74,16 @@
     return n;
   }
 
+  function esc(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function loadJSON(key, fallback) {
     if (window.SecureStore) return window.SecureStore.load(key, fallback);
     try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
@@ -292,6 +302,9 @@
           (playlists[k] || []).forEach(function (t) { combined.push(t); });
         });
       }
+      // Load custom tracks
+      const customTracks = loadJSON("vocab_custom_tracks_v1", []);
+      customTracks.forEach(function (t) { combined.push(t); });
 
       this.opts = {
         playlists: { library: combined },
@@ -415,7 +428,8 @@
 
       // Queue dropdown
       const queue = el("div", "mmp-queue-panel"); queue.hidden = true;
-      const qHead = el("div", "mmp-queue-head"); qHead.textContent = "Up next";
+      const qHead = el("div", "mmp-queue-head");
+      qHead.innerHTML = '<span>Up next</span><button class="mmp-add-track" type="button" title="Add song URL">+ Add Song</button>';
       const qList = el("ul", "mmp-queue-list");
       queue.appendChild(qHead); queue.appendChild(qList);
 
@@ -434,6 +448,42 @@
       // Toast
       const toast = el("div", "mmp-toast"); toast.setAttribute("role", "status");
 
+      // --- Custom Songs Modal ---
+      const modal = el("div", "mmp-modal-overlay"); modal.hidden = true;
+      modal.innerHTML = `
+        <div class="mmp-modal" role="dialog" aria-modal="true" aria-label="Manage Songs">
+          <div class="mmp-modal-head">
+            <h3>Upload &amp; Manage Music</h3>
+            <button class="mmp-modal-close" type="button" aria-label="Close">${svg("close")}</button>
+          </div>
+          <div class="mmp-modal-body">
+            <div class="mmp-add-box">
+              <h4>Upload Local Music File</h4>
+              <div class="mmp-form-row">
+                <input type="file" accept="audio/*" class="mmp-input mmp-modal-file" />
+              </div>
+              <div class="mmp-form-row">
+                <input type="text" class="mmp-input mmp-modal-title" placeholder="Song title (optional, auto-fills from filename)" />
+              </div>
+              <div class="mmp-form-row">
+                <input type="file" accept="image/*" class="mmp-input mmp-modal-art" />
+              </div>
+              <button class="mmp-modal-btn mmp-modal-add" type="button">Upload &amp; Add Song</button>
+              <div class="mmp-modal-io">
+                <button class="mmp-ci-btn" type="button" id="mmpPlaylistExport">Export playlist (JSON)</button>
+                <button class="mmp-ci-btn" type="button" id="mmpPlaylistImport">Import playlist</button>
+                <input type="file" accept=".json,application/json" class="mmp-import-input" hidden />
+              </div>
+            </div>
+            <div class="mmp-custom-list-wrap">
+              <h4>Your Custom Songs</h4>
+              <ul class="mmp-custom-list"></ul>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
       root.appendChild(panel); root.appendChild(hot); root.appendChild(toast);
       this.opts.mountTo.appendChild(root);
 
@@ -442,7 +492,7 @@
       this.refs = {
         panel: panel, hot: hot, title: title, artist: artist, art: art,
         renameBtn: renameBtn, renameInput: renameInput,
-        pinBtn: pinBtn, closeBtn: closeBtn,
+        pinBtn: pinBtn, closeBtn: closeBtn, modal: modal,
         plWrap: plWrap,
         cur: cur, dur: dur, seek: seek,
         playBtn: playBtn, prevBtn: prevBtn, nextBtn: nextBtn, queueBtn: queueBtn,
@@ -563,12 +613,82 @@
         r.repeatBtn.innerHTML = svg(next === "one" ? "repeatOne" : "repeat");
       });
 
-      // Queue toggle
+      // Queue toggle & add track
       r.queueBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         const open = r.queue.hidden;
         r.queue.hidden = !open;
         r.queueBtn.setAttribute("aria-expanded", String(open));
+      });
+      r.queue.querySelector(".mmp-add-track").addEventListener("click", function (e) {
+        e.stopPropagation();
+        self._openSongsModal();
+      });
+      r.modal.querySelector(".mmp-modal-close").addEventListener("click", function (e) {
+        e.stopPropagation();
+        self._closeSongsModal();
+      });
+      r.modal.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (e.target === r.modal) self._closeSongsModal();
+      });
+      r.modal.querySelector(".mmp-modal-add").addEventListener("click", function (e) {
+        e.stopPropagation();
+        const fileInput = r.modal.querySelector(".mmp-modal-file");
+        const titleInput = r.modal.querySelector(".mmp-modal-title");
+        const artInput = r.modal.querySelector(".mmp-modal-art");
+        const file = fileInput.files[0];
+        if (!file) {
+          self._toast("Please choose an audio file first");
+          return;
+        }
+        const title = titleInput.value.trim() || file.name.replace(/\.[^/.]+$/, "");
+        const blobUrl = URL.createObjectURL(file);
+
+        const artFile = artInput && artInput.files && artInput.files[0];
+
+        const readArt = artFile
+          ? new Promise(function (resolve) {
+              const ar = new FileReader();
+              ar.onload = function (e) { resolve(e.target.result); };
+              ar.readAsDataURL(artFile);
+            })
+          : Promise.resolve("");
+
+        readArt.then(function (artData) {
+          const reader = new FileReader();
+          reader.onload = function (evt) {
+            const base64Url = evt.target.result;
+            let custom = loadJSON("vocab_custom_tracks_v1", []);
+            custom.push({ label: title, src: base64Url, art: artData || "" });
+            saveJSON("vocab_custom_tracks_v1", custom);
+          };
+          reader.readAsDataURL(file);
+
+          self.addCustomTrackInstant({ label: title, src: blobUrl, art: artData || "" });
+          titleInput.value = "";
+          fileInput.value = "";
+          if (artInput) artInput.value = "";
+          self._renderCustomSongsModalList();
+          self._closeSongsModal();
+        });
+      });
+
+      // Playlist export / import (custom tracks only; built-ins come from the repo).
+      r.modal.querySelector("#mmpPlaylistExport").addEventListener("click", function (e) {
+        e.stopPropagation();
+        self.exportPlaylist();
+      });
+      const importInput = r.modal.querySelector(".mmp-import-input");
+      r.modal.querySelector("#mmpPlaylistImport").addEventListener("click", function (e) {
+        e.stopPropagation();
+        importInput.click();
+      });
+      importInput.addEventListener("change", function (e) {
+        e.stopPropagation();
+        const file = importInput.files[0];
+        if (file) self.importPlaylist(file);
+        importInput.value = "";
       });
 
       // Pin / close
@@ -786,8 +906,17 @@
       // Deterministic gradient cover from the track label/index (no image assets needed).
       const label = (st.label || "") + "|" + st.index;
       let h = 0; for (let i = 0; i < label.length; i++) h = (h * 31 + label.charCodeAt(i)) % 360;
-      this.refs.art.style.background =
-        "linear-gradient(135deg, hsl(" + h + ",68%,56%), hsl(" + ((h + 38) % 360) + ",64%,42%))";
+      const art = st.art || "";
+      if (art) {
+        this.refs.art.style.backgroundImage = "url(" + art + ")";
+        this.refs.art.style.backgroundSize = "cover";
+        this.refs.art.style.backgroundPosition = "center";
+        this.refs.art.style.background = "";
+      } else {
+        this.refs.art.style.backgroundImage = "";
+        this.refs.art.style.background =
+          "linear-gradient(135deg, hsl(" + h + ",68%,56%), hsl(" + ((h + 38) % 360) + ",64%,42%))";
+      }
       this._renderQueue();
     },
     _paintVolIcon: function (v) {
@@ -840,7 +969,150 @@
     },
 
     /* ---------- Public API ---------- */
-    play: function () { this.ctrl.play(); },
+    _openSongsModal: function () {
+      this.refs.modal.hidden = false;
+      this._renderCustomSongsModalList();
+    },
+    _closeSongsModal: function () {
+      this.refs.modal.hidden = true;
+    },
+    _renderCustomSongsModalList: function () {
+      const self = this;
+      const listEl = this.refs.modal.querySelector(".mmp-custom-list");
+      listEl.innerHTML = "";
+      const custom = loadJSON("vocab_custom_tracks_v1", []);
+      if (!custom.length) {
+        listEl.innerHTML = '<li class="mmp-custom-empty">No custom songs added yet.</li>';
+        return;
+      }
+      custom.forEach(function (t, idx) {
+        const li = el("li", "mmp-custom-item");
+        const info = el("div", "mmp-ci-info");
+        info.innerHTML = '<span class="mmp-ci-title">' + esc(t.label) + '</span><span class="mmp-ci-url">' + esc(t.src) + '</span>';
+        const actions = el("div", "mmp-ci-actions");
+        const renBtn = el("button", "mmp-ci-btn"); renBtn.textContent = "Rename";
+        renBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const newName = prompt("New song name:", t.label);
+          if (newName) self.renameCustomTrack(idx, newName.trim());
+        });
+        const delBtn = el("button", "mmp-ci-btn mmp-ci-del"); delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (confirm("Delete custom song '" + t.label + "'?")) self.deleteCustomTrack(idx);
+        });
+        actions.appendChild(renBtn); actions.appendChild(delBtn);
+        li.appendChild(info); li.appendChild(actions);
+        listEl.appendChild(li);
+      });
+    },
+    deleteCustomTrack: function (idx) {
+      let custom = loadJSON("vocab_custom_tracks_v1", []);
+      if (idx >= 0 && idx < custom.length) {
+        custom.splice(idx, 1);
+        saveJSON("vocab_custom_tracks_v1", custom);
+        this._reloadFusedTracks();
+        this._renderCustomSongsModalList();
+        this._renderQueue();
+        this._toast("Song deleted");
+      }
+    },
+    renameCustomTrack: function (idx, newName) {
+      let custom = loadJSON("vocab_custom_tracks_v1", []);
+      if (idx >= 0 && idx < custom.length) {
+        custom[idx].label = newName;
+        saveJSON("vocab_custom_tracks_v1", custom);
+        this._reloadFusedTracks();
+        this._renderCustomSongsModalList();
+        this._renderTrack();
+        this._renderQueue();
+        this._toast("Renamed to " + newName);
+      }
+    },
+    _reloadFusedTracks: function () {
+      let combined = [];
+      const order = this.opts.modeOrder || ["library"];
+      let playlists = DEFAULT_PLAYLISTS;
+      if (global.VOCAB_MUSIC) playlists = global.VOCAB_MUSIC;
+      order.forEach(function (k) {
+        (playlists[k] || []).forEach(function (t) { combined.push(t); });
+      });
+      loadJSON("vocab_custom_tracks_v1", []).forEach(function (t) { combined.push(t); });
+      this.opts.playlists.library = combined;
+
+      const currentSrc = this.ctrl.getState().src;
+      const formattedTracks = combined.map(function (t) {
+        if (typeof t === "string") return { src: t, label: prettyName(t), artist: "" };
+        return { src: t.src, label: t.label || prettyName(t.src), artist: t.artist || "" };
+      });
+      this.ctrl.tracks = formattedTracks;
+      if (currentSrc) {
+        const found = formattedTracks.findIndex(function (tr) { return tr.src === currentSrc; });
+        if (found !== -1) this.ctrl.index = found;
+        else this.ctrl.index = clamp(this.ctrl.index, 0, Math.max(0, formattedTracks.length - 1));
+      }
+      this.ctrl.onUpdate("tracks", this.ctrl.getState());
+    },
+    addCustomTrack: function (t) {
+      let custom = loadJSON("vocab_custom_tracks_v1", []);
+      custom.push(t);
+      saveJSON("vocab_custom_tracks_v1", custom);
+      this._reloadFusedTracks();
+      const newIdx = this.ctrl.tracks.findIndex(function (tr) { return tr.src === t.src; });
+      if (newIdx !== -1) {
+        this.ctrl.loadTrack(newIdx, true);
+      }
+      this._renderQueue();
+      this._toast("Added " + t.label);
+    },
+    addCustomTrackInstant: function (t) {
+      const list = this.ctrl.tracks.concat([{ src: t.src, label: t.label, artist: "Local" }]);
+      this.ctrl.setTracks(list, list.length - 1);
+      this.ctrl.play();
+      this._renderQueue();
+      this._toast("Playing " + t.label);
+    },
+    exportPlaylist: function () {
+      const custom = loadJSON("vocab_custom_tracks_v1", []);
+      const payload = JSON.stringify({ app: "vocab-mini-player", version: 1, tracks: custom }, null, 2);
+      const blob = new Blob([payload], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = el("a");
+      a.href = url;
+      a.download = "vocab-playlist-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      this._toast(custom.length + " song(s) exported");
+    },
+    importPlaylist: function (file) {
+      const self = this;
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        try {
+          const data = JSON.parse(evt.target.result);
+          const arr = (Array.isArray(data) ? data : data && data.tracks) || [];
+          const valid = arr.filter(function (t) {
+            return t && typeof t.src === "string" && typeof t.label === "string";
+          }).map(function (t) { return { label: t.label, src: t.src, art: typeof t.art === "string" ? t.art : "" }; });
+          if (!valid.length) { self._toast("No valid tracks in file"); return; }
+          const existing = loadJSON("vocab_custom_tracks_v1", []);
+          const seen = {};
+          existing.forEach(function (t) { seen[t.src] = 1; });
+          valid.forEach(function (t) { if (!seen[t.src]) { existing.push(t); seen[t.src] = 1; } });
+          saveJSON("vocab_custom_tracks_v1", existing);
+          self._reloadFusedTracks();
+          self._renderCustomSongsModalList();
+          self._renderQueue();
+          self._toast("Imported " + valid.length + " song(s)");
+        } catch (err) {
+          self._toast("Import failed — not a valid playlist JSON");
+        }
+      };
+      reader.onerror = function () { self._toast("Could not read file"); };
+      reader.readAsText(file);
+    },
     pause: function () { this.ctrl.pause(); },
     toggle: function () { this.ctrl.toggle(); },
     next: function () { this.ctrl.next(); },
@@ -855,6 +1127,7 @@
     onInteract: function (cb) { if (typeof cb === "function") this._interactCbs.push(cb); },
     destroy: function () {
       if (this.root && this.root.parentNode) this.root.parentNode.removeChild(this.root);
+      if (this.refs && this.refs.modal && this.refs.modal.parentNode) this.refs.modal.parentNode.removeChild(this.refs.modal);
       this.root = null; this.ctrl = null; this.refs = null;
       if (global.MiniMusicPlayer === this) delete global.MiniMusicPlayer;
     }

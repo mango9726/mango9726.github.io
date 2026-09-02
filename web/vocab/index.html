@@ -20,9 +20,32 @@
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg" />
   <link rel="icon" type="image/png" sizes="192x192" href="assets/img/icon-192.png" />
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
-  <script defer src="assets/js/vocab-data.js"></script>
-  <!-- flags.js inlined into app.js (sets window.MINI_PLAYER_ENABLED) -->
+  <script defer src="assets/js/vocab-data-a1.js"></script>
+  <script defer src="assets/js/vocab-data-a2.js"></script>
+  <script defer src="assets/js/vocab-data-a1-to-a2.js"></script>
+  <script defer src="assets/js/vocab-data-b1.js"></script>
+  <script defer src="assets/js/vocab-data-b2.js"></script>
+  <script defer src="assets/js/vocab-data-c1.js"></script>
+  <script defer src="assets/js/vocab-data-c2.js"></script>
+  <script defer src="assets/js/vocab-extra-a1.js"></script>
+  <script defer src="assets/js/vocab-extra-a2.js"></script>
+  <script defer src="assets/js/vocab-extra-b1.js"></script>
+  <script defer src="assets/js/vocab-extra-b2.js"></script>
+  <script defer src="assets/js/vocab-extra-c1.js"></script>
+  <script defer src="assets/js/vocab-extra-c2.js"></script>
+  <script defer src="assets/js/vocab-extra-colloc.js"></script>
+  <script defer src="assets/js/vocab-extra-colloc-b.js"></script>
+  <script defer src="assets/js/vocab-extra-colloc-c1.js"></script>
+  <script defer src="assets/js/vocab-extra-colloc-c2.js"></script>
+  <script defer src="assets/js/vocab-th-extra.js"></script>
+<script defer src="assets/js/vocab-data.js"></script>
+  <script defer src="assets/js/vocab-i18n.js"></script>
+  <script defer src="assets/js/vocab-fsrs.js"></script>
+  <script defer src="assets/js/vocab-csv.js"></script>
+  <script defer src="assets/js/cefr.js"></script>
+  <script defer src="assets/js/cefr-selector.js"></script>
   <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/placement.js"></script>
   <script defer src="assets/js/mini-player.js"></script>
   <script defer src="assets/js/boot.js"></script>
   <!-- Firebase SDK (compat) — โหลดก่อน auth.js -->
@@ -56,6 +79,7 @@
       <button class="nav-btn" data-view="browse"><span class="nav-ico"><span class="ico ico-tile" data-icon="book"></span></span><span data-i18n="nav.browse">Word List</span></button>
       <button class="nav-btn" data-view="achievements"><span class="nav-ico"><span class="ico ico-tile" data-icon="trophy"></span></span><span data-i18n="nav.achievements">Achievements</span></button>
       <button class="nav-btn" data-view="stats"><span class="nav-ico"><span class="ico ico-tile" data-icon="chart"></span></span><span data-i18n="nav.stats">Statistics</span></button>
+      <button class="nav-btn" data-view="stories"><span class="nav-ico"><span class="ico ico-tile" data-icon="book"></span></span><span data-i18n="nav.stories">Graded Readers</span></button>
       <div class="nav-group-wrap">
         <button class="nav-group" id="navGames" aria-expanded="false" aria-controls="navGamesSub">
           <span class="nav-ico"><span class="ico ico-tile" data-icon="grid"></span></span><span data-i18n="nav.games">Games</span><span class="nav-chevron" data-icon="chevron"></span>
@@ -71,6 +95,7 @@
           <button class="nav-sub-btn" data-view="build"><span class="nav-ico"><span class="ico ico-tile" data-icon="puzzle"></span></span><span data-i18n="nav.build">Sentence Builder</span></button>
           <button class="nav-sub-btn" data-view="cloze"><span class="nav-ico"><span class="ico ico-tile" data-icon="pencil"></span></span><span data-i18n="nav.cloze">Cloze</span></button>
           <button class="nav-sub-btn" data-view="listen"><span class="nav-ico"><span class="ico ico-tile" data-icon="speaker"></span></span><span data-i18n="nav.listen">Listen &amp; Type</span></button>
+          <button class="nav-sub-btn" data-view="dictation"><span class="nav-ico"><span class="ico ico-tile" data-icon="speaker"></span></span><span data-i18n="nav.dictation">Dictation Quiz</span></button>
         </div>
       </div>
       <button class="nav-btn" data-view="settings"><span class="nav-ico"><span class="ico ico-tile" data-icon="gear"></span></span><span data-i18n="nav.settings">Settings</span></button>
@@ -100,6 +125,9 @@
 
     <!-- ===== HOME ===== -->
     <section class="view active" id="view-home">
+      <!-- Placement Test (แสดงครั้งแรกสำหรับผู้ใช้ใหม่) -->
+      <div class="panel placement-panel" id="placementTest"></div>
+
       <!-- Hero -->
       <div class="hero">
         <div class="hero-main">
@@ -129,6 +157,28 @@
         <div class="stat-card accent"><span class="stat-ico"><span class="ico" data-icon="chart"></span></span><span class="stat-num" id="statAcc">0</span><span class="stat-label" data-i18n="stat.acc">Accuracy (7d)</span></div>
       </div>
 
+      <!-- CEFR Level Indicator -->
+      <div class="panel cefr-panel" id="cefrPanel">
+        <h2><span class="ico ico-tile" data-icon="medal"></span><span data-i18n="cefr.heading">Your CEFR Level</span></h2>
+        <div id="cefrCurrentBadge"></div>
+        <div class="cefr-badge-row" id="cefrBadges"></div>
+      </div>
+
+      <!-- Placement Prompt (for logged-in users without placement test) -->
+      <div class="panel" id="placementPrompt" hidden></div>
+
+      <!-- Due Forecast -->
+      <div class="panel due-forecast-panel" id="dueForecastPanel">
+        <h2><span class="ico ico-tile" data-icon="calendar"></span><span data-i18n="due.heading">Review forecast</span></h2>
+        <div class="due-forecast" id="dueForecast"></div>
+      </div>
+
+      <!-- Story suggestions from weak words -->
+      <div class="panel" id="storySuggestPanel" style="display:none;">
+        <h2><span class="ico ico-tile" data-icon="book"></span><span data-i18n="stories.suggestTitle">Stories for your weak words</span></h2>
+        <div id="storySuggestBox"></div>
+      </div>
+
       <!-- Daily Quests -->
       <div class="panel quest-panel" id="questPanel">
         <div class="panel-head">
@@ -141,7 +191,7 @@
 
       <!-- Memory Strength -->
       <div class="panel memory-panel2">
-        <h2><span class="ico ico-tile" data-icon="brain"></span><span data-i18n="memory.heading">Memory Strength</span></h2>
+        <h2><span class="ico ico-tile" data-icon="brain"></span><span data-i18n="memory.heading">Memory</span></h2>
         <p class="hint" data-i18n="memory.hint">How much you're retaining right now, across the words you've learned.</p>
         <div class="ms-wrap">
           <div class="ms-gauge" id="msGauge"><span id="msPct">0%</span><small data-i18n="memory.retained">retained</small></div>
@@ -182,9 +232,14 @@
       </div>
 
       <!-- Heatmap -->
-      <div class="panel">
+      <div class="panel heatmap-panel">
         <h2><span class="ico ico-tile" data-icon="grid"></span><span data-i18n="heatmap.heading">Activity Heatmap</span></h2>
         <p class="hint" data-i18n="heatmap.hint">Your daily study over the last 12 weeks</p>
+        <div class="chip-group sm" id="heatmapRange" style="margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px;">
+          <button class="chip active" data-range="84">12W</button>
+          <button class="chip" data-range="182">6M</button>
+          <button class="chip" data-range="365">1Y</button>
+        </div>
         <div class="heatmap" id="heatmap"></div>
       </div>
 
@@ -280,10 +335,6 @@
             <div class="chip-group" id="cardFilterType"></div>
           </div>
           <div class="field">
-            <span class="field-label" data-i18n="label.day">Day</span>
-            <div class="chip-group scroll" id="cardFilterDay"></div>
-          </div>
-          <div class="field">
             <span class="field-label" data-i18n="label.mode">Mode</span>
             <div class="chip-group" id="cardMode"></div>
           </div>
@@ -304,7 +355,7 @@
               <p class="card-word" id="cardWord">word</p>
               <p class="card-pos" id="cardPos"></p>
               <button class="speak-btn" id="cardSpeak" title="Listen"><span class="ico" data-icon="speaker"></span></button>
-              <p class="hint">Tap to reveal the translation · tap ℹ️ for details</p>C
+              <p class="hint"><span class="ico" data-icon="info"></span><span data-i18n="reveal.tip">Tap to reveal the translation · tap for details</span></p>
             </div>
             <div class="flip-back">
               <p class="card-th" id="cardTh"></p>
@@ -368,9 +419,9 @@
     <!-- ===== DAILY TASKS ===== -->
     <section class="view" id="view-tasks">
       <div class="panel">
-        <h2><span class="ico ico-tile" data-icon="calendar"></span><span data-i18n="tasks.heading">Daily Tasks — Spaced Review</span></h2>
+        <h2><span class="ico ico-tile" data-icon="calendar"></span><span data-i18n="tasks.heading">Daily Tasks — Smart Review</span></h2>
         <p class="hint" id="tasksToday"></p>
-        <p class="hint" data-i18n="tasks.hint">The system brings back previous days' words at increasing intervals (e.g., Day 1 recurs on days 2, 4, 7, 14 …). The more often you review, the less frequently a word returns, until it's locked in.</p>
+        <p class="hint" data-i18n="tasks.hint">Words you've studied come back for review — the better you remember them, the longer until they return (e.g., Day 1 words come back on days 2, 4, 7, 14 …). Keep reviewing until they stick!</p>
       </div>
       <div id="tasksList" class="tasks-list"></div>
     </section>
@@ -379,7 +430,7 @@
     <section class="view" id="view-browse">
       <div class="panel">
         <h2><span class="ico ico-tile" data-icon="book"></span><span data-i18n="nav.browse">Search &amp; Browse</span></h2>
-        <p class="hint" data-i18n="browse.hint">💡 Click a card to see word details · tap the speaker to hear it</p>
+        <p class="hint"><span class="ico" data-icon="bulb"></span><span data-i18n="browse.hint">Click a card to see word details · tap the speaker to hear it</span></p>
         <div class="controls">
           <div class="field grow">
             <span class="field-label" data-i18n="label.search">Search</span>
@@ -390,6 +441,10 @@
             <div class="chip-group" id="browseType"></div>
           </div>
           <div class="field">
+            <span class="field-label">CEFR Level</span>
+            <div class="chip-group sm" id="browseCefrLevel"></div>
+          </div>
+          <div class="field">
             <span class="field-label" data-i18n="label.day">Day</span>
             <div class="chip-group scroll" id="browseDay"></div>
           </div>
@@ -397,7 +452,18 @@
             <span class="field-label" data-i18n="label.meanings">Meanings</span>
             <button class="btn" id="browseToggleMeanings"><span class="ico" data-icon="eye"></span> <span id="browseToggleMeaningsLabel" data-i18n="browse.hideAll">Hide all meanings</span></button>
           </div>
+          <div class="field">
+            <span class="field-label" data-i18n="browse.add">Custom</span>
+            <button class="btn btn-primary" id="openCustomWordModal"><span class="ico" data-icon="plus"></span> <span data-i18n="browse.add">เพิ่มคำศัพท์</span></button>
+          </div>
         </div>
+      </div>
+      <div class="panel" id="dayTrackerPanel">
+        <h2><span class="ico ico-tile" data-icon="calendar"></span><span data-i18n="browse.dayTracker">Day Tracker</span></h2>
+        <p class="hint"><span class="ico" data-icon="bulb"></span><span data-i18n="browse.dayTrackerHint">Tap a day you've studied to mark it — it turns green. See how many days remain before you finish.</span></p>
+        <div class="chip-group scroll" id="dayTrackerChips"></div>
+        <div class="dt-summary" id="dayTrackerSummary"></div>
+        <div class="dt-bar"><div class="dt-fill" id="dayTrackerFill"></div></div>
       </div>
       <div class="browse-list" id="browseList"></div>
     </section>
@@ -407,7 +473,7 @@
       <div class="panel" id="pronControls">
         <h2><span class="ico ico-tile" data-icon="mic"></span><span data-i18n="cfg.pron">Pronunciation Test</span></h2>
         <p class="hint">Speak the word into your microphone — the app checks accuracy and highlights the syllables you missed</p>
-        <p class="hint pron-file-warn" id="pronFileWarn">⚠️ You're opening this as a direct file (file://) — the browser will ask for microphone permission every time. Run <b>start.bat</b> and open <b>http://localhost:8000</b> so "Allow always" sticks</p>
+        <p class="hint pron-file-warn" id="pronFileWarn"><span class="ico" data-icon="alert"></span> You're opening this as a direct file (file://) — the browser will ask for microphone permission every time. Run <b>start.bat</b> and open <b>http://localhost:8000</b> so "Allow always" sticks</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.count">Number of questions</span>
@@ -430,6 +496,7 @@
           <span class="badge" id="pronBadge">VOwCAB</span>
           <p class="pron-word" id="pronWord"></p>
           <p class="pron-phon" id="pronPhon"></p>
+          <p class="pron-best" id="pronBestLabel" style="font-size:.8rem;opacity:.7;margin-top:2px;"></p>
           <div class="pron-audio-btns">
             <button class="speak-btn" id="pronSpeak" title="Listen to sample"><span class="ico" data-icon="speaker"></span></button>
             <button class="speak-btn" id="pronSlow" title="Listen slowly"><span class="ico" data-icon="volumeLow"></span></button>
@@ -741,6 +808,18 @@
         <h2><span class="ico ico-tile" data-icon="chart"></span><span data-i18n="stats.heading">Statistics</span></h2>
         <div class="stat-cards" id="statCards"></div>
       </div>
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="activity"></span><span data-i18n="stats.analytics">Learning analytics</span></h2>
+        <div class="analytics-grid" id="analyticsGrid"></div>
+        <div id="modeStatsBox" style="margin-top:16px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          <button class="btn btn-sm" id="exportCsv"><span class="ico" data-icon="download"></span><span data-i18n="stats.exportCsv">Export progress (CSV)</span></button>
+        </div>
+      </div>
+      <div class="panel" id="leaderboardPanel" style="display:none;">
+        <h2><span class="ico ico-tile" data-icon="trophy"></span><span data-i18n="lb.heading">Weekly leaderboard</span></h2>
+        <div id="leaderboardBox"></div>
+      </div>
       <div class="panel chart-panel">
         <h2><span class="ico ico-tile" data-icon="trending"></span><span data-i18n="stats.weekly">Weekly progress</span></h2>
         <div class="chart-wrap" id="weeklyChart"></div>
@@ -752,6 +831,73 @@
       </div>
     </section>
 
+    <!-- ===== GRADED READERS ===== -->
+    <section class="view" id="view-stories">
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="book"></span><span data-i18n="stories.viewHeading">Graded Readers &amp; Stories (Articles across A1–C2)</span></h2>
+        <p class="hint" data-i18n="stories.viewHint">Read short stories, fairy tales &amp; ghost stories tailored to your CEFR level. Click any word for instant translation and pronunciation, or translate the entire article!</p>
+        <div class="story-progress" id="storyProgress" style="margin:0 0 6px;display:none;"></div>
+        <div class="chip-group sm" id="storyGenreFilters" style="margin:14px 0 4px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+        <div class="chip-group sm" id="storyFilters" style="margin:0 0 14px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+        <div class="stories-list" id="storiesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:20px;margin-top:16px;"></div>
+        <div class="story-reader hidden" id="storyReader" style="margin-top:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <button class="btn btn-sm" id="storyBack">← Back to Stories</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm" id="storyMarkRead" style="display:none;"><span class="ico" data-icon="check"></span><span data-i18n="stories.markRead">Mark as read</span></button>
+              <button class="btn btn-sm btn-primary" id="storyTranslateBtn"><span class="ico" data-icon="book"></span><span data-i18n="stories.translate">Translate Full Article</span></button>
+            </div>
+          </div>
+          <h3 id="storyTitle" style="font-size:22px;font-weight:700;margin-bottom:12px;"></h3>
+          <div class="story-body" id="storyBody" style="font-size:16px;line-height:1.8;padding:20px;background:var(--panel-solid);border:1px solid var(--border);border-radius:14px;"></div>
+          <div class="story-book hidden" id="storyBook">
+            <div class="book-viewport" id="bookViewport">
+              <div class="book-left" id="bookLeft"></div>
+              <div class="book-right" id="bookRight"></div>
+              <div class="book-sheet" id="bookSheet">
+                <div class="book-face book-front" id="bookFront"></div>
+                <div class="book-face book-back" id="bookBack"></div>
+              </div>
+            </div>
+            <div class="book-nav">
+              <button class="btn btn-sm" id="bookPrev" type="button"><span class="ico" data-icon="chevron" style="transform:rotate(180deg)"></span> <span id="bookPrevLabel" data-i18n="stories.bookPrev">Prev</span></button>
+              <span class="book-pagenum" id="bookPageNum">1 / 1</span>
+              <button class="btn btn-sm btn-primary" id="bookNext" type="button"><span id="bookNextLabel" data-i18n="stories.bookNext">Next</span> <span class="ico" data-icon="chevron"></span></button>
+            </div>
+          </div>
+          <div class="story-thai-box hidden" id="storyThaiBox" style="margin-top:16px;padding:20px;background:var(--grad-soft);border:1px solid var(--border);border-radius:14px;font-size:15px;line-height:1.8;">
+            <h4 style="font-weight:700;margin-bottom:8px;color:var(--primary);">Thai Translation / คำแปลภาษาไทย</h4>
+            <p id="storyThaiText" style="color:var(--text);margin:0;"></p>
+          </div>
+          <div class="story-saved hidden" id="storySavedWords" style="margin-top:16px;padding:20px;background:var(--panel-solid);border:1px solid var(--border);border-radius:14px;">
+            <h4 style="font-weight:700;margin-bottom:10px;color:var(--primary);"><span class="ico" data-icon="bookmark"></span> <span data-i18n="stories.savedTitle">Words saved from this story</span></h4>
+            <div id="storySavedList" style="font-size:14px;"></div>
+            <button class="btn btn-primary" id="storyReviewSaved" style="margin-top:12px;"><span class="ico" data-icon="cards"></span> <span data-i18n="stories.reviewSaved">Review saved words</span></button>
+          </div>
+          <div class="story-quiz hidden" id="storyQuiz" style="margin-top:16px;padding:20px;background:var(--grad-soft);border:1px solid var(--border);border-radius:14px;">
+            <h4 style="font-weight:700;margin-bottom:10px;color:var(--primary);"><span class="ico" data-icon="quiz"></span> <span data-i18n="stories.quizTitle">Comprehension Quiz</span></h4>
+            <div id="storyQuizBox" style="font-size:14px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DICTATION QUIZ ===== -->
+    <section class="view" id="view-dictation">
+      <div class="panel">
+        <h2><span class="ico ico-tile" data-icon="speaker"></span><span data-i18n="dictation.heading">Dictation Quiz</span></h2>
+        <p class="hint" data-i18n="dictation.hint">Listen to the audio pronunciation and type the word you hear.</p>
+        <div class="dictation-card" style="margin-top:20px;padding:24px;background:var(--panel-solid);border:1px solid var(--border);border-radius:16px;text-align:center;">
+          <button class="btn btn-primary btn-lg" id="dictationAudioBtn" style="margin-bottom:16px;"><span class="ico" data-icon="speaker"></span> <span data-i18n="dictation.listen">Listen Audio</span></button>
+          <div style="margin-bottom:16px;">
+            <input type="text" id="dictationInput" placeholder="Type what you hear..." style="padding:12px 16px;font-size:18px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text);width:100%;max-width:320px;text-align:center;" autocomplete="off" />
+          </div>
+          <button class="btn btn-primary" id="dictationSubmit" data-i18n="check.answer">Check Answer</button>
+          <div id="dictationFeedback" style="margin-top:14px;font-weight:600;font-size:16px;"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== SETTINGS ===== -->
     <section class="view" id="view-settings">
       <div class="panel">
@@ -759,6 +905,10 @@
         <div class="settings-row">
           <span data-i18n="settings.language">Language</span>
           <div class="chip-group sm" id="settingsLang"></div>
+        </div>
+        <div class="settings-row">
+          <span class="settings-row-label"><span class="ico ico-tile" data-icon="medal"></span><span data-i18n="cefr.heading">Your CEFR Level</span></span>
+          <div id="cefrLevelSelector"></div>
         </div>
         <div class="settings-row">
           <span data-i18n="settings.dark">Dark mode</span>
@@ -796,6 +946,7 @@
           <span data-i18n="settings.effects">Effects intensity</span>
           <div class="chip-group sm" id="settingsEffects"></div>
         </div>
+
         <div class="settings-row">
           <span data-i18n="settings.reminder">Daily reminder</span>
           <div class="reminder-controls">
@@ -804,6 +955,16 @@
           </div>
         </div>
         <p class="settings-hint" data-i18n="settings.reminderHint">Fires while the app is open (no server needed). True background push would require a backend.</p>
+        <div class="settings-row">
+          <div>
+            <strong><span class="ico" data-icon="shield"></span> <span data-i18n="settings.streakFreeze">Streak Freeze (Vacation Mode)</span></strong>
+            <p class="hint" id="sfCount" style="margin-top:2px"></p>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn" id="settingsStreakFreeze">Off</button>
+            <button class="btn btn-primary" id="buyStreakFreeze" data-i18n="sf.buy"></button>
+          </div>
+        </div>
         <div class="settings-row">
           <span data-i18n="settings.day">Current study day (per plan)</span>
           <div class="stepper">
@@ -817,10 +978,40 @@
           <button class="btn btn-sm" id="planDayAuto">Reset</button>
         </div>
         <div class="settings-row">
+          <span data-i18n="settings.reviewGoal">Daily review goal (words)</span>
+          <input type="number" id="settingsReviewGoal" class="input set-input" min="5" max="200" step="5" value="20" style="width:90px" />
+        </div>
+        <div class="settings-row">
+          <div>
+            <strong><span class="ico" data-icon="zap"></span><span data-i18n="settings.xpBoost">XP boost multiplier</span></strong>
+            <p class="hint" id="xpBoostHint" style="margin-top:2px"></p>
+          </div>
+          <select id="settingsXpBoost" class="set-select" style="width:auto">
+            <option value="1">1x</option>
+            <option value="2">2x</option>
+            <option value="3">3x</option>
+          </select>
+        </div>
+        <div class="settings-row">
           <span data-i18n="settings.reset">Clear all progress (reset reviews)</span>
           <button class="btn btn-bad" id="resetProgress">Reset</button>
         </div>
+        <div class="settings-row settings-danger-zone">
+          <div>
+            <strong><span class="ico" data-icon="trash"></span><span data-i18n="settings.clearAll">Clear All Data</span></strong>
+            <p class="hint" data-i18n="settings.clearAllHint" style="margin-top:4px">Delete everything — progress, settings, streak, achievements. Like opening the app for the first time.</p>
+          </div>
+          <button class="btn btn-bad btn-lg" id="clearAllData">Clear All Data</button>
+        </div>
         <div class="settings-info" id="settingsInfo"></div>
+
+        <div class="settings-row" id="syncRow" style="display:none;">
+          <div>
+            <strong><span class="ico" data-icon="refresh"></span><span data-i18n="settings.sync">Cloud sync</span></strong>
+            <p class="hint" id="syncStatus" style="margin-top:4px"></p>
+          </div>
+          <button class="btn" id="syncNowBtn"><span class="ico" data-icon="refresh"></span><span data-i18n="settings.syncNow">Sync Now</span></button>
+        </div>
 
         <div class="backup-box">
           <h3><span class="ico ico-tile sm" data-icon="save"></span><span data-i18n="settings.backup">Backup / Restore (move to another device)</span></h3>
@@ -836,7 +1027,7 @@
           </div>
           <p class="backup-status hidden" id="backupStatus"></p>
         </div>
-        <p class="hint" data-i18n="settings.tip">💡 Add new words daily by telling Claude: <em>"Day N, [topic or random]"</em> — they'll appear here automatically</p>
+        <p class="hint"><span class="ico" data-icon="bulb"></span><span data-i18n="settings.tip">Add new words daily by telling Claude: <em>"Day N, [topic or random]"</em> — they'll appear here automatically</span></p>
       </div>
     </section>
 
@@ -877,7 +1068,17 @@
 
       <div class="detail-mnemonic hidden" id="detailMnemonic"></div>
 
+      <div class="detail-section hidden" id="detailFamilySection">
+        <h3><span class="ico ico-tile sm" data-icon="gitBranch"></span><span data-i18n="detail.family">Word Family &amp; Root</span></h3>
+        <div id="detailFamily" style="font-size:14px;color:var(--text);line-height:1.6;"></div>
+      </div>
+
       <div class="detail-related" id="detailRelated"></div>
+
+      <div class="detail-section">
+        <h3><span class="ico ico-tile sm" data-icon="bulb"></span><span>Personal Note / Mnemonic</span></h3>
+        <textarea id="detailUserNote" class="detail-user-note" placeholder="Type your personal mnemonic or notes here..."></textarea>
+      </div>
 
       <div class="detail-actions">
         <button class="btn" id="detailSlow"><span class="ico" data-icon="volumeLow"></span><span data-i18n="listen.slow">Hear Slowly</span></button>
@@ -885,10 +1086,9 @@
       </div>
 
       <div class="detail-section pron-practice">
-        <h3 data-i18n="detail.pron">🎤 Pronunciation Practice</h3>
+        <h3><span class="ico" data-icon="mic"></span><span data-i18n="detail.pron">Pronunciation Practice</span></h3>
         <button class="btn btn-accent" id="detailPron" data-i18n="tap.say">Tap, then say this word</button>
-
-
+        <button class="btn" id="detailSentencePron" style="margin-top:8px;" data-i18n="tap.saySentence">Speak Example Sentence</button>
         <div class="pron-feedback hidden" id="pronResult"></div>
       </div>
     </div>
@@ -925,6 +1125,52 @@
   </div>
 
   <div class="kb-help-overlay" id="kbHelp" role="dialog" aria-modal="true" aria-labelledby="kbHelpTitle" aria-hidden="true"></div>
+
+  <!-- ===== CUSTOM WORD MODAL ===== -->
+  <div class="modal-overlay" id="customWordModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cwTitle">
+      <button class="modal-close" id="cwClose" title="Close"><span class="ico" data-icon="close"></span></button>
+      <h2 id="cwTitle"><span class="ico ico-tile sm" data-icon="plus"></span> <span data-i18n="cw.title">เพิ่มคำศัพท์ส่วนตัว</span></h2>
+      <div class="form-group" style="margin-top:16px">
+        <label data-i18n="cw.word">คำศัพท์ / สำนวน (Word / Phrase)</label>
+        <input type="text" id="cwWord" class="input" placeholder="เช่น resilience" />
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label data-i18n="cw.type">ประเภท (Type)</label>
+        <select id="cwType" class="input">
+          <option value="vocab">Vocab</option>
+          <option value="collocation">Collocation</option>
+          <option value="idiom">Idiom</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label data-i18n="cw.pos">ชนิดของคำ (POS)</label>
+        <input type="text" id="cwPos" class="input" placeholder="เช่น noun, verb, adjective" />
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label data-i18n="cw.th">ความหมายภาษาไทย (Thai Meaning)</label>
+        <input type="text" id="cwTh" class="input" placeholder="ความยืดหยุ่น" />
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label data-i18n="cw.exEn">ประโยคตัวอย่าง (Example EN)</label>
+        <input type="text" id="cwExEn" class="input" placeholder="She showed great resilience." />
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label data-i18n="cw.exTh">คำแปลประโยค (Example TH)</label>
+        <input type="text" id="cwExTh" class="input" placeholder="เธอแสดงความยืดหยุ่นอย่างมาก" />
+      </div>
+      <div class="modal-actions" style="margin-top:20px">
+        <button class="btn" id="cwCancel" data-i18n="cw.cancel">ยกเลิก</button>
+        <button class="btn" id="cwImportCsv" data-i18n="cw.importCsv">นำเข้า CSV</button>
+        <button class="btn btn-primary" id="cwSave" data-i18n="cw.save">บันทึกคำศัพท์</button>
+      </div>
+      <div class="cw-csv-zone" id="cwCsvZone" hidden style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+        <label data-i18n="cw.csvFormat">รูปแบบไฟล์ CSV: word,type,pos,th,exEn,exTh</label>
+        <input type="file" id="cwCsvFile" accept=".csv,text/csv" class="input" style="margin-top:8px" />
+        <p class="hint" id="cwCsvStatus" style="margin-top:6px"></p>
+      </div>
+    </div>
+  </div>
 
   <footer class="footer" data-i18n="footer.built">Built for learning</footer>
 </body>

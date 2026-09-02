@@ -2052,8 +2052,6 @@
     signInWithGoogle: signInWithGoogle,
     firebaseCheckRedirectResult: firebaseCheckRedirectResult,
     resetGuestDataIfNewSession: resetGuestDataIfNewSession,
-    signInWithGithub: signInWithGithub,
-    signInWithApple: signInWithApple,
     forgotPassword: forgotPassword,
     resetPasswordWithCode: resetPasswordWithCode,
     changePassword: changePassword,

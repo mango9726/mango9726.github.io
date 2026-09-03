@@ -2,7 +2,7 @@
  * App-shell precache + runtime cache. Music is large, so it is cached
  * lazily on first play with an LRU cap instead of being precached.
  */
-const VERSION = "vocab-trainer-v8";
+const VERSION = "vocab-trainer-v10";
 const SHELL_CACHE = VERSION + "-shell";
 const RUNTIME_CACHE = VERSION + "-runtime";
 const MUSIC_CAP = 14; // max cached music tracks

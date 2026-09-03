@@ -5814,14 +5814,35 @@
   }
 
   function initA11y() {
+    // Direct click handler on menu toggle button (fallback)
+    const mt = $("menuToggle");
+    if (mt) mt.onclick = function (e) {
+      const s = $("sidebarNav");
+      const sc = $("scrim");
+      if (s) {
+        const isOpen = s.classList.contains("open");
+        if (isOpen) {
+          s.classList.remove("open");
+          mt.setAttribute("aria-expanded", "false");
+          if (sc) sc.classList.remove("show");
+        } else {
+          s.classList.add("open");
+          mt.setAttribute("aria-expanded", "true");
+          if (sc) sc.classList.add("show");
+        }
+      }
+    };
     // Mobile drawer & event delegation
     document.addEventListener("click", function (e) {
+      console.log("[menu] click detected on:", e.target.tagName, e.target.id || "", e.target.className || "");
       const toggle = e.target.closest("#menuToggle");
       if (toggle) {
+        console.log("[menu] toggle clicked");
         const s = $("sidebarNav");
         const sc = $("scrim");
         if (s) {
           const isOpen = s.classList.contains("open");
+          console.log("[menu] sidebar isOpen:", isOpen);
           if (isOpen) {
             s.classList.remove("open");
             toggle.setAttribute("aria-expanded", "false");
@@ -5836,7 +5857,7 @@
       const scrimEl = e.target.closest("#scrim");
       if (scrimEl) {
         const s = $("sidebarNav"); if (s) s.classList.remove("open");
-        const mt = $("menuToggle"); if (mt) mt.setAttribute("aria-expanded", "false");
+        const mt2 = $("menuToggle"); if (mt2) mt2.setAttribute("aria-expanded", "false");
         scrimEl.classList.remove("show");
       }
     });

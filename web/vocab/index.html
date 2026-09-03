@@ -943,54 +943,8 @@
           <input type="range" id="settingsMusicVol" min="0" max="100" value="50" class="set-range" />
         </div>
         <div class="settings-row">
-          <span data-i18n="settings.effects">Effects intensity</span>
-          <div class="chip-group sm" id="settingsEffects"></div>
-        </div>
-
-        <div class="settings-row">
-          <span data-i18n="settings.reminder">Daily reminder</span>
-          <div class="reminder-controls">
-            <button class="btn" id="settingsReminder">Off</button>
-            <input type="time" id="reminderTime" class="set-time" value="20:00" />
-          </div>
-        </div>
-        <p class="settings-hint" data-i18n="settings.reminderHint">Fires while the app is open (no server needed). True background push would require a backend.</p>
-        <div class="settings-row">
-          <div>
-            <strong><span class="ico" data-icon="shield"></span> <span data-i18n="settings.streakFreeze">Streak Freeze (Vacation Mode)</span></strong>
-            <p class="hint" id="sfCount" style="margin-top:2px"></p>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button class="btn" id="settingsStreakFreeze">Off</button>
-            <button class="btn btn-primary" id="buyStreakFreeze" data-i18n="sf.buy"></button>
-          </div>
-        </div>
-        <div class="settings-row">
-          <span data-i18n="settings.day">Current study day (per plan)</span>
-          <div class="stepper">
-            <button class="btn btn-sm" id="planDayMinus">−</button>
-            <span id="planDayLabel" class="plan-day-label">Day 1</span>
-            <button class="btn btn-sm" id="planDayPlus">+</button>
-          </div>
-        </div>
-        <div class="settings-row">
-          <span data-i18n="settings.autoDay">Auto-set day from calendar</span>
-          <button class="btn btn-sm" id="planDayAuto">Reset</button>
-        </div>
-        <div class="settings-row">
           <span data-i18n="settings.reviewGoal">Daily review goal (words)</span>
           <input type="number" id="settingsReviewGoal" class="input set-input" min="5" max="200" step="5" value="20" style="width:90px" />
-        </div>
-        <div class="settings-row">
-          <div>
-            <strong><span class="ico" data-icon="zap"></span><span data-i18n="settings.xpBoost">XP boost multiplier</span></strong>
-            <p class="hint" id="xpBoostHint" style="margin-top:2px"></p>
-          </div>
-          <select id="settingsXpBoost" class="set-select" style="width:auto">
-            <option value="1">1x</option>
-            <option value="2">2x</option>
-            <option value="3">3x</option>
-          </select>
         </div>
         <div class="settings-row">
           <span data-i18n="settings.reset">Clear all progress (reset reviews)</span>

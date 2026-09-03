@@ -2558,7 +2558,7 @@ input:focus:not(:focus-visible),
 .wotd-badge { display: inline-block; margin-top: 10px; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 4px 9px; border-radius: 999px; background: var(--grad); color: #fff; }
 .wotd-word { font-size: 22px; font-weight: 800; margin: 8px 0 2px; letter-spacing: -0.4px; }
 .wotd-th { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
-.wotd-btn { width: 100%; justify-content: center; }
+.wotd-btn { width: 100%; justify-content: center; white-space: nowrap; font-size: 13.5px; padding: 8px 12px; }
 .wotd-btn .ico { width: 16px; height: 16px; }
 
 /* stat icon chip */
@@ -4327,7 +4327,7 @@ button { user-select: none; -webkit-user-select: none; }
 .confirm-actions .btn { min-width: 0; }
 .backup-actions .btn { min-width: 0; }
 .hero-auth .btn { min-width: 0; }
-.wotd-btn { width: 100%; }
+.wotd-btn { width: 100%; white-space: nowrap; }
 .boss-rush-btn { width: 100%; }
 .mq-claim { width: 100%; }
 .auth-submit { width: 100%; }

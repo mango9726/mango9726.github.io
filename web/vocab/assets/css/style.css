@@ -2158,17 +2158,8 @@ input:focus:not(:focus-visible),
     position: fixed; left: 8px; right: 8px; top: 60px; min-width: 0;
     max-height: calc(100vh - 72px); overflow-y: auto;
   }
-  /* Drawer layout for mobile/tablet */
   .menu-toggle { display: grid; }
   .scrim { display: block; }
-  .sidebar {
-    top: 0; left: 0; right: auto; bottom: 0; width: 268px; height: 100vh;
-    flex-direction: column; align-items: stretch; padding: 20px 16px;
-    border-right: 1px solid var(--border); border-bottom: none;
-    transform: translateX(-100%); transition: transform 0.3s cubic-bezier(.2,.8,.2,1);
-    z-index: 100; box-shadow: var(--shadow-lg);
-  }
-  .sidebar.open { transform: translateX(0); }
   .container { padding: 78px 16px 100px; }
   .hero { padding: 22px; }
   .nav-btn, .nav-sub-btn, .chip, .btn { min-height: 44px; }
@@ -4349,7 +4340,7 @@ button { user-select: none; -webkit-user-select: none; }
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-  .sidebar.open { transform: translateX(0); }
+  .sidebar.open { transform: translateX(0) !important; }
   .sidebar-brand {
     border-bottom: 1px solid var(--border);
     border-right: none;

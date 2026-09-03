@@ -5814,23 +5814,40 @@
   }
 
   function initA11y() {
-    // Mobile drawer
-    const mt = $("menuToggle"), sc = $("scrim");
-    function closeMenu() {
-      const s = $("sidebarNav"); if (s) s.classList.remove("open");
-      if (mt) mt.setAttribute("aria-expanded", "false");
-      if (sc) sc.classList.remove("show");
-    }
-    function openMenu() {
-      const s = $("sidebarNav"); if (s) s.classList.add("open");
-      if (mt) mt.setAttribute("aria-expanded", "true");
-      if (sc) sc.classList.add("show");
-    }
-    if (mt) mt.onclick = function () { $("sidebarNav").classList.contains("open") ? closeMenu() : openMenu(); };
-    if (sc) sc.onclick = closeMenu;
+    // Mobile drawer & event delegation
+    document.addEventListener("click", function (e) {
+      const toggle = e.target.closest("#menuToggle");
+      if (toggle) {
+        const s = $("sidebarNav");
+        const sc = $("scrim");
+        if (s) {
+          const isOpen = s.classList.contains("open");
+          if (isOpen) {
+            s.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+            if (sc) sc.classList.remove("show");
+          } else {
+            s.classList.add("open");
+            toggle.setAttribute("aria-expanded", "true");
+            if (sc) sc.classList.add("show");
+          }
+        }
+      }
+      const scrimEl = e.target.closest("#scrim");
+      if (scrimEl) {
+        const s = $("sidebarNav"); if (s) s.classList.remove("open");
+        const mt = $("menuToggle"); if (mt) mt.setAttribute("aria-expanded", "false");
+        scrimEl.classList.remove("show");
+      }
+    });
+
     document.querySelectorAll(".nav-btn, .nav-sub-btn").forEach(function (b) {
       b.addEventListener("click", function () {
-        if (window.matchMedia && window.matchMedia("(max-width: 860px)").matches) closeMenu();
+        if (window.matchMedia && window.matchMedia("(max-width: 860px)").matches) {
+          const s = $("sidebarNav"); if (s) s.classList.remove("open");
+          const mt = $("menuToggle"); if (mt) mt.setAttribute("aria-expanded", "false");
+          const sc = $("scrim"); if (sc) sc.classList.remove("show");
+        }
       });
     });
 

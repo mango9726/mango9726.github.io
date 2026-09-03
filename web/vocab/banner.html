@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Vocab Trainer — Banner 240x60 cm</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #090d16;
+      font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      color: #fff;
+    }
+    .banner-container {
+      width: 2400px;
+      height: 600px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 60px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+    /* Glowing Orbs matching theme */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 1;
+    }
+    .orb-1 { width: 500px; height: 500px; background: rgba(99, 102, 241, 0.35); top: -150px; left: -100px; }
+    .orb-2 { width: 600px; height: 600px; background: rgba(168, 85, 247, 0.3); bottom: -200px; right: -100px; }
+    .orb-3 { width: 400px; height: 400px; background: rgba(59, 130, 246, 0.25); top: 100px; right: 300px; }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 1800px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-size: 24px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+      backdrop-filter: blur(12px);
+    }
+    h1 {
+      font-size: 72px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.1;
+    }
+    p {
+      font-size: 32px;
+      color: #94a3b8;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+    .features {
+      display: flex;
+      gap: 32px;
+      margin-top: 40px;
+      z-index: 2;
+      position: relative;
+    }
+    .feature-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px 32px;
+      border-radius: 20px;
+      font-size: 24px;
+      font-weight: 600;
+      color: #e2e8f0;
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      background: #6366f1;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #6366f1;
+    }
+    .export-tip {
+      position: fixed;
+      bottom: 20px;
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="export-tip">💡 คำแนะนำ: เปิดหน้านี้ในเบราว์เซอร์ แล้วกด <b>Ctrl + P (Print)</b> เลือกขนาดกระดาษเป็น Custom (240x60 ซม.) หรือ Save as PDF เพื่อนำไปพิมพ์แบนเนอร์</div>
+
+  <div class="banner-container">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="content">
+      <div class="badge">
+        <span class="dot"></span>
+        Vocab Trainer · Smart English Learning Platform
+      </div>
+      <h1>ระบบเว็บแอปพลิเคชันอัจฉริยะสำหรับฝึกคำศัพท์ภาษาอังกฤษ</h1>
+      <p>เสริมสร้างคลังคำศัพท์ด้วยเทคนิคการทบทวนเว้นระยะ (FSRS-5) และเกมการศึกษามาตรฐาน CEFR (A1–C2)</p>
+    </div>
+
+    <div class="features">
+      <div class="feature-card"><span class="dot"></span> 3,600 คำศัพท์มาตรฐาน</div>
+      <div class="feature-card"><span class="dot" style="background:#a855f7;box-shadow:0 0 12px #a855f7;"></span> ระบบทบทวนเว้นระยะอัจฉริยะ</div>
+      <div class="feature-card"><span class="dot" style="background:#3b82f6;box-shadow:0 0 12px #3b82f6;"></span> 10 มินิเกมฝึกทักษะ</div>
+    </div>
+  </div>
+</body>
+</html>

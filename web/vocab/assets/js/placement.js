@@ -491,8 +491,8 @@
     // Precision target
     if (pAbilitySE < 0.25 && n >= 28) return true;
 
-    // Max questions reached (45)
-    if (n >= 45) return true;
+    // Max questions reached (30)
+    if (n >= 30) return true;
 
     // Convergence: ability has stabilized over the last 10 questions
     if (n >= 28 && pAnswers.length >= 10) {
@@ -655,7 +655,7 @@
       <div class="placement-intro" role="region" aria-label="Placement Test Introduction">
         <div class="placement-badge">${svgIcon("test")} Placement Test</div>
         <h3>ค้นหาระดับภาษาอังกฤษของคุณ</h3>
-        <p>ตอบคำถามไม่เกิน 35 ข้อ เพื่อประเมินคำศัพท์ตามระดับ CEFR (A1–C2)</p>
+        <p>ตอบคำถามไม่เกิน 30 ข้อ เพื่อประเมินคำศัพท์ตามระดับ CEFR (A1–C2)</p>
         <p class="placement-hint">ระบบปรับความยากตามคำตอบของคุณ</p>
         <div class="placement-features">
           <div class="feature">${svgIcon("spark")}<span>ปรับความยากอัตโนมัติ</span></div>
@@ -700,8 +700,8 @@
     q = selectNextQuestion(answered, pCurrentAbility);
     if (!q) { pRenderResult(); return; }
 
-    // Progress bar shows relative to expected test length (max 45)
-    const maxQ = 45;
+    // Progress bar shows relative to expected test length (max 30)
+    const maxQ = 30;
     const progress = Math.min(100, (pAnswers.length / maxQ) * 100);
     const qNum = pAnswers.length + 1;
 

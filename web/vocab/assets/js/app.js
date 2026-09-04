@@ -3614,7 +3614,8 @@
       t("info.mastered") + " " + mastered + " words\n" +
       t("info.days") + " " + Object.keys(VOCAB_DAYS).length + " days\n" +
       t("info.total") + " " + ITEMS.length + " entries";
-    $("planDayLabel").textContent = "Day " + (settings.planDayOverride || computePlanDay()) + " / " + planMaxDays() + " · " + currentCefrLevel() + " plan";
+    const pdl = $("planDayLabel");
+    if (pdl) pdl.textContent = "Day " + (settings.planDayOverride || computePlanDay()) + " / " + planMaxDays() + " · " + currentCefrLevel() + " plan";
     // Cloud sync row (only when logged in to a cloud account)
     const syncRow = $("syncRow");
     const syncBtn = $("syncNowBtn");
@@ -5466,7 +5467,8 @@
       applyMiniPlayerVisibility();
       renderSettings();
     };
-    $("settingsReminder").onclick = function () {
+    const sr = $("settingsReminder");
+    if (sr) sr.onclick = function () {
       settings.reminder.on = !settings.reminder.on;
       if (settings.reminder.on && "Notification" in window && Notification.permission === "default") {
         Notification.requestPermission().then(function () { renderSettings(); });
@@ -5476,7 +5478,8 @@
       if (settings.reminder.on) toast(t("notif.granted"), "ok");
       else if ("Notification" in window && Notification.permission === "denied") toast(t("notif.denied"), "warn");
     };
-    $("reminderTime").onchange = function () {
+    const rt = $("reminderTime");
+    if (rt) rt.onchange = function () {
       settings.reminder.time = this.value || "20:00";
       save(K_SETTINGS, settings);
     };
@@ -5654,17 +5657,20 @@
 
     // Plan-day override controls
     function tasksActive() { return $("view-tasks").classList.contains("active"); }
-    $("planDayMinus").onclick = function () {
+    const pdm = $("planDayMinus");
+    if (pdm) pdm.onclick = function () {
       let base = settings.planDayOverride || computePlanDay();
       base = Math.max(1, base - 1); settings.planDayOverride = base;
       save(K_SETTINGS, settings); renderSettings(); if (tasksActive()) renderTasks();
     };
-    $("planDayPlus").onclick = function () {
+    const pdp = $("planDayPlus");
+    if (pdp) pdp.onclick = function () {
       let base = settings.planDayOverride || computePlanDay();
       base = Math.min(planMaxDays(), base + 1); settings.planDayOverride = base;
       save(K_SETTINGS, settings); renderSettings(); if (tasksActive()) renderTasks();
     };
-    $("planDayAuto").onclick = function () {
+    const pda = $("planDayAuto");
+    if (pda) pda.onclick = function () {
       delete settings.planDayOverride;
       save(K_SETTINGS, settings); renderSettings(); if (tasksActive()) renderTasks();
     };
@@ -5814,35 +5820,18 @@
   }
 
   function initA11y() {
-    // Direct click handler on menu toggle button (fallback)
-    const mt = $("menuToggle");
-    if (mt) mt.onclick = function (e) {
-      const s = $("sidebarNav");
-      const sc = $("scrim");
-      if (s) {
-        const isOpen = s.classList.contains("open");
-        if (isOpen) {
-          s.classList.remove("open");
-          mt.setAttribute("aria-expanded", "false");
-          if (sc) sc.classList.remove("show");
-        } else {
-          s.classList.add("open");
-          mt.setAttribute("aria-expanded", "true");
-          if (sc) sc.classList.add("show");
-        }
-      }
-    };
-    // Mobile drawer & event delegation
+    // Mobile drawer & event delegation — single source of truth for the
+    // hamburger toggle and the click-away scrim. (Removed the redundant
+    // inline `onclick` attributes and the direct mt.onclick binding; keeping
+    // multiple toggling handlers caused a double-toggle that left the drawer
+    // closed on touch devices.)
     document.addEventListener("click", function (e) {
-      console.log("[menu] click detected on:", e.target.tagName, e.target.id || "", e.target.className || "");
       const toggle = e.target.closest("#menuToggle");
       if (toggle) {
-        console.log("[menu] toggle clicked");
         const s = $("sidebarNav");
         const sc = $("scrim");
         if (s) {
           const isOpen = s.classList.contains("open");
-          console.log("[menu] sidebar isOpen:", isOpen);
           if (isOpen) {
             s.classList.remove("open");
             toggle.setAttribute("aria-expanded", "false");

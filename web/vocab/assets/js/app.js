@@ -1161,6 +1161,9 @@
     renderLeaderboard();
     const ec = $("exportCsv");
     if (ec) ec.onclick = exportCSV;
+    if (window.VocabExam && typeof window.VocabExam.renderSummary === "function") {
+      window.VocabExam.renderSummary();
+    }
   }
 
   /** Weekly leaderboard from Firestore (competing with real users). */
@@ -1371,6 +1374,20 @@
     $("cardResult").classList.add("hidden");
     $("cardSession").classList.remove("hidden");
     if (typeof showCard === "function") showCard();
+  }
+
+  /* Review everything that is due right now (used by the home reminder card). */
+  function startDueReview() {
+    const list = ITEMS.filter(function (i) { return (getP(i.id).seen || 0) > 0 && isDue(i); });
+    if (!list.length) { toast(t("due.remindDone"), "ok"); return; }
+    reviewWeakSpots(list);
+  }
+
+  /* Test Center view — hosted by the standalone exam.js module. */
+  function renderExam() {
+    if (window.VocabExam && typeof window.VocabExam.render === "function") {
+      window.VocabExam.render();
+    }
   }
 
   /* --- เรียกเมื่อจบเกม (จาก renderResult) --- */
@@ -1723,8 +1740,13 @@
     } catch (e) {}
   }
 
-  /* --- Button press sound: plays button sound.mp3, falls back to a synth click --- */
-  let btnAudio = null;
+  /* --- Button press sound: plays button sound.mp3, falls back to a synth click ---
+     Uses a small round-robin pool of <audio> elements so fast/repeated clicks ring
+     out rapid-fire instead of restarting (and chopping) a single shared element. */
+  let btnAudioPool = [];
+  let btnAudioBroken = false;
+  let btnAudioIdx = 0;
+  const BTN_AUDIO_POOL_SIZE = 8;
   const BTN_SOUND_SRC = "assets/audio/ui/button sound.mp3";
   function playClickSynth() {
     try {
@@ -1747,17 +1769,24 @@
   }
   function playClick() {
     if (!soundOn()) return;
-    if (btnAudio === null) {
-      try { btnAudio = new Audio(BTN_SOUND_SRC); btnAudio.preload = "auto"; } catch (e) { btnAudio = false; }
-    }
-    if (btnAudio) {
-      try {
-        btnAudio.currentTime = 0;
-        const pr = btnAudio.play();
+    if (btnAudioBroken) { playClickSynth(); return; }
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (btnAudioPool.length < BTN_AUDIO_POOL_SIZE) {
+        const a = new Audio(BTN_SOUND_SRC);
+        a.preload = "auto";
+        a.addEventListener("error", function () { btnAudioBroken = true; });
+        btnAudioPool.push(a);
+      }
+      const a = btnAudioPool.length ? btnAudioPool[btnAudioIdx % btnAudioPool.length] : null;
+      if (a) {
+        btnAudioIdx = (btnAudioIdx + 1) % BTN_AUDIO_POOL_SIZE;
+        try { a.currentTime = 0; } catch (e) {}
+        const pr = a.play();
         if (pr && pr.catch) pr.catch(function () { playClickSynth(); });
         return;
-      } catch (e) { /* file missing/unplayable — fall back below */ }
-    }
+      }
+    } catch (e) {}
     playClickSynth();
   }
 
@@ -2192,7 +2221,7 @@
    */
   function showView(name) {
     // ตรวจสอบว่าผู้ใช้ทำ Placement Test หรือเลือกระดับหรือยัง ก่อนเข้าหน้าเรียน/ดูคำศัพท์
-    var restrictedViews = ["browse", "cards", "quiz", "pron", "fill", "match", "tf", "hang", "build", "cloze", "listen"];
+    var restrictedViews = ["browse", "cards", "quiz", "pron", "fill", "match", "tf", "hang", "build", "cloze", "listen", "exam"];
     if (restrictedViews.indexOf(name) !== -1 && name !== "home") {
       const hasTest = window.hasTakenPlacementTest && window.hasTakenPlacementTest();
       let hasSelected = false;
@@ -2212,6 +2241,7 @@
     // รีเซ็ตสถานะ session เก่าเมื่อเปลี่ยนหน้า
     stopRecognition();
     stopGameTimers();
+    if (window.VocabExam && typeof window.VocabExam.pause === "function") window.VocabExam.pause();
     ["quizSession", "cardSession", "quizResult", "cardResult", "pronSession", "pronResult2",
      "fillSession", "fillResult", "matchSession", "matchResult", "tfSession", "tfResult",
      "hangSession", "hangResult", "buildSession", "buildResult", "clozeSession", "clozeResult", "listenSession", "listenResult"].forEach(function (id) {
@@ -2231,7 +2261,7 @@
       b.classList.toggle("active", on);
       if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
-    var gameViews = ["cards","quiz","pron","fill","match","tf","hang","build","cloze","listen","dictation"];
+    var gameViews = ["cards","quiz","pron","fill","match","tf","hang","build","cloze","listen","dictation","exam"];
     if (gameViews.indexOf(name) !== -1) {
       $("navGamesSub").classList.add("open");
       $("navGames").setAttribute("aria-expanded", "true");
@@ -2252,6 +2282,7 @@
     if (name === "aichat") renderAiChat();
     if (name === "stories") renderStories();
     if (name === "dictation") renderDictationQuiz();
+    if (name === "exam") renderExam();
     updateMiniQuest(name); // ซ่อนwidgetบนHome / โชว์+เรนเดอร์บนหน้าอื่น
     if (name === "fill") resetFill();
     if (name === "match") resetMatch();
@@ -2615,6 +2646,25 @@
       '<div class="goal-wrap"><div class="goal-label">' + t("due.goal").replace("{d}", done).replace("{g}", goal) + '</div>' +
       '<div class="goal-bar"><div class="goal-fill" style="width:' + pct + '%"></div></div>' +
       (done >= goal ? '<div class="goal-done">' + t("due.goalDone") + '</div>' : "") + "</div>");
+
+    // Review reminder card (due-today shortcut)
+    const dueToday = ITEMS.filter(function (i) { return (getP(i.id).seen || 0) > 0 && isDue(i); });
+    if (dueToday.length) {
+      wrap.insertAdjacentHTML("beforeend",
+        '<div class="due-reminder" data-state="has">' +
+        '<span class="ico ico-tile" data-icon="flame"></span>' +
+        '<div class="due-reminder-text"><b data-i18n="due.remindToday"></b>' +
+        '<span>' + t("due.remindText").replace("{n}", dueToday.length) + "</span></div>" +
+        '<button class="btn btn-sm btn-accent" id="dueReminderGo">' + t("due.remindGo") + "</button></div>");
+      const go = $("dueReminderGo");
+      if (go) go.onclick = function () { startDueReview(); };
+    } else {
+      wrap.insertAdjacentHTML("beforeend",
+        '<div class="due-reminder" data-state="done">' +
+        '<span class="ico ico-tile" data-icon="check"></span>' +
+        '<div class="due-reminder-text"><b data-i18n="due.remindDone"></b></div></div>');
+    }
+    if (typeof applyI18n === "function") applyI18n();
 
     renderStorySuggestion();
   }
@@ -8069,6 +8119,48 @@ bookPageIdx = 0;
       }
     },
     toast: toast,
+    /* ---- Admin/test-mode helpers (used by the Admin Control Center) ---- */
+    getProgress: function () { return progress; },
+    getGame: function () { return game; },
+    getSettingsState: function () { return settings; },
+    currentCefrLevel: function () {
+      try { return window.CefrSelector ? window.CefrSelector.getEffectiveCefrLevel() : "A1"; } catch (e) { return "A1"; }
+    },
+    commit: function () {
+      try { save(K_PROGRESS, progress); } catch (e) {}
+      try { save(K_SETTINGS, settings); } catch (e) {}
+      try { saveGame(); } catch (e) {}
+    },
+    awardXp: function (n) { try { awardXp(n, "admin"); } catch (e) {} },
+    setXp: function (n) {
+      game.xp = Math.max(0, Math.round(Number(n) || 0));
+      try { saveGame(); } catch (e) {}
+      try { renderProfileChip(); } catch (e) {}
+      try { checkAchievements(); } catch (e) {}
+    },
+    refreshViews: function () {
+      try { homeDirty = true; renderHome(); } catch (e) {}
+      try { renderProfileChip(); } catch (e) {}
+      try { renderMiniQuests(); } catch (e) {}
+      try {
+        if ($("view-stats") && $("view-stats").classList.contains("active")) renderStats();
+        if ($("view-settings") && $("view-settings").classList.contains("active")) renderSettings();
+        if ($("view-browse") && $("view-browse").classList.contains("active") && typeof renderBrowse === "function") renderBrowse();
+        if ($("view-exam") && $("view-exam").classList.contains("active") && window.VocabExam && typeof window.VocabExam.render === "function") window.VocabExam.render();
+      } catch (e) {}
+    },
+    resetProgressData: function () {
+      progress = {};
+      try { save(K_PROGRESS, progress); } catch (e) {}
+    },
+    resetAllData: function () {
+      try { SecureStore.clear(); } catch (e) {}
+      try {
+        Object.keys(localStorage).forEach(function (k) { if (k.indexOf("vocab_") === 0) localStorage.removeItem(k); });
+        Object.keys(sessionStorage).forEach(function (k) { if (k.indexOf("vocab_") === 0) sessionStorage.removeItem(k); });
+      } catch (e) {}
+      location.reload();
+    },
     getStats: function () {
       try {
         const info = levelProgress(game.xp);

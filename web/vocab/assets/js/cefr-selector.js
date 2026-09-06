@@ -742,6 +742,7 @@
     setSelectedCefrLevel,
     setUsePlacementLevel,
     clearSelectedCefrLevel,
+    setSelectedCefrLevelExposed: setSelectedCefrLevel,
 
     // UI
     renderLevelSelector,
@@ -753,6 +754,7 @@
     initCefrSystem,
     onCefrLevelChange,
     onLogin,
-    onLogout
+    onLogout,
+    setSelectedCefrLevelExposed: setSelectedCefrLevel
   };
 })();

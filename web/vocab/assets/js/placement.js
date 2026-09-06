@@ -20,6 +20,7 @@
     arrowRight: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
     refresh: '<path d="M20 11a8 8 0 0 0-14-4.5L4 4"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 4.5L20 20"/><path d="M20 20v-4h-4"/>',
     chevronRight: '<path d="M9 6l6 6-6 6"/>',
+    arrowLeft: '<path d="M9 18l-6-6 6-6"/><path d="M3 12h18"/>',
     target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
     chart: '<path d="M3 17l6-6 4 4 7-7"/><path d="M17 7h4v4"/>',
     clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
@@ -268,6 +269,10 @@
   let pConsecutiveWrong = 0;
   let pConsecutiveLevel = null;
   let pMaxConsecutiveWrong = 0;
+  // Mount + mode: "placement" (first-run pretest) or "posttest" (end-of-course measure).
+  // pMountId lets the same engine render into any container (e.g. #posttestMount).
+  let pMode = "placement";
+  let pMountId = "placementTest";
 
   /* ============================================================
      IRT 3PL Model — with guessing parameter
@@ -645,27 +650,43 @@
   }
 
   /* ============================================================
+     Mount helpers (support rendering into any container)
+     ============================================================ */
+  function pBox() { return $(pMountId); }
+
+  function pTeardown() {
+    const box = pBox();
+    if (box && box._kh) { document.removeEventListener("keydown", box._kh); box._kh = null; }
+    pMode = "placement";
+    pMountId = "placementTest";
+    pStarted = false;
+  }
+
+  /* ============================================================
      Render: Intro
      ============================================================ */
   function pRenderIntro() {
-    const box = $("placementTest");
+    const box = pBox();
     if (!box) return;
 
+    const isPost = pMode === "posttest";
     box.innerHTML = `
       <div class="placement-intro" role="region" aria-label="Placement Test Introduction">
-        <div class="placement-badge">${svgIcon("test")} Placement Test</div>
-        <h3>ค้นหาระดับภาษาอังกฤษของคุณ</h3>
-        <p>ตอบคำถามไม่เกิน 30 ข้อ เพื่อประเมินคำศัพท์ตามระดับ CEFR (A1–C2)</p>
+        <div class="placement-badge">${svgIcon("test")} ${isPost ? "Post-Test" : "Placement Test"}</div>
+        <h3>${isPost ? "แบบทดสอบหลังเรียน (Post-Test)" : "ค้นหาระดับภาษาอังกฤษของคุณ"}</h3>
+        <p>${isPost
+          ? "ตอบคำถามชุดเดียวกับแบบวัดระดับตอนแรก เพื่อเปรียบเทียบระดับและความสามารถก่อน-หลังเรียน"
+          : "ตอบคำถามไม่เกิน 30 ข้อ เพื่อประเมินคำศัพท์ตามระดับ CEFR (A1–C2)"}</p>
         <p class="placement-hint">ระบบปรับความยากตามคำตอบของคุณ</p>
         <div class="placement-features">
           <div class="feature">${svgIcon("spark")}<span>ปรับความยากอัตโนมัติ</span></div>
           <div class="feature">${svgIcon("target")}<span>คำนึงถึงเวลาที่ใช้ตอบ</span></div>
           <div class="feature">${svgIcon("clock")}<span>3–5 นาที</span></div>
-          <div class="feature">${svgIcon("brain")}<span>120 คำถาม, 6 ระดับ</span></div>
         </div>
-        <button class="btn btn-primary btn-lg" id="placementStart" aria-label="เริ่มแบบทดสอบ">
-          ${svgIcon("play")}<span>เริ่มแบบทดสอบ</span>
+        <button class="btn btn-primary btn-lg" id="placementStart" aria-label="${isPost ? "เริ่มแบบทดสอบหลังเรียน" : "เริ่มแบบทดสอบ"}">
+          ${svgIcon("play")}<span>${isPost ? "เริ่มแบบทดสอบหลังเรียน" : "เริ่มแบบทดสอบ"}</span>
         </button>
+        ${isPost ? `<button class="btn btn-secondary btn-lg" id="placementCancelPost" style="margin-top:10px">${svgIcon("arrowLeft")}<span>ยกเลิก</span></button>` : ""}
         <p class="placement-note">กดปุ่มหรือ <kbd>Enter</kbd>/<kbd>Space</kbd> เพื่อเริ่ม</p>
       </div>
     `;
@@ -685,13 +706,20 @@
       pStartTime = Date.now();
       pRenderQuestion();
     };
+    const cancel = $("placementCancelPost");
+    if (cancel) {
+      cancel.onclick = () => {
+        pTeardown();
+        if (window.VocabApp?.showView) window.VocabApp.showView("exam");
+      };
+    }
   }
 
   /* ============================================================
      Render: Question
      ============================================================ */
   function pRenderQuestion() {
-    const box = $("placementTest");
+    const box = pBox();
     if (!box) return;
 
     // Select question — always adaptive from Q1
@@ -748,7 +776,7 @@
   }
 
   function setupHandlers(q) {
-    const box = $("placementTest");
+    const box = pBox();
     const opts = box.querySelectorAll(".placement-opt");
 
     opts.forEach(btn => {
@@ -841,25 +869,47 @@
      Render: Result
      ============================================================ */
   function pRenderResult() {
-    const box = $("placementTest");
+    const box = pBox();
     if (!box) return;
 
     const res = scorePlacement(pAnswers);
-    window.setCefrLevel(res.level);
+    const isPost = pMode === "posttest";
     // Save progress for progress bar in cefr-selector
     try {
       const store = window.SecureStore || { load: (k, fb) => { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch(e) { return fb; } }, save: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} } };
       const p = store.load("vocab_progress_v1", {}) || {};
-      p.cefrLevel = res.level;
-      p.cefrProgressToNext = res.progressToNext;
-      p.cefrAbility = res.ability;
-      p.cefrSE = res.se;
-      p.cefrLevelScores = res.levelScores;
-      store.save("vocab_progress_v1", p);
+      if (!isPost) {
+        // Only the placement (pretest) writes the CEFR level + ability fields.
+        window.setCefrLevel(res.level);
+        p.cefrLevel = res.level;
+        p.cefrProgressToNext = res.progressToNext;
+        p.cefrAbility = res.ability;
+        p.cefrSE = res.se;
+        p.cefrLevelScores = res.levelScores;
+        // Keep pretest score for before/after comparison.
+        p.cefrTotalCorrect = res.totalCorrect;
+        p.cefrTotalQuestions = res.totalQuestions;
+        store.save("vocab_progress_v1", p);
+      } else {
+        // Post-test: record the result but never touch the pretest level.
+        const list = store.load("vocab_posttest_v1", []) || [];
+        list.unshift({
+          date: new Date().toISOString().slice(0, 10),
+          ts: Date.now(),
+          level: res.level,
+          ability: Math.round(res.ability * 100) / 100,
+          se: Math.round(res.se * 100) / 100,
+          progressToNext: Math.round(res.progressToNext * 100) / 100,
+          totalCorrect: res.totalCorrect,
+          totalQuestions: res.totalQuestions,
+          timeSec: Math.round((Date.now() - pStartTime) / 1000)
+        });
+        store.save("vocab_posttest_v1", list.slice(0, 10));
+      }
     } catch (e) {}
 
-    // Notify CEFR system of level change
-    if (window.VocabApp?.onCefrLevelChange) {
+    // Notify CEFR system of level change (pretest only)
+    if (!isPost && window.VocabApp?.onCefrLevelChange) {
       window.VocabApp.onCefrLevelChange(res.level);
     }
 
@@ -905,12 +955,50 @@
       </div>`
     ).join("");
 
+    // Before/after comparison block (post-test only, needs pretest data)
+    let compareHtml = "";
+    if (isPost) {
+      try {
+        const store = window.SecureStore || { load: (k, fb) => { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch(e) { return fb; } }, save: () => {} };
+        const p = store.load("vocab_progress_v1", {}) || {};
+        const preLv = p.cefrLevel;
+        if (preLv && CEFR_LEVELS[preLv]) {
+          const preInfo = CEFR_LEVELS[preLv];
+          const postInfo = CEFR_LEVELS[res.level] || preInfo;
+          const preAb = typeof p.cefrAbility === "number" ? Number(p.cefrAbility).toFixed(2) : "—";
+          const preTot = (p.cefrTotalCorrect != null ? p.cefrTotalCorrect + "/" + (p.cefrTotalQuestions != null ? p.cefrTotalQuestions : "?") : "—");
+          const lvDelta = CEFR_ORDER.indexOf(res.level) - CEFR_ORDER.indexOf(preLv);
+          const trend = lvDelta > 0 ? "better" : lvDelta < 0 ? "worse" : "same";
+          const trendLabel = lvDelta > 0 ? "ดีขึ้น" : lvDelta < 0 ? "ลดลง" : "เท่าเดิม";
+          const deltaTxt = lvDelta !== 0 ? (lvDelta > 0 ? "+" : "") + lvDelta + " ระดับ" : "ระดับเท่าเดิม";
+          const abDelta = Number((res.ability - (typeof p.cefrAbility === "number" ? p.cefrAbility : 0)).toFixed(2));
+          compareHtml = `
+            <div class="result-scores">
+              <h4>${svgIcon("chart", 16)} เปรียบเทียบก่อน-หลังเรียน</h4>
+              <div class="score-grid">
+                <div class="score-card" style="--sc:${preInfo.color}">
+                  <div class="score-header"><span class="score-level">ก่อนเรียน ${preLv}</span></div>
+                  <span class="score-detail">ความสามารถ θ = ${preAb}</span>
+                  <span class="score-detail">คะแนน ${preTot}</span>
+                </div>
+                <div class="score-card current" style="--sc:${postInfo.color}">
+                  <div class="score-header"><span class="score-level">หลังเรียน ${res.level}</span></div>
+                  <span class="score-detail">ความสามารถ θ = ${Number(res.ability).toFixed(2)}</span>
+                  <span class="score-detail">คะแนน ${res.totalCorrect}/${res.totalQuestions}</span>
+                </div>
+              </div>
+              <div class="result-trend ${trend}">${svgIcon(trend === "better" ? "check" : trend === "worse" ? "alert" : "info", 16)} ${trendLabel} · ${deltaTxt} · θ ${abDelta >= 0 ? "+" : ""}${abDelta}</div>
+            </div>`;
+        }
+      } catch (e) {}
+    }
+
     const container = document.createElement("div");
     container.className = "placement-result";
     container.style.setProperty("--lv-color", lv.color);
     container.innerHTML = `
       <div class="result-header">
-        <div class="result-badge">${svgIcon("award")} เสร็จสิ้น</div>
+        <div class="result-badge">${svgIcon("award")} ${isPost ? "Post-Test เสร็จสิ้น" : "เสร็จสิ้น"}</div>
         <h2 class="result-level" style="color:${lv.color}">${res.level}</h2>
         <div class="result-level-name">${lv.name} · ${lv.th}</div>
         ${nextLv ? `
@@ -961,14 +1049,19 @@
         <div class="stat"><span class="stat-value">${res.avgTime < 5000 ? "เร็ว" : res.avgTime > 15000 ? "ละเอียด" : "ปกติ"}</span><span class="stat-label">จังหวะตอบ</span></div>
       </div>
 
+      ${compareHtml}
+
       <div class="result-recommendations">
         <h4>${svgIcon("lightbulb", 18)} คำแนะนำ</h4>
         ${recHtml}
       </div>
 
-      <p class="result-desc">ระดับของคุณคือ <b style="color:${lv.color}">${res.level} (${lv.th})</b> — ระบบจัดแผนเรียนให้อัตโนมัติแล้ว</p>
-      <button class="btn btn-primary btn-lg" id="placementGotoTasks">${svgIcon("arrowRight")}<span>ดูแผนการเรียน</span></button>
-      <button class="btn btn-secondary" id="placementRetake">${svgIcon("refresh")}<span>ทดสอบใหม่</span></button>
+      ${isPost
+        ? `<p class="result-desc">ระดับหลังเรียนของคุณคือ <b style="color:${lv.color}">${res.level} (${lv.th})</b> — ระดับเดิมที่ใช้จัดการเรียนของคุณยังคงเป็นแบบก่อนเรียน</p>
+          <button class="btn btn-primary btn-lg" id="placementGotoStats">${svgIcon("chart")}<span>ดูการวิเคราะห์</span></button>`
+        : `<p class="result-desc">ระดับของคุณคือ <b style="color:${lv.color}">${res.level} (${lv.th})</b> — ระบบจัดแผนเรียนให้อัตโนมัติแล้ว</p>
+          <button class="btn btn-primary btn-lg" id="placementGotoTasks">${svgIcon("arrowRight")}<span>ดูแผนการเรียน</span></button>`}
+      <button class="btn btn-secondary" id="placementRetake">${svgIcon("refresh")}<span>${isPost ? "ทำแบบทดสอบอีกครั้ง" : "ทดสอบใหม่"}</span></button>
     `;
 
     // Cleanup
@@ -991,21 +1084,29 @@
   }
 
   function bindResultBtns() {
+    const isPost = pMode === "posttest";
     $("placementGotoTasks")?.addEventListener("click", () => {
       if (window.VocabApp?.showView) window.VocabApp.showView("tasks");
       else document.querySelector('.nav-btn[data-view="tasks"]')?.click();
     });
+    $("placementGotoStats")?.addEventListener("click", () => {
+      pTeardown();
+      if (window.VocabApp?.showView) window.VocabApp.showView("stats");
+    });
     $("placementRetake")?.addEventListener("click", () => {
-      if (confirm("ทดสอบใหม่? ผลเดิมจะหาย")) {
-        window.setCefrLevel(null);
-        // Notify CEFR system of level reset
-        if (window.VocabApp?.onCefrLevelChange) {
-          window.VocabApp.onCefrLevelChange("A1");
-        }
+      if (!confirm(isPost ? "ทำแบบทดสอบอีกครั้ง? ประวัติเดิมยังคงเก็บไว้" : "ทดสอบใหม่? ผลเดิมจะหาย")) return;
+      const done = () => {
         pStarted = false; pAnswers = []; pCurrentAbility = 0; pAbilitySE = 1.5;
         pExposureCount = {}; pConsecutiveWrong = 0; pMaxConsecutiveWrong = 0;
         pRenderIntro();
+      };
+      if (!isPost) {
+        window.setCefrLevel(null);
+        if (window.VocabApp?.onCefrLevelChange) {
+          window.VocabApp.onCefrLevelChange("A1");
+        }
       }
+      done();
     });
   }
 
@@ -1025,15 +1126,29 @@
 
   /* ---------- Init ---------- */
   function initPlacement() {
-    const box = $("placementTest");
+    pTeardown();
+    const box = pBox();
     if (!box) return;
     if (!window.hasTakenPlacementTest()) { pStarted = false; pRenderIntro(); }
     else { box.innerHTML = ""; box.style.display = "none"; }
   }
 
+  /* Point the engine at another container (post-test) or restore defaults. */
+  function pSetMount(mountId, mode) {
+    pTeardown();
+    pMountId = mountId || "placementTest";
+    pMode = mode || "placement";
+    pStarted = false;
+    pAnswers = [];
+  }
+
   window.VocabPlacement = {
     init: initPlacement,
     render: pRenderQuestion,
+    renderIntro: pRenderIntro,
+    setMount: pSetMount,
+    teardown: pTeardown,
+    getMode: () => pMode,
     questions: PLACEMENT_QUESTIONS,
     score: scorePlacement,
     estimateAbility,

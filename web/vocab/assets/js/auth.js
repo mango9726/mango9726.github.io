@@ -1826,7 +1826,7 @@
             ${user.username === "mango9726" ? `
             <div class="profile-account" style="border-color:#a855f7;background:rgba(168,85,247,0.05);margin-top:12px;">
               <div class="profile-account-title" style="color:#a855f7;"><span class="ico" data-icon="shield"></span> Admin Panel (mango9726)</div>
-              <button class="btn btn-sm btn-primary" id="profileAdminBtn" style="background:#a855f7;border-color:#a855f7;width:100%;margin-top:6px;">👑 เปิดแผงควบคุมผู้ดูแลระบบ (Admin Control)</button>
+              <button class="btn btn-sm btn-primary" id="profileAdminBtn" style="background:#a855f7;border-color:#a855f7;width:100%;margin-top:6px;"><span class="ico" data-icon="shield"></span> เปิดแผงควบคุมผู้ดูแลระบบ</button>
             </div>` : ""}
             <div class="profile-actions">
               <button class="btn btn-primary" id="profileEdit">${esc(t("auth.editProfile"))}</button>
@@ -1933,7 +1933,7 @@
     if (adminBtn) {
       adminBtn.onclick = function () {
         closeProfileModal();
-        showAdminModal();
+        adminOpen();
       };
     }
     // --- บัญชี: เปลี่ยนรหัสผ่าน / username / email / ยืนยันอีเมล ---
@@ -2082,8 +2082,18 @@
     changeEmail: changeEmail,
     changeUsername: changeUsername,
     verifyEmail: verifyEmail,
-    t: t
+    t: t,
+    setAdminPanel: setAdminPanel,
+    adminOpen: adminOpen
   };
+
+  var _adminPanelOpen = null;
+  function setAdminPanel(fn) { _adminPanelOpen = fn; }
+  function adminOpen() {
+    if (typeof _adminPanelOpen === "function") { try { _adminPanelOpen(); return; } catch (e) {} }
+    // Fallback to the legacy built-in modal.
+    showAdminModal();
+  }
 
   // --- Auto-init UI ---
   function showAdminModal() {

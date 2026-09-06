@@ -2,7 +2,7 @@
  * App-shell precache + runtime cache. Music is large, so it is cached
  * lazily on first play with an LRU cap instead of being precached.
  */
-const VERSION = "vocab-trainer-v13";
+const VERSION = "vocab-trainer-v16";
 const SHELL_CACHE = VERSION + "-shell";
 const RUNTIME_CACHE = VERSION + "-runtime";
 const MUSIC_CAP = 14; // max cached music tracks
@@ -35,6 +35,7 @@ const SHELL = [
   "assets/js/placement.js",
   "assets/js/mini-player.js",
   "assets/js/auth.js",
+  "assets/js/admin-panel.js",
   "assets/js/firebase-config.js",
   "assets/js/boot.js",
   "assets/img/favicon.svg",

@@ -13,6 +13,15 @@
   ready(function () {
     var view = param("view") || "home";
     var lang = param("lang") === "en" ? "en" : "th";
+    var accent = param("accent");
+    if (accent) {
+      try {
+        document.documentElement.setAttribute("data-accent", accent);
+        var s = JSON.parse(localStorage.getItem("vocab_settings_v1") || "{}");
+        s.accent = accent;
+        localStorage.setItem("vocab_settings_v1", JSON.stringify(s));
+      } catch (e) {}
+    }
     try { if (window.VocabApp.setLang) window.VocabApp.setLang(lang); } catch (e) {}
     window.setTimeout(function () {
       try { window.VocabApp.showView(view); } catch (e) { console.error(e); }

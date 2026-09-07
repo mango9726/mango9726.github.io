@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob: data:; img-src 'self' data: blob:;" />
+  <title>Mini Music Player — Station Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    body { margin: 0; min-height: 100vh; background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(59,130,246,0.18), transparent 60%),
+      radial-gradient(900px 500px at 10% 110%, rgba(14,165,233,0.14), transparent 55%),
+      #eef2ff; font-family: 'Inter', 'Noto Sans Thai', sans-serif; }
+    .stage { padding: 20px; }
+    .note { max-width: 520px; margin: 18px auto 8px; color: #475569; font-size: 13.5px; line-height: 1.6; }
+    /* mini-player is fixed bottom-right by default */
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="note" style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;box-shadow:0 10px 30px rgba(30,58,138,0.06)">
+      <b>Mini Music Player — Stations, Favorites &amp; History</b><br />
+      Station tabs: Lofi / Chill · Jazz · Focus · All Songs · Favorites · Recently Played.<br />
+      Use the ♥ to favorite a song (header + each queue row). The two ♥'d rows below are favorites.
+    </div>
+  </div>
+
+  <script defer src="assets/js/mini-player.js"></script>
+  <script defer src="_mmp-shots-seed.js"></script>
+</body>
+</html>

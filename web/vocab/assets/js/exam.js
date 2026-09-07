@@ -96,10 +96,10 @@
 
   function dayRangeFor(level) {
     const ord = order();
-    const startMap = window.CEFR_START_DAY || { A1: 1, A2: 61, B1: 121, B2: 211, C1: 301, C2: 391 };
+    const startMap = window.CEFR_START_DAY || { A1: 1, A2: 61, B1: 121, B2: 181, C1: 241, C2: 301 };
     const i = ord.indexOf(level);
     const start = startMap[level] || 1;
-    const end = (i + 1 < ord.length && startMap[ord[i + 1]]) ? startMap[ord[i + 1]] - 1 : 480;
+    const end = (i + 1 < ord.length && startMap[ord[i + 1]]) ? startMap[ord[i + 1]] - 1 : 360;
     return [start, end];
   }
 

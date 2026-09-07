@@ -1,9 +1,13 @@
 # Environment and secrets
 .env
 **/server/.env
+opencode.json
 
 # Temporary / Office lock files
 ~$*
 **/~$*
 .DS_Store
 Thumbs.db
+
+# Local scratch files
+tmp-*.json

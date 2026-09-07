@@ -1530,7 +1530,7 @@
     // จำนวนวันจริงของระดับปัจจุบัน (นับจากวันสัมพัทธ์ใน ITEMS ที่กรองแล้ว)
     const set = {};
     ITEMS.forEach(function (i) { set[Number(i.day)] = true; });
-    const keys = Object.keys(set).map(Number).filter(function (n) { return n >= 1 && n <= 480; });
+    const keys = Object.keys(set).map(Number).filter(function (n) { return n >= 1 && n <= 360; });
     if (keys.length) return Math.max.apply(null, keys);
     const lv = currentCefrLevel();
     const days = (window.cefrDaysForLevel && window.cefrDaysForLevel(lv)) || [];
@@ -1548,6 +1548,37 @@
     return 1;
   }
   function currentPlanDay() { return settings.planDayOverride ? settings.planDayOverride : computePlanDay(); }
+
+  /* ---------- Level-up readiness: เรียนครบทุกวันของระดับปัจจุบัน ---------- */
+  function nextLevel() {
+    const lv = currentCefrLevel();
+    const i = window.CEFR_ORDER.indexOf(lv);
+    return (i >= 0 && i + 1 < window.CEFR_ORDER.length) ? window.CEFR_ORDER[i + 1] : null;
+  }
+  function allPlanDaysDone() {
+    if (!settings.dayDone || typeof settings.dayDone !== "object") return false;
+    const maxDays = planMaxDays();
+    const base = String(settings.planStartDate || "0000-00-00");
+    for (let d = 1; d <= maxDays; d++) {
+      const val = settings.dayDone[d];
+      if (!val || String(val) < base) return false;
+    }
+    return true;
+  }
+  function promoteLevel(next) {
+    if (!next || !window.CEFR_ORDER || window.CEFR_ORDER.indexOf(next) < 0) return;
+    try { if (window.setCefrLevel) window.setCefrLevel(next); } catch (e) {}
+    try {
+      const loggedIn = window.VocabAuth && typeof window.VocabAuth.isLoggedIn === "function" && window.VocabAuth.isLoggedIn();
+      if (loggedIn && settings && typeof settings === "object") {
+        settings.selectedCefrLevel = next;
+        save(K_SETTINGS, settings);
+      }
+    } catch (e) {}
+    if (window.VocabApp && typeof window.VocabApp.onCefrLevelChange === "function") {
+      window.VocabApp.onCefrLevelChange(next);
+    }
+  }
 
   /* ---------- CEFR Level Panel (Home) ---------- */
   function renderCEFRBadges() {
@@ -2056,6 +2087,7 @@
     document.addEventListener("click", function (e) {
       const el = e.target.closest && e.target.closest(RIPPLE_SEL);
       if (!el || el.disabled) return;
+      if (el.closest && el.closest(".mmp")) return;
       // Sound only for actual buttons (quiz-opt has its own correct/wrong tone)
       if (soundOn() && el.matches("button, .btn") && !el.matches(".quiz-opt")) playClick();
       createRipple({ currentTarget: el, clientX: e.clientX, clientY: e.clientY });
@@ -2283,6 +2315,7 @@
     if (name === "stories") renderStories();
     if (name === "dictation") renderDictationQuiz();
     if (name === "exam") renderExam();
+    else if (window.LevelUpExam && typeof window.LevelUpExam.pause === "function") window.LevelUpExam.pause();
     updateMiniQuest(name); // ซ่อนwidgetบนHome / โชว์+เรนเดอร์บนหน้าอื่น
     if (name === "fill") resetFill();
     if (name === "match") resetMatch();
@@ -2352,7 +2385,7 @@
     if (cefrFilter !== "all" && window.cefrDaysForLevel) {
       allowedDays = window.cefrDaysForLevel(cefrFilter);
     } else {
-      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 480; }).sort(function (a, b) { return a - b; });
+      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 360; }).sort(function (a, b) { return a - b; });
     }
 
     const c = $("browseDay"); if (!c) return;
@@ -2376,7 +2409,7 @@
     if (cefrFilter !== "all" && window.cefrDaysForLevel) {
       allowedDays = window.cefrDaysForLevel(cefrFilter);
     } else {
-      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 480; }).sort(function (a, b) { return a - b; });
+      allowedDays = Object.keys(VOCAB_DAYS).map(Number).filter(function (d) { return d >= 1 && d <= 360; }).sort(function (a, b) { return a - b; });
     }
     const studied = settings.studiedDays || [];
     const set = {};
@@ -2442,14 +2475,9 @@
     save(K_SETTINGS, settings);
   }
   function gameSourceMaxDay(level) {
-    if (level === "all") return 480;
-    if (level === "A1" || level === "A2") return 60;
-    if (level === "B1" || level === "B2" || level === "C1" || level === "C2") return 90;
-    if (level === "current") {
-      const lvl = currentCefrLevel();
-      return (lvl === "A1" || lvl === "A2") ? 60 : 90;
-    }
-    return 480;
+    // ทุกระดับ (A1–C2) มี 60 วัน; "all" ครอบคลุมทั้งหลักสูตร 360 วัน
+    if (level === "all") return 360;
+    return 60;
   }
   function gameSourceBase(level) {
     if (level === "current") return ITEMS;
@@ -3387,6 +3415,26 @@
     }
     doneCard.style.animationDelay = "0ms";
     list.appendChild(doneCard);
+
+    // การ์ด "แบบทดสอบเลื่อนระดับ" — เมื่อเรียนครบทุกวันของระดับปัจจุบัน
+    const lvlNext = nextLevel();
+    if (lvlNext && allPlanDaysDone()) {
+      const nextName = (window.CEFR_LEVELS && window.CEFR_LEVELS[lvlNext])
+        ? (settings.lang === "th" ? window.CEFR_LEVELS[lvlNext].th : window.CEFR_LEVELS[lvlNext].name)
+        : lvlNext;
+      const lu = taskCard(
+        svgIcon("award") + t("levelup.cardTitle"),
+        t("levelup.cardHint").replace("{lv}", lvlNext).replace("{name}", nextName),
+        t("levelup.cardBtn"),
+        function () {
+          if (window.LevelUpExam && typeof window.LevelUpExam.start === "function") window.LevelUpExam.start();
+          else toast(t("levelup.cardUnavailable"), "warn");
+        },
+        t("levelup.cardDesc")
+      );
+      lu.style.animationDelay = "0ms";
+      list.appendChild(lu);
+    }
 
     // งานใหม่: ถ้ามีคำสำหรับวันนี้ (ในระดับปัจจุบัน — ใช้ ITEMS ที่กรอง+remap แล้ว)
     if (todayItems.length) {
@@ -5536,7 +5584,9 @@
     $("settingsPageSong").onchange = function () {
       settings.pageSong = +this.value; save(K_SETTINGS, settings);
       if (window.MiniMusicPlayer) {
-        // The mini-player fuses all songs into one library (page songs first).
+        // Today's player exposes stations; the pickers map onto the fused
+        // "all" station (page songs first), so make sure we're on it.
+        window.MiniMusicPlayer.setMode("all");
         window.MiniMusicPlayer.loadTrack(+this.value);
       } else if (settings.music && musicMode === "onpage") {
         musicRefresh();
@@ -5545,7 +5595,8 @@
     $("settingsGameSong").onchange = function () {
       settings.gameSong = +this.value; save(K_SETTINGS, settings);
       if (window.MiniMusicPlayer) {
-        // Game songs follow the page songs in the fused library.
+        // Game songs follow the page songs in the fused "all" library.
+        window.MiniMusicPlayer.setMode("all");
         window.MiniMusicPlayer.loadTrack(PAGE_SONGS.length + (+this.value));
       } else if (settings.music && musicMode === "ingame") {
         musicRefresh();
@@ -8126,6 +8177,9 @@ bookPageIdx = 0;
     currentCefrLevel: function () {
       try { return window.CefrSelector ? window.CefrSelector.getEffectiveCefrLevel() : "A1"; } catch (e) { return "A1"; }
     },
+    nextLevel: function () { try { return nextLevel(); } catch (e) { return null; } },
+    allPlanDaysDone: function () { try { return allPlanDaysDone(); } catch (e) { return false; } },
+    promoteLevel: function (n) { try { promoteLevel(n); } catch (e) {} },
     commit: function () {
       try { save(K_PROGRESS, progress); } catch (e) {}
       try { save(K_SETTINGS, settings); } catch (e) {}

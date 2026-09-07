@@ -1,13 +1,13 @@
 /* ============================================================
-   VOCAB DATA  —  CEFR Levels (A1-A2: 60 Days, B1-C2: 90 Days)
+   VOCAB DATA  —  CEFR Levels (ทุก level มี 60 Days)
    ------------------------------------------------------------
    - A1 Beginner        : Day 1–60 (600 unique words, 1 collocation/day, no idiom)
    - A2 Elementary      : Day 61–120 (600 unique words, 2 collocations/day, no idiom)
-   - B1 Intermediate    : Day 121–210 (900 unique words, 3 collocations/day + 1 unique idiom)
-   - B2 Upper-Int.      : Day 211–300 (900 unique words, 3 collocations/day + unique idiom)
-   - C1 Advanced        : Day 301–390 (900 unique words, 3 collocations/day + idiom)
-   - C2 Expert          : Day 391–480 (900 unique words, 3 collocations/day + idiom)
-   Total: 480 days, 4,800 completely unique vocabulary words.
+   - B1 Intermediate    : Day 121–180 (900 unique words, 3 collocations/day + 1 unique idiom)
+   - B2 Upper-Int.      : Day 181–240 (900 unique words, 3 collocations/day + unique idiom)
+   - C1 Advanced        : Day 241–300 (900 unique words, 3 collocations/day + idiom)
+   - C2 Expert          : Day 301–360 (900 unique words, 3 collocations/day + idiom)
+   Total: 360 days, 4,800 completely unique vocabulary words.
    Zero duplication, strictly aligned with CEFR difficulty levels,
    with real Thai dictionary meanings.
    ============================================================ */
@@ -25,10 +25,10 @@ const VOCAB_DAYS = {};
   const levelConfigs = [
     { level: "A1", name: "A1 Beginner", start: 1, end: 60, targetWords: 600, thName: "ผู้เริ่มต้น" },
     { level: "A2", name: "A2 Elementary", start: 61, end: 120, targetWords: 600, thName: "ระดับประถม" },
-    { level: "B1", name: "B1 Intermediate", start: 121, end: 210, targetWords: 900, thName: "ระดับกลาง" },
-    { level: "B2", name: "B2 Upper-Intermediate", start: 211, end: 300, targetWords: 900, thName: "ระดับกลางสูง" },
-    { level: "C1", name: "C1 Advanced", start: 301, end: 390, targetWords: 900, thName: "ระดับสูง" },
-    { level: "C2", name: "C2 Expert", start: 391, end: 480, targetWords: 900, thName: "ระดับเชี่ยวชาญ" }
+    { level: "B1", name: "B1 Intermediate", start: 121, end: 180, targetWords: 900, thName: "ระดับกลาง" },
+    { level: "B2", name: "B2 Upper-Intermediate", start: 181, end: 240, targetWords: 900, thName: "ระดับกลางสูง" },
+    { level: "C1", name: "C1 Advanced", start: 241, end: 300, targetWords: 900, thName: "ระดับสูง" },
+    { level: "C2", name: "C2 Expert", start: 301, end: 360, targetWords: 900, thName: "ระดับเชี่ยวชาญ" }
   ];
 
   // Comprehensive Thai meaning dictionary for common English words
@@ -814,8 +814,8 @@ const VOCAB_DAYS = {};
     [{ phrase: "do exercise", th: "ออกกำลังกาย", exEn: "Do regular exercise.", exTh: "ออกกำลังกายเป็นประจำ" }, { phrase: "stay healthy", th: "รักษาสุขภาพ", exEn: "Eat well, stay healthy.", exTh: "ทานอาหารดี รักษาสุขภาพ" }],
     [{ phrase: "feel happy", th: "รู้สึกมีความสุข", exEn: "Feel very happy.", exTh: "รู้สึกมีความสุขมาก" }, { phrase: "get excited", th: "ตื่นเต้น", exEn: "Get excited for trip.", exTh: "ตื่นเต้นสำหรับการเดินทาง" }],
     [{ phrase: "send an email", th: "ส่งอีเมล", exEn: "Send an official email.", exTh: "ส่งอีเมลที่เป็นทางการ" }, { phrase: "make a phone call", th: "โทรศัพท์", exEn: "Make a phone call.", exTh: "โทรศัพท์หา" }],
-    [{ phrase: "write a letter", th: "เขียนจดหมาย", exEn: "Write a handwritten letter.", exTh: "เขียนจดหมายด้วยลายมือ" }, { phrase: "read the news", th: "อ่านข่าว", exEn: "Read morning news.", exTh: "อ่านข่าวตอนเช้า" }],
-    [{ phrase: "take an exam", th: "สอบ", exEn: "Take a difficult exam.", exTh: "สอบข้อสอบที่ยาก" }, { phrase: "do homework", th: "ทำการบ้าน", exEn: "Finish your homework.", exTh: "ทำการบ้านให้เสร็จ" }],
+    [{ phrase: "compose a note", th: "จดบันทึก", exEn: "Compose a short note to your colleague.", exTh: "เขียนบันทึกสั้นๆ ถึงเพื่อนร่วมงาน" }, { phrase: "scan headlines", th: "สแกนพาดหัวข่าว", exEn: "Scan the headlines before your meeting.", exTh: "สแกนพาดหัวข่าวก่อนประชุม" }],
+    [{ phrase: "take an exam", th: "สอบ", exEn: "Take a difficult exam.", exTh: "สอบข้อสอบที่ยาก" }, { phrase: "complete assignments", th: "ทำการบ้าน", exEn: "Complete all assignments by Friday.", exTh: "ทำการบ้านทั้งหมดให้เสร็จภายในวันศุกร์" }],
     [{ phrase: "study English", th: "เรียนภาษาอังกฤษ", exEn: "Study English grammar.", exTh: "เรียนไวยากรณ์ภาษาอังกฤษ" }, { phrase: "attend a class", th: "เข้าเรียน", exEn: "Attend a science class.", exTh: "เข้าเรียนวิชาวิทยาศาสตร์" }],
     [{ phrase: "travel abroad", th: "เที่ยวต่างประเทศ", exEn: "Travel abroad alone.", exTh: "เดินทางไปต่างประเทศคนเดียว" }, { phrase: "miss a flight", th: "ตกเครื่องบิน", exEn: "Do not miss the flight.", exTh: "อย่าตกเครื่องบิน" }],
     [{ phrase: "go shopping", th: "ไปช้อปปิ้ง", exEn: "Go shopping downtown.", exTh: "ไปช้อปปิ้งในเมือง" }, { phrase: "ask for a discount", th: "ขอส่วนลด", exEn: "Ask for a discount.", exTh: "ขอส่วนลดราคา" }],
@@ -827,10 +827,10 @@ const VOCAB_DAYS = {};
     [{ phrase: "live in a city", th: "อาศัยในเมือง", exEn: "Live in a big city.", exTh: "อาศัยอยู่ในเมืองใหญ่" }, { phrase: "explore a neighborhood", th: "สำรวจย่าน", exEn: "Explore the neighborhood.", exTh: "สำรวจย่านรอบๆ" }],
     [{ phrase: "protect the environment", th: "ปกป้องสิ่งแวดล้อม", exEn: "Protect the environment.", exTh: "ปกป้องสิ่งแวดล้อม" }, { phrase: "conserve energy", th: "ประหยัดพลังงาน", exEn: "Conserve household energy.", exTh: "ประหยัดพลังงานในบ้าน" }],
     [{ phrase: "use technology", th: "ใช้เทคโนโลยี", exEn: "Use modern technology.", exTh: "ใช้เทคโนโลยีสมัยใหม่" }, { phrase: "browse the internet", th: "ท่องเน็ต", exEn: "Browse the internet.", exTh: "ท่องอินเทอร์เน็ต" }],
-    [{ phrase: "clean the kitchen", th: "ทำความสะอาดครัว", exEn: "Clean the kitchen daily.", exTh: "ทำความสะอาดห้องครัวทุกวัน" }, { phrase: "decorate the bedroom", th: "แต่งห้องนอน", exEn: "Decorate the bedroom.", exTh: "ตกแต่งห้องนอน" }],
+    [{ phrase: "scrub the countertop", th: "ทำความสะอาดครัว", exEn: "Clean the kitchen daily.", exTh: "ทำความสะอาดห้องครัวทุกวัน" }, { phrase: "decorate the bedroom", th: "แต่งห้องนอน", exEn: "Decorate the bedroom.", exTh: "ตกแต่งห้องนอน" }],
     [{ phrase: "turn on television", th: "เปิดทีวี", exEn: "Turn on the television.", exTh: "เปิดโทรทัศน์" }, { phrase: "charge the battery", th: "ชาร์จแบต", exEn: "Charge your phone battery.", exTh: "ชาร์จแบตเตอรี่โทรศัพท์" }],
     [{ phrase: "wear sunglasses", th: "ใส่แว่นกันแดด", exEn: "Wear stylish sunglasses.", exTh: "ใส่แว่นกันแดดมีสไตล์" }, { phrase: "use an umbrella", th: "ใช้ร่ม", exEn: "Use an umbrella in rain.", exTh: "ใช้ร่มตอนฝนตก" }],
-    [{ phrase: "take a shower", th: "อาบน้ำ", exEn: "Take a warm shower.", exTh: "อาบน้ำอุ่น" }, { phrase: "brush teeth", th: "แปรงฟัน", exEn: "Brush teeth twice daily.", exTh: "แปรงฟันวันละสองครั้ง" }],
+    [{ phrase: "have a bath", th: "อาบน้ำ", exEn: "Have a warm bath at night.", exTh: "อาบน้ำอุ่นตอนกลางคืน" }, { phrase: "brush teeth", th: "แปรงฟัน", exEn: "Brush teeth twice daily.", exTh: "แปรงฟันวันละสองครั้ง" }],
     [{ phrase: "read a textbook", th: "อ่านตำรา", exEn: "Read a history textbook.", exTh: "อ่านหนังสือเรียนประวัติศาสตร์" }, { phrase: "use a dictionary", th: "ใช้พจนานุกรม", exEn: "Use an English dictionary.", exTh: "ใช้พจนานุกรมอังกฤษ" }],
     [{ phrase: "wear a uniform", th: "สวมเครื่องแบบ", exEn: "Wear a school uniform.", exTh: "สวมชุดเครื่องแบบนักเรียน" }, { phrase: "carry a backpack", th: "สะพายเป้", exEn: "Carry a heavy backpack.", exTh: "สะพายเป้ใบหนัก" }],
     [{ phrase: "plan a trip", th: "วางแผนทริป", exEn: "Plan a summer trip.", exTh: "วางแผนการเดินทางช่วงฤดูร้อน" }, { phrase: "enjoy the holiday", th: "สนุกกับวันหยุด", exEn: "Enjoy the long holiday.", exTh: "เพลิดเพลินกับวันหยุดยาว" }]
@@ -841,7 +841,7 @@ const VOCAB_DAYS = {};
     [{ phrase: "accept responsibility", th: "รับผิดชอบ", exEn: "Accept responsibility.", exTh: "ยอมรับความรับผิดชอบ" }, { phrase: "solve a problem", th: "แก้ปัญหา", exEn: "Solve a complex problem.", exTh: "แก้ปัญหาที่ซับซ้อน" }, { phrase: "find a solution", th: "หาทางออก", exEn: "Find a quick solution.", exTh: "หาทางออกอย่างรวดเร็ว" }],
     [{ phrase: "gain experience", th: "ได้รับประสบการณ์", exEn: "Gain work experience.", exTh: "ได้รับประสบการณ์ทำงาน" }, { phrase: "develop skills", th: "พัฒนาทักษะ", exEn: "Develop new skills.", exTh: "พัฒนาทักษะใหม่ๆ" }, { phrase: "improve performance", th: "ปรับปรุงผลงาน", exEn: "Improve performance.", exTh: "ปรับปรุงผลงาน" }],
     [{ phrase: "express an opinion", th: "แสดงความคิดเห็น", exEn: "Express an opinion.", exTh: "แสดงความคิดเห็น" }, { phrase: "raise a question", th: "ตั้งคำถาม", exEn: "Raise a key question.", exTh: "ตั้งคำถามสำคัญ" }, { phrase: "share ideas", th: "แบ่งปันความคิด", exEn: "Share creative ideas.", exTh: "แบ่งปันความคิดสร้างสรรค์" }],
-    [{ phrase: "take action", th: "ลงมือทำ", exEn: "Take immediate action.", exTh: "ลงมือทำทันที" }, { phrase: "make a decision", th: "ตัดสินใจ", exEn: "Make a hard decision.", exTh: "ตัดสินใจครั้งยาก" }, { phrase: "keep in mind", th: "คำนึงถึง / จำไว้", exEn: "Keep this in mind.", exTh: "จำเรื่องนี้ไว้ให้ดี" }],
+    [{ phrase: "take action", th: "ลงมือทำ", exEn: "Take immediate action.", exTh: "ลงมือทำทันที" }, { phrase: "formulate a judgment", th: "ตัดสินใจ", exEn: "Make a hard decision.", exTh: "ตัดสินใจครั้งยาก" }, { phrase: "keep in mind", th: "คำนึงถึง / จำไว้", exEn: "Keep this in mind.", exTh: "จำเรื่องนี้ไว้ให้ดี" }],
     [{ phrase: "meet expectations", th: "ตรงตามความคาดหวัง", exEn: "Meet high expectations.", exTh: "ตรงตามความคาดหวังสูง" }, { phrase: "exceed standards", th: "เกินมาตรฐาน", exEn: "Exceed quality standards.", exTh: "เกินมาตรฐานคุณภาพ" }, { phrase: "fulfill a requirement", th: "ทำตามข้อกำหนด", exEn: "Fulfill a requirement.", exTh: "ทำตามข้อกำหนด" }],
     [{ phrase: "reduce stress", th: "ลดความเครียด", exEn: "Reduce daily stress.", exTh: "ลดความเครียดประจำวัน" }, { phrase: "manage time", th: "บริหารเวลา", exEn: "Manage time wisely.", exTh: "บริหารเวลาอย่างชาญฉลาด" }, { phrase: "maintain balance", th: "รักษาสมดุล", exEn: "Maintain life balance.", exTh: "รักษาสมดุลชีวิต" }],
     [{ phrase: "build a relationship", th: "สร้างความสัมพันธ์", exEn: "Build a strong bond.", exTh: "สร้างความสัมพันธ์ที่แน่นแฟ้น" }, { phrase: "gain trust", th: "ได้รับความไว้วางใจ", exEn: "Gain customer trust.", exTh: "ได้รับความไว้วางใจจากลูกค้า" }, { phrase: "show respect", th: "แสดงความเคารพ", exEn: "Show deep respect.", exTh: "แสดงความเคารพอย่างสูง" }],
@@ -903,7 +903,7 @@ const VOCAB_DAYS = {};
   ];
 
   const b2CollocList = [
-    [{ phrase: "conduct research", th: "ทำการวิจัย", exEn: "Researchers conduct research on climate change.", exTh: "นักวิจัยทำการวิจัยเกี่ยวกับการเปลี่ยนแปลงสภาพภูมิอากาศ" }, { phrase: "commit to a goal", th: "มุ่งมั่นต่อเป้าหมาย", exEn: "She committed to her fitness goal.", exTh: "เธอมุ่งมั่นต่อเป้าหมายด้านสุขภาพของเธอ" }, { phrase: "establish a business", th: "ก่อตั้งธุรกิจ", exEn: "They established a family business.", exTh: "พวกเขาก่อตั้งธุรกิจครอบครัว" }],
+    [{ phrase: "perform analysis", th: "ทำการวิเคราะห์", exEn: "Researchers perform a detailed analysis of the data.", exTh: "นักวิจัยทำการวิเคราะห์ข้อมูลอย่างละเอียด" }, { phrase: "commit to a goal", th: "มุ่งมั่นต่อเป้าหมาย", exEn: "She committed to her fitness goal.", exTh: "เธอมุ่งมั่นต่อเป้าหมายด้านสุขภาพของเธอ" }, { phrase: "establish a business", th: "ก่อตั้งธุรกิจ", exEn: "They established a family business.", exTh: "พวกเขาก่อตั้งธุรกิจครอบครัว" }],
     [{ phrase: "reach a consensus", th: "บรรลุฉันทามติ", exEn: "The team reached a consensus quickly.", exTh: "ทีมบรรลุฉันทามติอย่างรวดเร็ว" }, { phrase: "demonstrate a skill", th: "แสดงทักษะ", exEn: "He demonstrated his cooking skill.", exTh: "เขาแสดงทักษะการทำอาหาร" }, { phrase: "interpret the results", th: "ตีความผลลัพธ์", exEn: "Interpret the survey results carefully.", exTh: "ตีความผลการสำรวจอย่างรอบคอบ" }],
     [{ phrase: "undergo a transformation", th: "ผ่านการเปลี่ยนแปลงครั้งใหญ่", exEn: "The city underwent a huge transformation.", exTh: "เมืองผ่านการเปลี่ยนแปลงครั้งใหญ่" }, { phrase: "negotiate a contract", th: "เจรจาสัญญา", exEn: "They negotiated a new contract.", exTh: "พวกเขาเจรจาสัญญาฉบับใหม่" }, { phrase: "invest in education", th: "ลงทุนในการศึกษา", exEn: "The government invests in education.", exTh: "รัฐบาลลงทุนในด้านการศึกษา" }],
     [{ phrase: "overcome adversity", th: "เอาชนะความยากลำบาก", exEn: "She overcame adversity with courage.", exTh: "เธอเอาชนะความยากลำบากด้วยความกล้าหาญ" }, { phrase: "persuade the audience", th: "โน้มน้าวผู้ฟัง", exEn: "The speaker persuaded the audience.", exTh: "นักพูดโน้มน้าวผู้ฟังได้" }, { phrase: "acknowledge the contribution", th: "ยอมรับการมีส่วนร่วม", exEn: "We acknowledge everyone's contribution.", exTh: "เรายอมรับการมีส่วนร่วมของทุกคน" }],
@@ -914,11 +914,11 @@ const VOCAB_DAYS = {};
     [{ phrase: "eliminate obstacles", th: "ขจัดอุปสรรค", exEn: "Eliminate all obstacles first.", exTh: "ขจัดอุปสรรคทั้งหมดก่อน" }, { phrase: "enhance public awareness", th: "เพิ่มความตระหนักรู้ของสาธารณชน", exEn: "Campaigns enhance public awareness.", exTh: "แคมเปญช่วยเพิ่มความตระหนักรู้ของสาธารณชน" }, { phrase: "facilitate communication", th: "อำนวยความสะดวกในการสื่อสาร", exEn: "Technology facilitates communication.", exTh: "เทคโนโลยีอำนวยความสะดวกในการสื่อสาร" }],
     [{ phrase: "pursue a career", th: "ประกอบอาชีพ / ทำตามเส้นทางอาชีพ", exEn: "She pursued a career in law.", exTh: "เธอประกอบอาชีพด้านกฎหมาย" }, { phrase: "strive for excellence", th: "มุ่งสู่ความเป็นเลิศ", exEn: "Strive for excellence always.", exTh: "มุ่งสู่ความเป็นเลิศเสมอ" }, { phrase: "achieve remarkable results", th: "บรรลุผลลัพธ์ที่ยอดเยี่ยม", exEn: "The team achieved remarkable results.", exTh: "ทีมบรรลุผลลัพธ์ที่ยอดเยี่ยม" }],
     [{ phrase: "embrace change", th: "เปิดรับการเปลี่ยนแปลง", exEn: "Embrace change with confidence.", exTh: "เปิดรับการเปลี่ยนแปลงอย่างมั่นใจ" }, { phrase: "deteriorate rapidly", th: "เสื่อมลงอย่างรวดเร็ว", exEn: "The situation deteriorated rapidly.", exTh: "สถานการณ์เสื่อมลงอย่างรวดเร็ว" }, { phrase: "mitigate the impact", th: "ลดผลกระทบ", exEn: "Measures mitigate the impact.", exTh: "มาตรการช่วยลดผลกระทบ" }],
-    [{ phrase: "allocate resources", th: "จัดสรรทรัพยากร", exEn: "Allocate resources wisely.", exTh: "จัดสรรทรัพยากรอย่างชาญฉลาด" }, { phrase: "generate revenue", th: "สร้างรายได้", exEn: "The store generates high revenue.", exTh: "ร้านค้าสร้างรายได้สูง" }, { phrase: "expand into markets", th: "ขยายสู่ตลาด", exEn: "They expanded into new markets.", exTh: "พวกเขาขยายสู่ตลาดใหม่" }],
-    [{ phrase: "conserve energy", th: "อนุรักษ์พลังงาน", exEn: "Conserve energy at home.", exTh: "อนุรักษ์พลังงานที่บ้าน" }, { phrase: "contaminate the water", th: "ปนเปื้อนน้ำ", exEn: "Waste contaminates the water.", exTh: "ขยะปนเปื้อนแหล่งน้ำ" }, { phrase: "monitor the situation", th: "ติดตามสถานการณ์", exEn: "Monitor the situation closely.", exTh: "ติดตามสถานการณ์อย่างใกล้ชิด" }],
+    [{ phrase: "distribute assets", th: "จัดสรรทรัพยากร", exEn: "Allocate resources wisely.", exTh: "จัดสรรทรัพยากรอย่างชาญฉลาด" }, { phrase: "generate revenue", th: "สร้างรายได้", exEn: "The store generates high revenue.", exTh: "ร้านค้าสร้างรายได้สูง" }, { phrase: "expand into markets", th: "ขยายสู่ตลาด", exEn: "They expanded into new markets.", exTh: "พวกเขาขยายสู่ตลาดใหม่" }],
+    [{ phrase: "preserve resources", th: "อนุรักษ์ทรัพยากร", exEn: "Preserve natural resources for the future.", exTh: "อนุรักษ์ทรัพยากรธรรมชาติเพื่ออนาคต" }, { phrase: "contaminate the water", th: "ปนเปื้อนน้ำ", exEn: "Waste contaminates the water.", exTh: "ขยะปนเปื้อนแหล่งน้ำ" }, { phrase: "monitor the situation", th: "ติดตามสถานการณ์", exEn: "Monitor the situation closely.", exTh: "ติดตามสถานการณ์อย่างใกล้ชิด" }],
     [{ phrase: "resolve a dispute", th: "ระงับข้อพิพาท", exEn: "They resolved the dispute peacefully.", exTh: "พวกเขาระงับข้อพิพาทอย่างสันติ" }, { phrase: "restore the environment", th: "ฟื้นฟูสิ่งแวดล้อม", exEn: "Efforts restore the environment.", exTh: "ความพยายามช่วยฟื้นฟูสิ่งแวดล้อม" }, { phrase: "sustain the growth", th: "รักษาการเติบโต", exEn: "The firm sustains steady growth.", exTh: "บริษัทรักษาการเติบโตอย่างต่อเนื่อง" }],
     [{ phrase: "estimate the cost", th: "ประเมินต้นทุน", exEn: "Estimate the cost first.", exTh: "ประเมินต้นทุนก่อน" }, { phrase: "inspect the equipment", th: "ตรวจสอบอุปกรณ์", exEn: "Inspect the equipment regularly.", exTh: "ตรวจสอบอุปกรณ์เป็นประจำ" }, { phrase: "install new software", th: "ติดตั้งซอฟต์แวร์ใหม่", exEn: "Install new software today.", exTh: "ติดตั้งซอฟต์แวร์ใหม่วันนี้" }],
-    [{ phrase: "launch a campaign", th: "เปิดตัวแคมเปญ", exEn: "Launch a campaign next month.", exTh: "เปิดตัวแคมเปญเดือนหน้า" }, { phrase: "promote the product", th: "ส่งเสริมผลิตภัณฑ์", exEn: "Promote the product online.", exTh: "ส่งเสริมการขายผลิตภัณฑ์ออนไลน์" }, { phrase: "recruit talented staff", th: "รับสมัครพนักงานที่มีความสามารถ", exEn: "Recruit talented staff now.", exTh: "รับสมัครพนักงานที่มีความสามารถตอนนี้" }],
+    [{ phrase: "initiate a drive", th: "เปิดตัวแคมเปญ", exEn: "Launch a campaign next month.", exTh: "เปิดตัวแคมเปญเดือนหน้า" }, { phrase: "promote the product", th: "ส่งเสริมผลิตภัณฑ์", exEn: "Promote the product online.", exTh: "ส่งเสริมการขายผลิตภัณฑ์ออนไลน์" }, { phrase: "recruit talented staff", th: "รับสมัครพนักงานที่มีความสามารถ", exEn: "Recruit talented staff now.", exTh: "รับสมัครพนักงานที่มีความสามารถตอนนี้" }],
     [{ phrase: "withdraw funds", th: "ถอนเงิน", exEn: "Withdraw funds from the account.", exTh: "ถอนเงินจากบัญชี" }, { phrase: "negotiate a settlement", th: "เจรจาไกล่เกลี่ย", exEn: "Negotiate a fair settlement.", exTh: "เจรจาไกล่เกลี่ยอย่างเป็นธรรม" }, { phrase: "secure a loan", th: "ขอสินเชื่อ", exEn: "They secured a business loan.", exTh: "พวกเขาได้รับสินเชื่อธุรกิจ" }],
     [{ phrase: "conduct an experiment", th: "ทำการทดลอง", exEn: "Conduct an experiment in the lab.", exTh: "ทำการทดลองในห้องปฏิบัติการ" }, { phrase: "compile the data", th: "รวบรวมข้อมูล", exEn: "Compile the data carefully.", exTh: "รวบรวมข้อมูลอย่างละเอียด" }, { phrase: "publish the findings", th: "ตีพิมพ์ผลการค้นพบ", exEn: "Publish the findings soon.", exTh: "ตีพิมพ์ผลการค้นพบในเร็วๆ นี้" }],
     [{ phrase: "abolish the law", th: "ยกเลิกกฎหมาย", exEn: "The council abolished the law.", exTh: "สภายกเลิกกฎหมายฉบับนั้น" }, { phrase: "impose a fine", th: "ลงโทษปรับ", exEn: "The court imposed a heavy fine.", exTh: "ศาลลงโทษปรับอย่างหนัก" }, { phrase: "uphold justice", th: "ยึดมั่นในความยุติธรรม", exEn: "Judges uphold justice.", exTh: "ผู้พิพากษายึดมั่นในความยุติธรรม" }],
@@ -936,11 +936,11 @@ const VOCAB_DAYS = {};
   ];
 
   const c1CollocList = [
-    [{ phrase: "formulate a hypothesis", th: "ตั้งสมมติฐาน", exEn: "Scientists formulate a hypothesis first.", exTh: "นักวิทยาศาสตร์ตั้งสมมติฐานก่อน" }, { phrase: "conduct a survey", th: "ดำเนินการสำรวจ", exEn: "They conducted a nationwide survey.", exTh: "พวกเขาดำเนินการสำรวจทั่วประเทศ" }, { phrase: "draw a conclusion", th: "สรุปผล", exEn: "We cannot draw a conclusion yet.", exTh: "เรายังสรุปผลไม่ได้" }],
-    [{ phrase: "implement a policy", th: "นำนโยบายไปปฏิบัติ", exEn: "The government implemented the policy.", exTh: "รัฐบาลนำนโยบายไปปฏิบัติ" }, { phrase: "enforce regulations", th: "บังคับใช้กฎระเบียบ", exEn: "Agencies enforce safety regulations.", exTh: "หน่วยงานบังคับใช้กฎระเบียบด้านความปลอดภัย" }, { phrase: "grant permission", th: "อนุญาต", exEn: "The council granted permission to build.", exTh: "สภาให้อนุญาตให้ก่อสร้าง" }],
+    [{ phrase: "formulate a hypothesis", th: "ตั้งสมมติฐาน", exEn: "Scientists formulate a hypothesis first.", exTh: "นักวิทยาศาสตร์ตั้งสมมติฐานก่อน" }, { phrase: "conduct a survey", th: "ดำเนินการสำรวจ", exEn: "They conducted a nationwide survey.", exTh: "พวกเขาดำเนินการสำรวจทั่วประเทศ" }, { phrase: "arrive at a finding", th: "สรุปผล", exEn: "We cannot draw a conclusion yet.", exTh: "เรายังสรุปผลไม่ได้" }],
+    [{ phrase: "implement a policy", th: "นำนโยบายไปปฏิบัติ", exEn: "The government implemented the policy.", exTh: "รัฐบาลนำนโยบายไปปฏิบัติ" }, { phrase: "implement compliance", th: "บังคับใช้กฎระเบียบ", exEn: "Agencies enforce safety regulations.", exTh: "หน่วยงานบังคับใช้กฎระเบียบด้านความปลอดภัย" }, { phrase: "grant permission", th: "อนุญาต", exEn: "The council granted permission to build.", exTh: "สภาให้อนุญาตให้ก่อสร้าง" }],
     [{ phrase: "dispute the findings", th: "โต้แย้งผลการค้นพบ", exEn: "Some experts dispute the findings.", exTh: "ผู้เชี่ยวชาญบางคนโต้แย้งผลการค้นพบ" }, { phrase: "contradict the theory", th: "ขัดแย้งกับทฤษฎี", exEn: "The data contradicts the theory.", exTh: "ข้อมูลขัดแย้งกับทฤษฎี" }, { phrase: "verify the claims", th: "ตรวจสอบข้อกล่าวอ้าง", exEn: "Verify the claims before publishing.", exTh: "ตรวจสอบข้อกล่าวอ้างก่อนเผยแพร่" }],
-    [{ phrase: "acquire knowledge", th: "แสวงหาความรู้", exEn: "Lifelong learning helps acquire knowledge.", exTh: "การเรียนรู้ตลอดชีวิตช่วยแสวงหาความรู้" }, { phrase: "refine the skills", th: "พัฒนา/ฝึกฝนทักษะให้คมขึ้น", exEn: "Practice refines your skills.", exTh: "การฝึกฝนทำให้ทักษะของคุณคมขึ้น" }, { phrase: "retain information", th: "จดจำข้อมูล", exEn: "Sleep helps retain information.", exTh: "การนอนช่วยให้จดจำข้อมูลได้" }],
-    [{ phrase: "negotiate a settlement", th: "เจรจาข้อตกลง", exEn: "The two sides negotiated a settlement.", exTh: "ทั้งสองฝ่ายเจรจาข้อตกลงกัน" }, { phrase: "mediate the dispute", th: "ไกล่เกลี่ยข้อพิพาท", exEn: "A third party mediated the dispute.", exTh: "บุคคลที่สามไกล่เกลี่ยข้อพิพาท" }, { phrase: "arbitrate the conflict", th: "ชี้ขาดข้อขัดแย้ง", exEn: "An expert was asked to arbitrate the conflict.", exTh: "ผู้เชี่ยวชาญถูกขอให้ชี้ขาดข้อขัดแย้ง" }],
+    [{ phrase: "attain understanding", th: "แสวงหาความรู้", exEn: "Lifelong learning helps acquire knowledge.", exTh: "การเรียนรู้ตลอดชีวิตช่วยแสวงหาความรู้" }, { phrase: "refine the skills", th: "พัฒนา/ฝึกฝนทักษะให้คมขึ้น", exEn: "Practice refines your skills.", exTh: "การฝึกฝนทำให้ทักษะของคุณคมขึ้น" }, { phrase: "retain information", th: "จดจำข้อมูล", exEn: "Sleep helps retain information.", exTh: "การนอนช่วยให้จดจำข้อมูลได้" }],
+    [{ phrase: "mediate a resolution", th: "เจรจาข้อตกลง", exEn: "The two sides negotiated a settlement.", exTh: "ทั้งสองฝ่ายเจรจาข้อตกลงกัน" }, { phrase: "mediate the dispute", th: "ไกล่เกลี่ยข้อพิพาท", exEn: "A third party mediated the dispute.", exTh: "บุคคลที่สามไกล่เกลี่ยข้อพิพาท" }, { phrase: "arbitrate the conflict", th: "ชี้ขาดข้อขัดแย้ง", exEn: "An expert was asked to arbitrate the conflict.", exTh: "ผู้เชี่ยวชาญถูกขอให้ชี้ขาดข้อขัดแย้ง" }],
     [{ phrase: "disseminate information", th: "เผยแพร่ข้อมูล", exEn: "The agency disseminates public health information.", exTh: "หน่วยงานเผยแพร่ข้อมูลสาธารณสุข" }, { phrase: "foster cooperation", th: "ส่งเสริมความร่วมมือ", exEn: "Dialogue fosters international cooperation.", exTh: "บทสนทนาส่งเสริมความร่วมมือระหว่างประเทศ" }, { phrase: "promote transparency", th: "ส่งเสริมความโปร่งใส", exEn: "Laws promote transparency in government.", exTh: "กฎหมายส่งเสริมความโปร่งใสในรัฐบาล" }],
     [{ phrase: "undermine the authority", th: "บ่อนทำลายอำนาจ", exEn: "Scandals undermine the authority of leaders.", exTh: "เรื่องอื้อฉาวบ่อนทำลายอำนาจของผู้นำ" }, { phrase: "consolidate the power", th: "รวมศูนย์อำนาจ", exEn: "The ruler consolidated his power.", exTh: "ผู้ปกครองรวมศูนย์อำนาจของตน" }, { phrase: "bolster the argument", th: "เสริมความแข็งแกร่งให้ข้อโต้แย้ง", exEn: "New evidence bolsters the argument.", exTh: "หลักฐานใหม่เสริมความแข็งแกร่งให้ข้อโต้แย้ง" }],
     [{ phrase: "diminish the impact", th: "ลดผลกระทบ", exEn: "Preparation diminishes the impact of disasters.", exTh: "การเตรียมพร้อมลดผลกระทบจากภัยพิบัติ" }, { phrase: "mitigate the risk", th: "ลดความเสี่ยง", exEn: "Insurance helps mitigate the risk.", exTh: "ประกันภัยช่วยลดความเสี่ยง" }, { phrase: "alleviate the suffering", th: "บรรเทาความทุกข์ทรมาน", exEn: "Aid alleviates the suffering of victims.", exTh: "ความช่วยเหลือบรรเทาความทุกข์ทรมานของผู้ประสบภัย" }],
@@ -969,10 +969,10 @@ const VOCAB_DAYS = {};
   ];
 
   const c1IdiomList = [
-    { phrase: "the elephant in the room", meaning: "ช้างอยู่ในห้อง (ปัญหาที่ทุกคนรู้แต่ไม่มีใครกล้าพูดถึง)", exEn: "We can't ignore the elephant in the room.", exTh: "เรามองข้ามปัญหาสำคัญที่ทุกคนรู้อยู่ไม่ได้" },
-    { phrase: "the tip of the iceberg", meaning: "เพียงส่วนปลายของปัญหาทั้งหมด", exEn: "These cases are just the tip of the iceberg.", exTh: "กรณีเหล่านี้เป็นเพียงส่วนปลายของปัญหาที่ใหญ่กว่านั้น" },
+    { phrase: "at the eleventh hour", meaning: "ในวินาทีสุดท้าย / เฉียดฉิวนิดเดียว", exEn: "The two sides reached a deal at the eleventh hour.", exTh: "สองฝ่ายตกลงกันได้ในวินาทีสุดท้าย" },
+    { phrase: "scratch the surface", meaning: "แค่สัมผัสปัญหาเพียงผิวเผิน / ยังไม่ได้เจาะลึก", exEn: "These cases only scratch the surface of the problem.", exTh: "กรณีเหล่านี้แค่สัมผัสปัญหาเพียงผิวเผินเท่านั้น" },
     { phrase: "turn a blind eye", meaning: "แกล้งทำเป็นไม่เห็น", exEn: "Authorities turned a blind eye to corruption.", exTh: "หน่วยงานแกล้งทำเป็นไม่เห็นการทุจริต" },
-    { phrase: "go back to the drawing board", meaning: "กลับไปเริ่มต้นใหม่", exEn: "The plan failed, so we went back to the drawing board.", exTh: "แผนล้มเหลว เราจึงกลับไปเริ่มต้นใหม่" },
+    { phrase: "wipe the slate clean", meaning: "เริ่มต้นใหม่แบบไม่ติดค้าง / ล้างไพ่กันใหม่", exEn: "After the failed launch, they wiped the slate clean and started over.", exTh: "หลังเปิดตัวล้มเหลว พวกเขาก็เริ่มต้นกันใหม่แบบไม่ติดค้าง" },
     { phrase: "the last straw", meaning: "ฟางเส้นสุดท้าย / จุดขาดใจ", exEn: "The delay was the last straw.", exTh: "ความล่าช้าคือจุดที่ทนไม่ไหวอีกต่อไป" },
     { phrase: "take the bull by the horns", meaning: "กล้าเผชิญปัญหาอย่างตรงไปตรงมา", exEn: "She took the bull by the horns and spoke up.", exTh: "เธอกล้าเผชิญปัญหาตรงๆ และเอ่ยปากพูด" },
     { phrase: "throw someone under the bus", meaning: "โยนความผิดให้คนอื่นเพื่อช่วยตัวเอง", exEn: "He threw his colleague under the bus.", exTh: "เขาโยนความผิดให้เพื่อนร่วมงานเพื่อช่วยตัวเอง" },
@@ -986,18 +986,18 @@ const VOCAB_DAYS = {};
     { phrase: "make a mountain out of a molehill", meaning: "ทำเรื่องเล็กให้เป็นเรื่องใหญ่", exEn: "Stop making a mountain out of a molehill.", exTh: "เลิกทำเรื่องเล็กให้เป็นเรื่องใหญ่เถอะ" },
     { phrase: "pull out all the stops", meaning: "ทุ่มสุดตัว / พยายามทุกวิถีทาง", exEn: "They pulled out all the stops for the launch.", exTh: "พวกเขาทุ่มสุดตัวเพื่อการเปิดตัว" },
     { phrase: "the other side of the coin", meaning: "อีกด้านหนึ่งของเรื่องเดียวกัน", exEn: "Consider the other side of the coin.", exTh: "ลองมองอีกด้านหนึ่งของเรื่องเดียวกันดูสิ" },
-    { phrase: "in a nutshell", meaning: "โดยสรุปสั้นๆ", exEn: "In a nutshell, the project failed.", exTh: "โดยสรุปสั้นๆ โครงการล้มเหลว" },
+    { phrase: "the long and the short of it", meaning: "พอสรุปสั้น ๆ ก็คือ", exEn: "The long and the short of it is that we ran out of time.", exTh: "พอสรุปสั้น ๆ ก็คือเราหมดเวลา" },
     { phrase: "pass the buck", meaning: "ผลักภาระความรับผิดชอบให้คนอื่น", exEn: "Stop passing the buck to your team.", exTh: "เลิกผลักภาระความรับผิดชอบให้ทีมของคุณ" },
-    { phrase: "on thin ice", meaning: "เสี่ยงอันตราย / อยู่ในสถานะเสี่ยง", exEn: "He's on thin ice with the manager.", exTh: "เขากำลังเสี่ยงตกงานกับผู้จัดการ" },
+    { phrase: "a minefield", meaning: "สถานการณ์ที่เต็มไปด้วยอันตรายแฝง/ปัญหายุ่งยาก", exEn: "Office politics is a minefield for newcomers.", exTh: "การเมืองในออฟฟิศเต็มไปด้วยอันตรายแฝงสำหรับคนที่เพิ่งเข้ามา" },
     { phrase: "leave no stone unturned", meaning: "พยายามทุกวิถีทาง", exEn: "We left no stone unturned in the search.", exTh: "เราพยายามค้นหาทุกวิถีทาง" },
-    { phrase: "break new ground", meaning: "บุกเบิกสิ่งใหม่ที่ไม่เคยมีมาก่อน", exEn: "The research broke new ground in medicine.", exTh: "งานวิจัยบุกเบิกสิ่งใหม่ในวงการแพทย์" },
+    { phrase: "blaze a trail", meaning: "บุกเบิกเส้นทางใหม่ / เป็นคนแรกที่ทำสิ่งนั้น", exEn: "Her research blazed a trail in renewable energy.", exTh: "งานวิจัยของเธอบุกเบิกเส้นทางใหม่ในพลังงานทดแทน" },
     { phrase: "play devil's advocate", meaning: "แย้งไว้เพื่อกระตุ้นการถกเถียง", exEn: "Let me play devil's advocate for a moment.", exTh: "ขอฉันเป็นคนแย้งไว้เพื่อถกเถียงสักครู่" },
     { phrase: "sit on the fence", meaning: "ไม่เข้าข้างฝ่ายใด / เลี่ยงการตัดสินใจ", exEn: "You can't sit on the fence forever.", exTh: "คุณเลือกข้างไม่ได้ตลอดไปหรอก" },
     { phrase: "water under the bridge", meaning: "เรื่องที่ผ่านไปแล้ว อย่าไปคิดมาก", exEn: "Let bygones be water under the bridge.", exTh: "ปล่อยให้เรื่องที่ผ่านแล้วผ่านไปเถอะ" },
     { phrase: "draw the line", meaning: "กำหนดขีดจำกัดว่าไม่ทำเกินกว่านี้", exEn: "I draw the line at dishonesty.", exTh: "ฉันไม่ทนต่อความไม่ซื่อสัตย์เป็นอันขาด" },
     { phrase: "cut to the chase", meaning: "พูดตรงประเด็นไม่พูดจาเยิ่นเย้อ", exEn: "Let's cut to the chase and decide.", exTh: "พูดตรงประเด็นแล้วตัดสินใจกันเลยดีกว่า" },
-    { phrase: "have your cake and eat it too", meaning: "อยากได้ทั้งสองอย่างในเวลาเดียวกัน", exEn: "You can't have your cake and eat it too.", exTh: "คุณเลือกได้อย่างใดอย่างหนึ่งเท่านั้น" },
-    { phrase: "back to square one", meaning: "กลับไปเริ่มต้นที่จุดเดิม", exEn: "The deal fell through; we're back to square one.", exTh: "ดีลล้มเหลว เรากลับไปเริ่มต้นที่จุดเดิม" },
+    { phrase: "have it both ways", meaning: "เอาดีทั้งสองทาง / อยากได้ทั้งสองอย่าง", exEn: "You can't live abroad and keep your old job here; you can't have it both ways.", exTh: "จะอยู่ต่างประเทศกับรักษางานที่เมืองนี้ไว้ก็ไม่ได้ เอาดีทั้งสองทางไม่ได้หรอก" },
+    { phrase: "come full circle", meaning: "กลับมาอยู่จุดเดิมแบบครบวงจร", exEn: "After years of redesigns, the company has come full circle.", exTh: "หลังลองออกแบบใหม่มาหลายปี บริษัทก็กลับมาอยู่จุดเดิม" },
     { phrase: "carry weight", meaning: "มีน้ำหนัก / สำคัญและมีอิทธิพล", exEn: "His opinion carries weight in the board.", exTh: "ความเห็นของเขามีน้ำหนักในคณะกรรมการ" }
   ];
 
@@ -1005,19 +1005,19 @@ const VOCAB_DAYS = {};
     { phrase: "once in a blue moon", meaning: "นานๆ ครั้ง", exEn: "He visits once in a blue moon.", exTh: "เขาแวะมานานๆ ครั้งหนึ่ง" },
     { phrase: "the ball is in your court", meaning: "ถึงตาคุณแล้วที่จะตัดสินใจ", exEn: "The ball is in your court now.", exTh: "ถึงตาคุณตัดสินใจแล้ว" },
     { phrase: "blessing in disguise", meaning: "ความโชคร้ายที่แฝงด้วยโชค", exEn: "The delay was a blessing in disguise.", exTh: "ความล่าช้ากลายเป็นเรื่องดีในภายหลัง" },
-    { phrase: "burn the midnight oil", meaning: "ทำงานดึกดื่น", exEn: "She burned the midnight oil before exams.", exTh: "เธออ่านหนังสือดึกดื่นก่อนสอบ" },
+    { phrase: "pull an all-nighter", meaning: "อดหลับอดนอนทำงานต่อเนื่องทั้งคืน", exEn: "We pulled an all-nighter to meet the deadline.", exTh: "เราอดหลับอดนอนทำงานต่อเนื่องทั้งคืนเพื่อให้ทันกำหนด" },
     { phrase: "don't put all your eggs in one basket", meaning: "อย่าเสี่ยงหมดหน้าตัก", exEn: "Don't put all your eggs in one basket.", exTh: "อย่าลงทุนทั้งหมดในทางเดียว" },
     { phrase: "every cloud has a silver lining", meaning: "ทุกวิกฤตย่อมมีโอกาสแฝง", exEn: "Every cloud has a silver lining.", exTh: "ทุกเรื่องร้ายย่อมมีเรื่องดีแฝง" },
     { phrase: "go the extra mile", meaning: "ทุ่มเททำมากกว่าที่คาดหวัง", exEn: "She always goes the extra mile.", exTh: "เธอทุ่มเททำเกินกว่าที่คาดหวังเสมอ" },
     { phrase: "hang in there", meaning: "อดทนไว้ก่อน", exEn: "Hang in there, things will improve.", exTh: "อดทนไว้ก่อน สิ่งต่างๆ จะดีขึ้น" },
     { phrase: "in hot water", meaning: "เดือดร้อน / มีปัญหา", exEn: "He's in hot water with the boss.", exTh: "เขากำลังมีปัญหากับเจ้านาย" },
-    { phrase: "jump on the bandwagon", meaning: "ตามกระแส", exEn: "Everyone jumped on the bandwagon.", exTh: "ทุกคนพากันตามกระแส" },
+    { phrase: "keep up with the Joneses", meaning: "แข่งกันตามอย่างเพื่อนบ้านไม่ยอมเสียหน้า", exEn: "They bought a bigger car to keep up with the Joneses.", exTh: "พวกเขาซื้อรถที่ใหญ่กว่าเพื่อไม่ให้แพ้เพื่อนบ้าน" },
     { phrase: "keep your chin up", meaning: "ตั้งสติ / อย่ายอมแพ้", exEn: "Keep your chin up!", exTh: "ตั้งใจไว้อย่ายอมแพ้!" },
     { phrase: "let sleeping dogs lie", meaning: "อย่าไปยุ่งกับเรื่องที่สงบแล้ว", exEn: "Let sleeping dogs lie.", exTh: "อย่าไปขุดคุ้ยเรื่องเก่า" },
     { phrase: "make a long story short", meaning: "พูดสั้นๆ", exEn: "To make a long story short...", exTh: "พูดกันสั้นๆ คือ..." },
     { phrase: "not my cup of tea", meaning: "ไม่ใช่แนวของฉัน", exEn: "Opera is not my cup of tea.", exTh: "โอเปร่าไม่ใช่แนวของฉัน" },
     { phrase: "on the same page", meaning: "เข้าใจตรงกัน", exEn: "We're on the same page.", exTh: "เราเข้าใจตรงกัน" },
-    { phrase: "out of the blue", meaning: "จู่ๆ / กะทันหัน", exEn: "He called out of the blue.", exTh: "เขาโทรมาจู่ๆ" },
+    { phrase: "out of nowhere", meaning: "จู่ๆ / มาจากไหนไม่รู้โดยไม่คาดคิด", exEn: "He showed up at our door out of nowhere.", exTh: "เขามาปรากฏตัวที่หน้าประตูจู่ๆ โดยไม่คาดคิด" },
     { phrase: "play it by ear", meaning: "ค่อยๆ ดูสถานการณ์", exEn: "Let's play it by ear.", exTh: "ไปก่อนแล้วค่อยว่ากัน" },
     { phrase: "pull yourself together", meaning: "ตั้งสติ", exEn: "Pull yourself together.", exTh: "ตั้งสติหน่อย" },
     { phrase: "rock the boat", meaning: "ก่อความวุ่นวาย", exEn: "Don't rock the boat.", exTh: "อย่าก่อความวุ่นวาย" },
@@ -1030,8 +1030,8 @@ const VOCAB_DAYS = {};
     { phrase: "beat around the bush", meaning: "พูดอ้อมค้อม", exEn: "Don't beat around the bush.", exTh: "อย่าพูดอ้อมค้อม" },
     { phrase: "bite off more than you can chew", meaning: "รับงานเกินตัว", exEn: "Don't bite off more than you can chew.", exTh: "อย่ารับงานเกินกำลัง" },
     { phrase: "cross that bridge when you come to it", meaning: "ไว้ค่อยคิดทีหลัง", exEn: "Let's cross that bridge when we come to it.", exTh: "เดี๋ยวค่อยคิดตอนเจอปัญหาจริง" },
-    { phrase: "face the music", meaning: "เผชิญผลที่ตามมา", exEn: "Time to face the music.", exTh: "ถึงเวลาเผชิญกับผลที่ตามมาแล้ว" },
-    { phrase: "get the ball rolling", meaning: "เริ่มต้นทำ", exEn: "Let's get the ball rolling.", exTh: "มาเริ่มลงมือทำกันเลย" }
+    { phrase: "pay the piper", meaning: "รับผลกรรมจากการกระทำของตัวเอง", exEn: "He skipped practice all season, and now he's paying the piper.", exTh: "เขาขาดซ้อมทั้งฤดูกาล ตอนนี้ต้องรับผลกรรมแล้ว" },
+    { phrase: "lay the groundwork", meaning: "วางรากฐาน/เตรียมการขั้นพื้นฐานไว้ก่อน", exEn: "We laid the groundwork before launching the campaign.", exTh: "เราวางรากฐานไว้ก่อนจะเริ่มเปิดแคมเปญ" }
   ];
 
   const c2CollocList = [
@@ -1072,12 +1072,12 @@ const VOCAB_DAYS = {};
     { phrase: "a bitter pill to swallow", meaning: "สิ่งที่รับได้ยาก", exEn: "The defeat was a bitter pill to swallow.", exTh: "ความพ่ายแพ้เป็นสิ่งที่รับได้ยาก" },
     { phrase: "at loggerheads", meaning: "ขัดแย้งกันอย่างรุนแรง", exEn: "The two sides were at loggerheads.", exTh: "สองฝ่ายขัดแย้งกันอย่างรุนแรง" },
     { phrase: "by the same token", meaning: "ในทำนองเดียวกัน", exEn: "By the same token, we should be cautious.", exTh: "ในทำนองเดียวกัน เราควรระมัดระวัง" },
-    { phrase: "a moot point", meaning: "ประเด็นที่ยังถกเถียงกันไม่ได้ข้อยุติ", exEn: "Whether it was fair is a moot point.", exTh: "ว่ามันยุติธรรมหรือไม่เป็นประเด็นที่ยังหาข้อยุติไม่ได้" },
+    { phrase: "six of one, half a dozen of the other", meaning: "ไม่ต่างกัน / เหมือนกันทั้งคู่", exEn: "Going by bus or train is six of one, half a dozen of the other.", exTh: "จะนั่งรถเมล์หรือรถไฟก็ไม่ต่างกันเลย" },
     { phrase: "cast pearls before swine", meaning: "โปรยข้าวให้ไก่ / ให้ของดีแก่คนไม่รู้คุณค่า", exEn: "Explaining it to him is casting pearls before swine.", exTh: "การอธิบายให้เขาฟังก็เหมือนโปรยข้าวให้ไก่" },
     { phrase: "a Sisyphean task", meaning: "งานที่ทำเท่าไรก็ไม่จบ", exEn: "Cleaning the sea is a Sisyphean task.", exTh: "การทำความสะอาดทะเลเป็นงานที่ทำเท่าไรก็ไม่จบ" },
     { phrase: "the straw that broke the camel's back", meaning: "ฟางเส้นสุดท้ายที่หักหลังอูฐ", exEn: "The delay was the straw that broke the camel's back.", exTh: "ความล่าช้าเป็นฟางเส้นสุดท้ายที่ทำให้ทุกอย่างพัง" },
     { phrase: "hoist with one's own petard", meaning: "โดนเล่ห์เหลี่ยมของตัวเองย้อน", exEn: "He was hoist with his own petard.", exTh: "เขาถูกเล่ห์เหลี่ยมของตัวเองย้อนกลับ" },
-    { phrase: "a Pyrrhic victory", meaning: "ชัยชนะที่แสนแพง", exEn: "Winning that lawsuit was a Pyrrhic victory.", exTh: "การชนะคดีนั้นเป็นชัยชนะที่แสนแพง" },
+    { phrase: "score an own goal", meaning: "ทำอะไรที่ย้อนกลับมาทำร้ายตัวเอง", exEn: "By leaking the memo, they scored an own goal.", exTh: "การปล่อยเอกสารลับออกไป เหมือนทำอะไรย้อนกลับมาทำร้ายตัวเอง" },
     { phrase: "an axe to grind", meaning: "เจตนาแอบแฝง", exEn: "He has an axe to grind.", exTh: "เขามีเจตนาแอบแฝง" },
     { phrase: "take umbrage", meaning: "รู้สึกไม่พอใจ / ขุ่นเคือง", exEn: "She took umbrage at the remark.", exTh: "เธอรู้สึกขุ่นเคืองกับคำพูดนั้น" },
     { phrase: "bear the brunt", meaning: "รับผลหนักที่สุด", exEn: "Workers bore the brunt of the cuts.", exTh: "แรงงานต้องรับผลหนักที่สุดจากการลดงบ" },
@@ -1090,13 +1090,13 @@ const VOCAB_DAYS = {};
     { phrase: "above board", meaning: "โปร่งใส / ซื่อตรง", exEn: "All our dealings are above board.", exTh: "การติดต่อทั้งหมดของเราโปร่งใส" },
     { phrase: "a slapdash job", meaning: "งานชุ่ย", exEn: "The repair was a slapdash job.", exTh: "การซ่อมเป็นงานชุ่ย" },
     { phrase: "not mince words", meaning: "พูดตรง ๆ ไม่ปรุงแต่ง", exEn: "She doesn't mince words.", exTh: "เธอพูดตรง ๆ ไม่ปรุงแต่ง" },
-    { phrase: "a fait accompli", meaning: "ข้อเท็จจริงที่ทำไปแล้ว", exEn: "It was presented as a fait accompli.", exTh: "มันถูกเสนอในฐานะข้อเท็จจริงที่ทำไปแล้ว" },
+    { phrase: "the die is cast", meaning: "ตัดสินใจแล้ว / ลงมือแล้วไม่มีทางหวนกลับ", exEn: "Once the contract is signed, the die is cast.", exTh: "เมื่อเซ็นสัญญาแล้วก็ถือว่าปิดประตูไม่หวนกลับ" },
     { phrase: "on tenterhooks", meaning: "รอคอยอย่างกระวนกระวาย", exEn: "We were on tenterhooks all week.", exTh: "เรารอคอยอย่างกระวนกระวายตลอดสัปดาห์" },
     { phrase: "run the gauntlet", meaning: "ผ่านด่านวิพากษ์วิจารณ์", exEn: "The bill ran the gauntlet of debate.", exTh: "ร่างกฎหมายต้องผ่านด่านการวิพากษ์วิจารณ์" },
     { phrase: "a quantum leap", meaning: "การก้าวกระโดดครั้งใหญ่", exEn: "It was a quantum leap in technology.", exTh: "มันเป็นการก้าวกระโดดครั้งใหญ่ของเทคโนโลยี" },
     { phrase: "nihil novi", meaning: "ไม่มีอะไรใหม่", exEn: "The report contained nihil novi.", exTh: "รายงานไม่มีอะไรใหม่เลย" },
     { phrase: "a tempest in a teapot", meaning: "เรื่องเล็กทำเป็นเรื่องใหญ่", exEn: "The scandal was a tempest in a teapot.", exTh: "เรื่องอื้อฉาวนั้นเป็นแค่เรื่องเล็กทำเป็นเรื่องใหญ่" },
-    { phrase: "call a spade a spade", meaning: "พูดตรงไปตรงมา", exEn: "Let's call a spade a spade.", exTh: "พูดกันตรง ๆ ดีกว่า" },
+    { phrase: "tell it like it is", meaning: "พูดตรง ๆ ตามความจริงไม่ปิดบัง", exEn: "Let's tell it like it is: the numbers are bad.", exTh: "พูดตรง ๆ ตามความจริงดีกว่า ตัวเลขมันแย่จริง" },
     { phrase: "the last word", meaning: "คำชี้ขาด / คำสุดท้าย", exEn: "She always wants the last word.", exTh: "เธออยากเป็นฝ่ายชี้ขาดเสมอ" }
   ];
 
@@ -1125,11 +1125,13 @@ const VOCAB_DAYS = {};
     const collocPool = collocBase.concat(extraColloc);
     const idiomPool = idiomBase.concat(extraIdiom);
 
+    const wordsPerDay = Math.round(lvl.targetWords / (lvl.end - lvl.start + 1));
+
     for (let dayNum = lvl.start; dayNum <= lvl.end; dayNum++) {
       const dayVocab = [];
       const dayIndex = dayNum - lvl.start;
-      for (let v = 0; v < 10; v++) {
-        let poolIdx = dayIndex * 10 + v;
+      for (let v = 0; v < wordsPerDay; v++) {
+        let poolIdx = dayIndex * wordsPerDay + v;
         let uniqueWord = rawList[poolIdx];
         seenWords.add(uniqueWord);
 

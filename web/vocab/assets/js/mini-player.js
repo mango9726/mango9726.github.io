@@ -51,7 +51,11 @@
     list:      '<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/>',
     volume:    '<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
     volumeLow: '<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M15.5 9.5a3.5 3.5 0 0 1 0 5"/>',
-    volumeX:   '<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>'
+    volumeX:   '<path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
+    heart:     '<path d="M12 21s-7-4.6-9.3-9C1.2 9.2 2.6 5.7 6 5.7c2 0 3.2 1.1 4 2.2.8-1.1 2-2.2 4-2.2 3.4 0 4.8 3.5 3.3 6.3C19 16.4 12 21 12 21z"/>',
+    heartFill: '<path d="M12 21s-7-4.6-9.3-9C1.2 9.2 2.6 5.7 6 5.7c2 0 3.2 1.1 4 2.2.8-1.1 2-2.2 4-2.2 3.4 0 4.8 3.5 3.3 6.3C19 16.4 12 21 12 21z" fill="currentColor" stroke="none"/>',
+    history:   '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
+    radio:     '<circle cx="12" cy="12" r="2"/><path d="M12 8a4 4 0 0 1 0 8M12 4a8 8 0 0 1 0 16M7 7.5a9 9 0 0 0 0 9M17 7.5a9 9 0 0 1 0 9"/>'
   };
   function svg(name) {
     return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (ICONS[name] || "") + "</svg>";
@@ -116,6 +120,58 @@
       "assets/music/ingame/ingamesong7.mp3", "assets/music/ingame/ingamesong8.mp3"
     ]
   };
+
+  /* Persistence keys (kept next to the code that uses them). */
+  const K_FAVS = "vocab_miniplayer_favs_v1";
+  const K_HIST = "vocab_miniplayer_history_v1";
+
+  /* Tunable station ordering / labels for the genre tabs. */
+  const STATION_ORDER = ["lofi", "jazz", "focus", "all"];
+  const STATION_LABELS = {
+    all: "All Songs", lofi: "Lofi / Chill", jazz: "Jazz", focus: "Focus",
+    favorites: "Favorites", recent: "Recently Played"
+  };
+
+  /* Classify an on-page track into a genre station from its filename. */
+  function stationOf(src) {
+    if (/\/ingame\//.test(src) || /^ingamesong/i.test(src)) return "focus";
+    const f = String(src).toLowerCase();
+    if (/lofi|coffee|cafe|chill|calma/.test(f)) return "lofi";
+    if (/jazz|smooth|lounge|sultry|trumpet|cafe/.test(f)) return "jazz";
+    return "all";
+  }
+
+  /* A stable, compact id for a track so favorites/history can key by it. */
+  function trackKey(t) {
+    const src = (t && t.src) || "";
+    const label = (t && t.label) || "";
+    return src || ("label:" + label);
+  }
+
+  /* Build the full station map from a raw playlists object. Always keeps a
+     fused "all" station (page songs first) so host apps that call loadTrack()
+     with a flat index — e.g. Vocab Trainer's page/game song pickers — keep
+     working. Genre stations, Favorites and Recently Played are layered on top. */
+  function buildStations(playlists, extraPlaylist) {
+    const onpage = (playlists && playlists.onpage) || DEFAULT_PLAYLISTS.onpage;
+    const ingame = (playlists && playlists.ingame) || DEFAULT_PLAYLISTS.ingame;
+    const all = onpage.concat(ingame).concat(extraPlaylist || []);
+
+    const stations = { all: all.slice() };
+    const result = { stations: stations, order: STATION_ORDER.slice(), labels: STATION_LABELS };
+
+    // Genre stations
+    onpage.forEach(function (t) {
+      const g = stationOf(typeof t === "string" ? t : (t.src || ""));
+      if (g === "lofi" || g === "jazz") {
+        if (!stations[g]) stations[g] = [];
+        stations[g].push(t);
+      }
+    });
+    if (ingame.length) stations.focus = ingame.slice();
+
+    return result;
+  }
 
   /** Turn a filename/path into a friendly label (mirrors the host app's songLabel). */
   function prettyName(src) {
@@ -289,37 +345,41 @@
       if (!playlists && global.VOCAB_MUSIC) playlists = global.VOCAB_MUSIC;
       if (!playlists) playlists = DEFAULT_PLAYLISTS;
 
-      // Fuse every source playlist into ONE combined library (on-page + in-game,
-      // etc.) so the player shows a single queue. Playlist tabs are hidden
-      // automatically because there is only one mode.
-      let combined;
+      // Load custom tracks once so they can be layered into the fused library.
+      this.customTracks = loadJSON("vocab_custom_tracks_v1", []);
+
+      // Keep the fused "all" station (page songs first) as the default so host
+      // apps that call loadTrack() with a flat index keep working, and layer the
+      // genre stations on top. Favorites/Recently Played are dynamic and are
+      // rebuilt lazily whenever a station is opened.
+      let built;
       if (Array.isArray(playlists)) {
-        combined = playlists.slice();
+        built = { stations: { all: playlists.slice().concat(this.customTracks) },
+                  order: ["all"], labels: { all: "All Songs" } };
       } else {
-        const order = o.modeOrder || Object.keys(playlists);
-        combined = [];
-        order.forEach(function (k) {
-          (playlists[k] || []).forEach(function (t) { combined.push(t); });
-        });
+        built = buildStations(playlists, this.customTracks);
       }
-      // Load custom tracks
-      const customTracks = loadJSON("vocab_custom_tracks_v1", []);
-      customTracks.forEach(function (t) { combined.push(t); });
+      const extraOrder = o.modeOrder && o.modeOrder.length ? o.modeOrder : null;
+      this._stationOrder = extraOrder || built.order.concat(["favorites", "recent"]);
+      this._stationLabels = built.labels;
 
       this.opts = {
-        playlists: { library: combined },
-        modeOrder: ["library"],
-        startMode: "library",
+        playlists: built.stations,
+        modeOrder: this._stationOrder,
+        startMode: o.startMode || "all",
         volume: o.volume != null ? o.volume : 0.6,
         autoStart: o.autoStart !== false,           // start on first user gesture
         collapseOnOutsideClick: o.collapseOnOutsideClick !== false,
         aliasesKey: o.aliasesKey || "vocab_miniplayer_aliases_v1",
         mountTo: o.mountTo || document.body,
-        // Single fused library — label it neutrally.
-        playlistLabels: o.playlistLabels || { library: "Your Library" },
+        playlistLabels: o.playlistLabels || built.labels,
         onInteract: o.onInteract || null
       };
       if (this.opts.onInteract) this._interactCbs.push(this.opts.onInteract);
+
+      // Favorites / recent-played persisted sets.
+      this.favs = loadJSON(K_FAVS, []);
+      this.history = loadJSON(K_HIST, []);
 
       this.aliases = loadJSON(this.opts.aliasesKey, {});
       this.modeIndex = {};
@@ -378,6 +438,10 @@
       renameInput.setAttribute("aria-label", "Custom song name"); renameInput.hidden = true;
       titles.appendChild(titleRow); titles.appendChild(artist); titles.appendChild(renameInput);
       const headActions = el("div", "mmp-head-actions");
+      const favBtn = el("button", "mmp-icon-btn mmp-fav");
+      favBtn.setAttribute("type", "button"); favBtn.title = "Add to favorites";
+      favBtn.setAttribute("aria-label", "Favorite this song"); favBtn.setAttribute("aria-pressed", "false");
+      favBtn.innerHTML = svg("heart");
       const pinBtn = el("button", "mmp-icon-btn mmp-pin");
       pinBtn.setAttribute("type", "button"); pinBtn.title = "Keep open";
       pinBtn.setAttribute("aria-label", "Keep player open"); pinBtn.setAttribute("aria-pressed", "false");
@@ -385,10 +449,10 @@
       const closeBtn = el("button", "mmp-icon-btn mmp-close");
       closeBtn.setAttribute("type", "button"); closeBtn.title = "Close";
       closeBtn.setAttribute("aria-label", "Close player"); closeBtn.innerHTML = svg("close");
-      headActions.appendChild(pinBtn); headActions.appendChild(closeBtn);
+      headActions.appendChild(favBtn); headActions.appendChild(pinBtn); headActions.appendChild(closeBtn);
       head.appendChild(art); head.appendChild(titles); head.appendChild(headActions);
 
-      // Playlist tabs (only if >1 playlist)
+      // Playlist tabs (station selector — shown when more than one station)
       const plWrap = el("div", "mmp-playlists"); plWrap.hidden = true;
 
       // Progress / scrubber
@@ -492,7 +556,7 @@
       this.refs = {
         panel: panel, hot: hot, title: title, artist: artist, art: art,
         renameBtn: renameBtn, renameInput: renameInput,
-        pinBtn: pinBtn, closeBtn: closeBtn, modal: modal,
+        favBtn: favBtn, pinBtn: pinBtn, closeBtn: closeBtn, modal: modal,
         plWrap: plWrap,
         cur: cur, dur: dur, seek: seek,
         playBtn: playBtn, prevBtn: prevBtn, nextBtn: nextBtn, queueBtn: queueBtn,
@@ -699,6 +763,9 @@
         e.stopPropagation(); self._setPinned(false); self._collapse();
       });
 
+      // Favorite current track
+      r.favBtn.addEventListener("click", function (e) { e.stopPropagation(); self.toggleFav(); });
+
       // Rename (alias)
       r.renameBtn.addEventListener("click", function (e) { e.stopPropagation(); self._beginRename(); });
       r.title.addEventListener("dblclick", function (e) { e.stopPropagation(); self._beginRename(); });
@@ -832,7 +899,12 @@
         const b = el("button", "mmp-pl-tab");
         b.setAttribute("type", "button");
         b.setAttribute("data-pl", m);
-        b.textContent = self._playlistLabel(m);
+        const label = el("span", "mmp-tab-label"); label.textContent = self._playlistLabel(m);
+        b.appendChild(label);
+        // Show a live count badge for each station so tabs feel informative.
+        const countEl = el("span", "mmp-tab-count");
+        countEl.textContent = String(self._stationCount(m));
+        b.appendChild(countEl);
         b.addEventListener("click", function (e) {
           e.stopPropagation();
           if (m === self._mode) return;
@@ -841,13 +913,54 @@
         r.plWrap.appendChild(b);
       });
     },
+    _stationCount: function (m) {
+      if (m === "favorites") return (this.favs || []).length;
+      if (m === "recent") return (this.history || []).length;
+      const list = this.opts.playlists[m];
+      return Array.isArray(list) ? list.length : 0;
+    },
+    _refreshTabCounts: function () {
+      const tabs = this.refs.plWrap.querySelectorAll(".mmp-pl-tab");
+      for (let i = 0; i < tabs.length; i++) {
+        const m = tabs[i].getAttribute("data-pl");
+        const c = tabs[i].querySelector(".mmp-tab-count");
+        if (c) c.textContent = String(this._stationCount(m));
+      }
+    },
     _playlistLabel: function (m) {
       if (this.opts.playlistLabels && this.opts.playlistLabels[m]) return this.opts.playlistLabels[m];
       if (m === "onpage") return "On-page";
       if (m === "ingame") return "In-game";
       return m.charAt(0).toUpperCase() + m.slice(1);
     },
+    /* Rebuild the dynamic "favorites" and "recently played" stations so that
+       their queues stay current every time they are opened. Track ids are
+       resolved against the fused "all" library so hearts/history point at the
+       same song regardless of which station was playing. */
+    _rebuildDynamicStations: function () {
+      const all = this.opts.playlists.all || [];
+      const byKey = {};
+      all.forEach(function (t) {
+        byKey[trackKey(typeof t === "string" ? { src: t } : t)] = t;
+      });
+      const favs = [], recent = [];
+      (this.favs || []).forEach(function (key) {
+        if (byKey[key]) favs.push(byKey[key]);
+      });
+      (this.history || []).forEach(function (h) {
+        if (byKey[h && h.srcKey]) recent.push(byKey[h.srcKey]);
+      });
+      // Dedupe recent (keep latest first order already).
+      const seen = {}; const deduped = [];
+      recent.forEach(function (t) {
+        const k = trackKey(typeof t === "string" ? { src: t } : t);
+        if (!seen[k]) { seen[k] = 1; deduped.push(t); }
+      });
+      this.opts.playlists.favorites = favs;
+      this.opts.playlists.recent = deduped;
+    },
     _loadMode: function (mode, silent) {
+      if (mode === "favorites" || mode === "recent") this._rebuildDynamicStations();
       this._mode = mode;
       // Tolerate bare filenames (e.g. "song.mp3") by resolving them under the
       // playlist's folder — so the component works even if a source hands over
@@ -865,14 +978,26 @@
       for (let i = 0; i < tabs.length; i++) {
         tabs[i].setAttribute("aria-selected", String(tabs[i].getAttribute("data-pl") === mode));
       }
+      // Keep favorite state in the current track's heart button.
+      this._renderFavBtn();
       this._renderTrack();
       this._renderQueue();
     },
-    setMode: function (mode) { if (this.opts.playlists[mode]) this._loadMode(mode, false); },
+    setMode: function (mode) {
+      // Dynamic stations are created on demand.
+      if (mode === "favorites" || mode === "recent") { this._loadMode(mode, false); return; }
+      if (this.opts.playlists[mode]) this._loadMode(mode, false);
+    },
 
     /* ---------- Audio → UI sync ---------- */
     _onAudioUpdate: function (type, st) {
-      if (type === "track" || type === "tracks") { this._renderTrack(); this._renderQueue(); }
+      if (type === "track") {
+        this._recordHistory(st);
+        if (st.src) this._renderFavBtn();
+        this._refreshTabCounts();
+        this._renderTrack(); this._renderQueue();
+      }
+      if (type === "tracks") { this._renderTrack(); this._renderQueue(); this._renderFavBtn(); }
       this._renderTransport(st);
       if (type === "progress" && !this._seekApi.isDragging()) {
         const f = st.fraction;
@@ -898,6 +1023,52 @@
     _renderTransport: function (st) {
       this.refs.playBtn.innerHTML = svg(st.playing ? "pause" : "play");
       this.root.setAttribute("data-playing", String(st.playing));
+    },
+    /* ---------- Favorites + recently played ---------- */
+    isFav: function (srcKey) {
+      if (!srcKey) return false;
+      return (this.favs || []).indexOf(srcKey) !== -1;
+    },
+    _renderFavBtn: function () {
+      const st = this.ctrl.getState();
+      const key = trackKey({ src: st.src, label: st.label });
+      const on = this.isFav(key);
+      this.refs.favBtn.setAttribute("aria-pressed", String(on));
+      this.refs.favBtn.title = (on ? "Remove from favorites" : "Add to favorites");
+      this.refs.favBtn.innerHTML = svg(on ? "heartFill" : "heart");
+    },
+    toggleFav: function () {
+      const st = this.ctrl.getState();
+      if (!st.src) return;
+      const key = trackKey({ src: st.src, label: st.label });
+      const idx = (this.favs || []).indexOf(key);
+      if (idx !== -1) { this.favs.splice(idx, 1); this._toast("Removed from favorites"); }
+      else { this.favs.push(key); this._toast("Added to favorites"); }
+      saveJSON(K_FAVS, this.favs);
+      this._renderFavBtn();
+      this._renderQueue();
+      this._refreshTabCounts();
+    },
+    /* Record a track start (deduped, most-recent-first) into the listening
+       history that powers the "Recently Played" station. */
+    _recordHistory: function (st) {
+      if (!st || !st.src) return;
+      const key = trackKey({ src: st.src, label: st.label });
+      const hist = (this.history || []).filter(function (h) { return h.srcKey !== key; });
+      hist.unshift({ srcKey: key, src: st.src, label: st.label || prettyName(st.src), at: Date.now() });
+      if (hist.length > 50) hist.length = 50;
+      this.history = hist;
+      saveJSON(K_HIST, hist);
+    },
+    refresh: function () {
+      if (this._mode === "favorites" || this._mode === "recent") {
+        this._rebuildDynamicStations();
+        this._loadMode(this._mode, true);
+        return;
+      }
+      // Keep favorites redemption per-track state on refresh even in other modes.
+      this._renderFavBtn();
+      this._renderQueue();
     },
     _renderTrack: function () {
       const st = this.ctrl.getState();
@@ -927,6 +1098,7 @@
       const self = this, r = this.refs, st = this.ctrl.getState();
       r.qList.innerHTML = "";
       this.ctrl.tracks.forEach(function (t, i) {
+        const key = trackKey(typeof t === "string" ? { src: t } : t);
         const li = el("li", "mmp-queue-item");
         li.setAttribute("role", "button");
         li.setAttribute("tabindex", "0");
@@ -935,7 +1107,25 @@
         const eq = el("span", "mmp-qi-eq"); eq.appendChild(el("i")); eq.appendChild(el("i")); eq.appendChild(el("i"));
         const name = el("span", "mmp-qi-name");
         name.textContent = (self.aliases[t.src]) || t.label;
-        li.appendChild(idx); li.appendChild(eq); li.appendChild(name);
+        const fav = el("button", "mmp-qi-fav");
+        fav.setAttribute("type", "button");
+        fav.setAttribute("aria-label", (self.isFav(key) ? "Remove from favorites" : "Add to favorites"));
+        fav.setAttribute("aria-pressed", String(self.isFav(key)));
+        fav.innerHTML = svg(self.isFav(key) ? "heartFill" : "heart");
+        fav.addEventListener("click", function (e) {
+          e.stopPropagation();
+          const idx2 = (self.favs || []).indexOf(key);
+          if (idx2 !== -1) { self.favs.splice(idx2, 1); self._toast("Removed from favorites"); }
+          else { self.favs.push(key); self._toast("Added to favorites"); }
+          saveJSON(K_FAVS, self.favs);
+          self._renderFavBtn();
+          self._renderQueue();
+          self._refreshTabCounts();
+        });
+        fav.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); fav.click(); }
+        });
+        li.appendChild(idx); li.appendChild(eq); li.appendChild(name); li.appendChild(fav);
         li.addEventListener("click", function (e) { e.stopPropagation(); self.ctrl.loadTrack(i); self._renderQueue(); });
         li.addEventListener("keydown", function (e) {
           if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); self.ctrl.loadTrack(i); self._renderQueue(); }
@@ -1030,18 +1220,27 @@
       }
     },
     _reloadFusedTracks: function () {
-      let combined = [];
-      const order = this.opts.modeOrder || ["library"];
+      // Rebuild the fused "all" station plus the genre stations from the raw
+      // source playlists + custom tracks, then refresh the currently active
+      // queue so add/delete/rename custom songs stay in sync.
+      this.customTracks = loadJSON("vocab_custom_tracks_v1", []);
       let playlists = DEFAULT_PLAYLISTS;
       if (global.VOCAB_MUSIC) playlists = global.VOCAB_MUSIC;
-      order.forEach(function (k) {
-        (playlists[k] || []).forEach(function (t) { combined.push(t); });
-      });
-      loadJSON("vocab_custom_tracks_v1", []).forEach(function (t) { combined.push(t); });
-      this.opts.playlists.library = combined;
+      const rebuilt = buildStations(playlists, this.customTracks);
+      const order = this.opts.modeOrder || this._stationOrder || ["all"];
+      order.forEach(function (m) {
+        if (rebuilt.stations[m]) this.opts.playlists[m] = rebuilt.stations[m];
+      }, this);
 
+      const wantMode = (this._mode === "favorites" || this._mode === "recent") ? "all" : (this._mode || "all");
+      const list = (this.opts.playlists[wantMode] || []).map(function (t) {
+        if (typeof t === "string" && t.indexOf("/") === -1 && t.indexOf(":") === -1) {
+          return "assets/music/" + wantMode + "/" + t;
+        }
+        return t;
+      });
       const currentSrc = this.ctrl.getState().src;
-      const formattedTracks = combined.map(function (t) {
+      const formattedTracks = list.map(function (t) {
         if (typeof t === "string") return { src: t, label: prettyName(t), artist: "" };
         return { src: t.src, label: t.label || prettyName(t.src), artist: t.artist || "" };
       });

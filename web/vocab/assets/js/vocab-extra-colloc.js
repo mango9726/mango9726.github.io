@@ -40,13 +40,13 @@ const VOCAB_EXTRA_COLLOC_A1 = [
 
 const VOCAB_EXTRA_COLLOC_A2 = [
   [{ phrase: "make a plan", th: "วางแผน", exEn: "Let's make a plan for the trip.", exTh: "มาวางแผนสำหรับการเดินทางกัน" }, { phrase: "spend money", th: "ใช้จ่ายเงิน", exEn: "Don't spend money carelessly.", exTh: "อย่าใช้จ่ายเงินอย่างไม่รอบคอบ" }],
-  [{ phrase: "take a photo", th: "ถ่ายรูป", exEn: "Take a photo of the museum.", exTh: "ถ่ายรูปพิพิธภัณฑ์" }, {"phrase":"send a text message","th":"ส่งข้อความ","exEn":"Send a text message to mom.","exTh":"ส่งข้อความถึงแม่"}],
+  [{ phrase: "capture a moment", th: "ถ่ายรูป", exEn: "Take a photo of the museum.", exTh: "ถ่ายรูปพิพิธภัณฑ์" }, {"phrase":"send a text message","th":"ส่งข้อความ","exEn":"Send a text message to mom.","exTh":"ส่งข้อความถึงแม่"}],
   [{ phrase: "catch a cold", th: "เป็นหวัด", exEn: "I caught a cold yesterday.", exTh: "ฉันเป็นหวัดเมื่อวาน" }, { phrase: "feel better", th: "รู้สึกดีขึ้น", exEn: "Rest and feel better soon.", exTh: "พักผ่อนและหายไวๆ" }],
   [{ phrase: "book a hotel", th: "จองโรงแรม", exEn: "Book a hotel near the beach.", exTh: "จองโรงแรมใกล้ชายหาด" }, {"phrase":"check out","th":"เช็คเอาต์","exEn":"Check out by noon.","exTh":"เช็คเอาต์ก่อนเที่ยง"}],
   [{ phrase: "miss the train", th: "พลาดรถไฟ", exEn: "Hurry or we miss the train.", exTh: "รีบหน่อย ไม่งั้นเราจะพลาดรถไฟ" }, { phrase: "wait for", th: "รอคอย", exEn: "We waited for the bus.", exTh: "พวกเรารอรถบัส" }],
   [{ phrase: "meet friends", th: "พบเพื่อน", exEn: "I meet friends every weekend.", exTh: "ฉันพบเพื่อนทุกสุดสัปดาห์" }, { phrase: "have a rest", th: "พักผ่อน", exEn: "Have a rest after work.", exTh: "พักผ่อนหลังเลิกงาน" }],
   [{ phrase: "learn a language", th: "เรียนภาษา", exEn: "She learns a language online.", exTh: "เธอเรียนภาษาทางออนไลน์" }, { phrase: "practice speaking", th: "ฝึกพูด", exEn: "Practice speaking daily.", exTh: "ฝึกพูดทุกวัน" }],
-  [{ phrase: "order food", th: "สั่งอาหาร", exEn: "Order food at the counter.", exTh: "สั่งอาหารที่เคาน์เตอร์" }, { phrase: "pay the bill", th: "จ่ายบิล", exEn: "Pay the bill before leaving.", exTh: "จ่ายบิลก่อนออกจากร้าน" }],
+  [{ phrase: "order food", th: "สั่งอาหาร", exEn: "Order food at the counter.", exTh: "สั่งอาหารที่เคาน์เตอร์" }, { phrase: "settle the invoice", th: "ชำระใบแจ้งหนี้", exEn: "Settle the invoice before leaving.", exTh: "ชำระใบแจ้งหนี้ก่อนออกจากร้าน" }],
   [{"phrase":"go sightseeing","th":"เที่ยวชมสถานที่","exEn":"We go sightseeing downtown.","exTh":"เราเที่ยวชมสถานที่ในตัวเมือง"}, { phrase: "try on clothes", th: "ลองเสื้อผ้า", exEn: "Try on clothes before buying.", exTh: "ลองเสื้อผ้าก่อนซื้อ" }],
   [{ phrase: "borrow a book", th: "ยืมหนังสือ", exEn: "Borrow a book from the library.", exTh: "ยืมหนังสือจากห้องสมุด" }, { phrase: "return it on time", th: "คืนให้ทันเวลา", exEn: "Return it on time.", exTh: "คืนให้ทันเวลา" }],
   [{ phrase: "give a present", th: "ให้ของขวัญ", exEn: "Give a present to your friend.", exTh: "ให้ของขวัญแก่เพื่อนของคุณ" }, { phrase: "open the gift", th: "เปิดของขวัญ", exEn: "Open the gift carefully.", exTh: "เปิดของขวัญอย่างระมัดระวัง" }],

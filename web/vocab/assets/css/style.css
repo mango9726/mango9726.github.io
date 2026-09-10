@@ -1644,6 +1644,27 @@ select:focus, input[type="text"]:focus { outline: none; border-color: var(--prim
 .res-ico { width: 24px; height: 24px; margin-right: 12px; color: var(--primary); vertical-align: -5px; }
 .result .big { font-size: 46px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 10px 0; }
 
+/* ===================== Result screen — score card ===================== */
+.res-score { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 14px 0 4px; }
+.res-ring { position: relative; width: 182px; height: 182px; filter: drop-shadow(0 6px 18px rgba(99, 102, 241, 0.25)); }
+.res-ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.res-ring-track { fill: none; stroke: var(--border); stroke-width: 11; }
+.res-ring-fill { fill: none; stroke: var(--good); stroke-width: 11; stroke-linecap: round; stroke-dasharray: 326.7; stroke-dashoffset: 326.7; transition: stroke-dashoffset 1s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.res-ring-fill-excellent, .res-ring-fill-great { stroke: var(--good); }
+.res-ring-fill-good, .res-ring-fill-ok { stroke: #f59e0b; }
+.res-ring-fill-low { stroke: var(--bad); }
+.res-ring .big { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; margin: 0; font-size: 32px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; animation: popIn 0.6s cubic-bezier(.2,.9,.3,1.3) 0.15s both; }
+.res-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 0.92rem; }
+.res-badge svg { width: 15px; height: 15px; }
+.res-badge-excellent { background: rgba(22, 163, 74, 0.14); color: var(--good); }
+.res-badge-great { background: rgba(22, 163, 74, 0.14); color: var(--good); }
+.res-badge-good, .res-badge-ok { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.res-badge-low { background: rgba(239, 68, 68, 0.13); color: var(--bad); }
+.res-sub { color: var(--muted); margin-top: 6px; }
+.res-note { color: var(--muted); font-size: 0.9rem; }
+.res-missed-h { display: flex; align-items: center; gap: 8px; }
+.res-empty { color: var(--good); font-weight: 600; }
+
 /* ===================== Settings ===================== */
 .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap; }
 .settings-row-label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
@@ -4727,6 +4748,8 @@ button { user-select: none; -webkit-user-select: none; }
   .result { padding: 22px 16px; }
   .result h2 { font-size: 20px; }
   .result .big { font-size: 36px; }
+  .res-ring { width: 140px; height: 140px; }
+  .res-ring .big { font-size: 26px; }
   .settings-info { font-size: 12.5px; }
   .backup-code { font-size: 11px; padding: 10px 12px; }
   .file-label { width: 100%; }

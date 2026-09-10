@@ -51,6 +51,9 @@
     Array.prototype.forEach.call(root.querySelectorAll("[data-color]"), function (n) {
       n.style.color = n.getAttribute("data-color");
     });
+    Array.prototype.forEach.call(root.querySelectorAll("[data-dash]"), function (n) {
+      n.style.strokeDashoffset = n.getAttribute("data-dash");
+    });
   }
 
   /* ---------- i18n: EN / TH string tables ---------- */
@@ -2211,21 +2214,44 @@
   function renderResult(opts) {
     const r = $(opts.id);
     r.classList.remove("hidden");
+    const total = Number(opts.total) || 0;
+    const score = (opts.score != null) ? Number(opts.score) : null;
+    const pct = (score != null && total > 0) ? Math.round((score / total) * 100) : null;
+    const perf = pct == null ? null : (pct >= 90 ? { c: "excellent", i: "trophy", t: "Excellent!" }
+      : pct >= 70 ? { c: "great", i: "award", t: "Great job!" }
+      : pct >= 50 ? { c: "good", i: "check", t: "Good effort!" }
+      : pct >= 1 ? { c: "ok", i: "heart", t: "Keep practising!" }
+      : { c: "low", i: "refresh", t: "Try again!" });
     let html = "<h2>" + (opts.icon ? svgIcon(opts.icon, "ico res-ico") : "") + opts.title + "</h2>";
-    if (opts.big != null) html += "<p class=\"big\">" + opts.big + "</p>";
-    if (opts.sub) html += "<p>" + opts.sub + "</p>";
-    if (opts.note) html += "<p class=\"mt-10\">" + opts.note + "</p>";
+    if (opts.big != null) {
+      if (pct != null) {
+        const p = Math.min(100, Math.max(0, pct));
+        const dash = Math.round(326.7 * (1 - p / 100) * 10) / 10;
+        html += "<div class=\"res-score\">" +
+          "<div class=\"res-ring\"><svg class=\"res-ring-svg\" viewBox=\"0 0 120 120\" aria-hidden=\"true\">" +
+          "<circle cx=\"60\" cy=\"60\" r=\"52\" class=\"res-ring-track\"></circle>" +
+          "<circle cx=\"60\" cy=\"60\" r=\"52\" class=\"res-ring-fill res-ring-fill-" + perf.c + "\" data-dash=\"" + dash + "\"></circle>" +
+          "</svg><p class=\"big\">" + opts.big + "</p></div>" +
+          (perf ? "<span class=\"res-badge res-badge-" + perf.c + "\">" + svgIcon(perf.i, "ico sm") + " " + perf.t + "</span>" : "") +
+          "</div>";
+      } else {
+        html += "<p class=\"big\">" + opts.big + "</p>";
+      }
+    }
+    if (opts.sub) html += "<p class=\"res-sub\">" + opts.sub + "</p>";
+    if (opts.note) html += "<p class=\"mt-10 res-note\">" + opts.note + "</p>";
     if (opts.missed && opts.missed.length) {
-      html += "<h3 class=\"mt-14\">" + (opts.missedHeader || "Missed") + " (" + opts.missed.length + ")</h3>" +
+      html += "<h3 class=\"mt-14 res-missed-h\">" + (opts.missedHeader || "Missed") + " (" + opts.missed.length + ")</h3>" +
         "<div class=\"missed-list\">" + (opts.missedHTML || "") + "</div>";
     } else if (opts.emptyMsg) {
-      html += "<p class=\"mt-10\">" + opts.emptyMsg + "</p>";
+      html += "<p class=\"mt-10 res-empty\">" + opts.emptyMsg + "</p>";
     }
     const backId = opts.id + "Back";
     html += "<button class=\"btn btn-primary\" id=\"" + backId + "\">" + (opts.backLabel || "Back to Home") + "</button>";
     r.innerHTML = html;
+    try { applyInlineStyles(r); } catch (e) {}
     $(backId).onclick = function () { showView(opts.backView || "home"); };
-    if (opts.mode) recordSessionEnd(opts.mode, opts.score, opts.total); // โหมด + perfect-game XP
+    if (opts.mode) recordSessionEnd(opts.mode, score, total); // โหมด + perfect-game XP
     if (opts.celebrate) {
       // wait a frame so the panel is laid out before measuring for the confetti burst
       requestAnimationFrame(function () {
@@ -5566,7 +5592,7 @@
     $("settingsMusic").onclick = function () {
       if (window.MiniMusicPlayer) {
         const playing = window.MiniMusicPlayer.getState().playing;
-        if (playing) window.MiniMusicPlayer.pause(); else window.MiniMusicPlayer.play();
+        if (window.MiniMusicPlayer.toggle) window.MiniMusicPlayer.toggle();
         settings.music = !playing;            // keep the toggle label in sync
       } else {
         settings.music = !settings.music;

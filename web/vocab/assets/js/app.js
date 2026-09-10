@@ -2222,17 +2222,31 @@
       : pct >= 50 ? { c: "good", i: "check", t: "Good effort!" }
       : pct >= 1 ? { c: "ok", i: "heart", t: "Keep practising!" }
       : { c: "low", i: "refresh", t: "Try again!" });
-    let html = "<h2>" + (opts.icon ? svgIcon(opts.icon, "ico res-ico") : "") + opts.title + "</h2>";
+    let html = "<h2>" + (opts.icon ? "<span class=\"res-title-ico\">" + svgIcon(opts.icon, "") + "</span>" : "") + opts.title + "</h2>";
     if (opts.big != null) {
       if (pct != null) {
         const p = Math.min(100, Math.max(0, pct));
         const dash = Math.round(326.7 * (1 - p / 100) * 10) / 10;
+        const okW = Math.round((score / total) * 100);
+        const badW = 100 - okW;
         html += "<div class=\"res-score\">" +
+          "<span class=\"res-halo res-halo-" + perf.c + "\" aria-hidden=\"true\"></span>" +
           "<div class=\"res-ring\"><svg class=\"res-ring-svg\" viewBox=\"0 0 120 120\" aria-hidden=\"true\">" +
           "<circle cx=\"60\" cy=\"60\" r=\"52\" class=\"res-ring-track\"></circle>" +
           "<circle cx=\"60\" cy=\"60\" r=\"52\" class=\"res-ring-fill res-ring-fill-" + perf.c + "\" data-dash=\"" + dash + "\"></circle>" +
-          "</svg><p class=\"big\">" + opts.big + "</p></div>" +
-          (perf ? "<span class=\"res-badge res-badge-" + perf.c + "\">" + svgIcon(perf.i, "ico sm") + " " + perf.t + "</span>" : "") +
+          "</svg><div class=\"res-ring-mid\">" +
+          "<p class=\"big\">" + opts.big + "</p>" +
+          "<span class=\"res-pct\">" + pct + "%</span>" +
+          "</div></div>" +
+          (perf ? "<div class=\"res-perf\"><span class=\"res-badge res-badge-" + perf.c + "\">" + svgIcon(perf.i, "ico sm") + " " + perf.t + "</span></div>" : "") +
+          (opts.noStats ? "" :
+            "<div class=\"res-stats\"><div class=\"res-stats-bar\" role=\"img\" aria-label=\"" + score + " of " + total + " correct\">" +
+            "<span class=\"res-seg res-seg-ok\" data-w=\"" + okW + "%\"></span>" +
+            "<span class=\"res-seg res-seg-bad\" data-w=\"" + badW + "%\"></span>" +
+            "</div><div class=\"res-stats-legend\">" +
+            "<span class=\"res-leg res-leg-ok\">" + svgIcon("check", "sm") + " " + score + "&nbsp;" + (opts.okLabel || "correct") + "</span>" +
+            "<span class=\"res-leg res-leg-bad\">" + svgIcon("cross", "sm") + " " + (total - score) + "&nbsp;" + (opts.badLabel || "wrong") + "</span>" +
+            "</div></div>") +
           "</div>";
       } else {
         html += "<p class=\"big\">" + opts.big + "</p>";
@@ -2241,13 +2255,15 @@
     if (opts.sub) html += "<p class=\"res-sub\">" + opts.sub + "</p>";
     if (opts.note) html += "<p class=\"mt-10 res-note\">" + opts.note + "</p>";
     if (opts.missed && opts.missed.length) {
-      html += "<h3 class=\"mt-14 res-missed-h\">" + (opts.missedHeader || "Missed") + " (" + opts.missed.length + ")</h3>" +
+      html += "<h3 class=\"res-missed-h\">" + (opts.missedIcon || svgIcon("cross", "sm")) +
+        "<span>" + (opts.missedHeader || "Missed") + "</span>" +
+        "<span class=\"res-missed-count\">" + opts.missed.length + "</span></h3>" +
         "<div class=\"missed-list\">" + (opts.missedHTML || "") + "</div>";
     } else if (opts.emptyMsg) {
       html += "<p class=\"mt-10 res-empty\">" + opts.emptyMsg + "</p>";
     }
     const backId = opts.id + "Back";
-    html += "<button class=\"btn btn-primary\" id=\"" + backId + "\">" + (opts.backLabel || "Back to Home") + "</button>";
+    html += "<div class=\"res-actions\"><button class=\"btn btn-primary\" id=\"" + backId + "\">" + svgIcon("arrowLeft", "md") + " " + (opts.backLabel || "Back to Home") + "</button></div>";
     r.innerHTML = html;
     try { applyInlineStyles(r); } catch (e) {}
     $(backId).onclick = function () { showView(opts.backView || "home"); };
@@ -3199,6 +3215,16 @@
      FLASHCARDS
      ============================================================ */
   let cardQueue = [], cardIdx = 0;
+
+  /* ---------- In-session Back navigation (ย้อนกลับมาทำข้อที่ข้าม/ผิด) ----------
+   * Each linear game keeps a per-question result record (true=correct, false=wrong/skipped,
+   * undefined=not yet attempted) so going Back and re-answering keeps score + missed list
+   * honest without double-recording reviews (recordAnswer is only called on the first attempt). */
+  let quizRes = [], fillRes = [], tfRes = [], hangRes = [], buildRes = [], clozeRes = [], listenRes = [];
+  let fillAuto = null, tfAuto = null, hangAuto = null, buildAuto = null, listenAuto = null;
+  function resTrueCount(arr) { let n = 0; for (let i = 0; i < arr.length; i++) if (arr[i] === true) n++; return n; }
+  function resAnsweredCount(arr) { let n = 0; for (let i = 0; i < arr.length; i++) if (arr[i] != null) n++; return n; }
+  function dropMissedByWord(arr, word) { for (let i = arr.length - 1; i >= 0; i--) { if (arr[i] && arr[i].word === word) arr.splice(i, 1); } }
   function startCards() {
     currentMode = "cards";
     const type = chipValue($("cardFilterType"));
@@ -3276,9 +3302,8 @@
   /* ============================================================
      QUIZ  (รองรับทั้งแบบทดสอบทั่วไป และแบบทบทวนรายวัน)
      ============================================================ */
-  let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
+let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
   let quizOnEnd = null, quizReturnView = "home";
-
   function startQuiz() {
     currentMode = "quiz";
     const type = chipValue($("quizType"));
@@ -3316,7 +3341,7 @@
       if (c && c !== "all") { c = parseInt(c, 10); if (list.length > c) list = list.slice(0, c); }
     }
     if (!list.length) { toast("No words available for a quiz", "err"); return; }
-    quizQueue = list; quizIdx = 0; quizScore = 0; quizMode = mode;
+    quizQueue = list; quizIdx = 0; quizScore = 0; quizRes = []; quizMode = mode;
     quizOnEnd = onEnd || null; quizReturnView = retView || "home";
     $("quizControls").classList.add("hidden");
     $("cardControls").classList.add("hidden");
@@ -3332,6 +3357,7 @@
     $("quizProgress").style.width = (quizIdx / total) * 100 + "%";
     const fb = $("quizFeedback"); fb.className = "quiz-feedback hidden"; fb.textContent = "";
     $("quizNext").classList.add("hidden");
+    $("quizPrev").classList.toggle("hidden", quizIdx === 0);
 
     let promptText, answerOpt, distractItems;
     if (quizMode === "meaning") {
@@ -3371,7 +3397,6 @@
     const correct = chosen.text === answer.text;
     if (correct) {
       btn.classList.add("correct");
-      quizScore++;
       setFeedback(fb, "correct", "Correct!");
     } else {
       btn.classList.add("wrong");
@@ -3390,7 +3415,9 @@
       o.classList.add("revealed");
     });
     const item = quizQueue[quizIdx];
-    recordAnswer(item, correct);
+    if (quizRes[quizIdx] === undefined) recordAnswer(item, correct);
+    quizRes[quizIdx] = !!correct;
+    quizScore = resTrueCount(quizRes);
     $("quizProgress").style.width = ((quizIdx + 1) / quizQueue.length) * 100 + "%";
     $("quizNext").classList.remove("hidden");
   }
@@ -3399,6 +3426,10 @@
     quizIdx++;
     if (quizIdx >= quizQueue.length) endQuiz();
     else showQuiz();
+  }
+
+  function backQuiz() {
+    if (quizIdx > 0) { quizIdx--; showQuiz(); }
   }
 
   function endQuiz() {
@@ -4545,6 +4576,7 @@
       sub: "Average score across " + pronScores.length + " words",
       note: "Words pronounced at ≥ 70% count as 'remembered' in the review system",
       mode: "pron", score: avg, total: 100,
+      noStats: true,
       backView: "home",
       celebrate: pronScores.length > 0 && avg >= 70
     });
@@ -4556,6 +4588,8 @@
   function stopGameTimers() {
     if (matchTimerId) { clearInterval(matchTimerId); matchTimerId = null; }
     if (tfTimerId) { clearInterval(tfTimerId); tfTimerId = null; }
+    [fillAuto, tfAuto, hangAuto, buildAuto, listenAuto].forEach(function (t) { if (t) { clearTimeout(t); } });
+    fillAuto = null; tfAuto = null; hangAuto = null; buildAuto = null; listenAuto = null;
   }
 
   /* ============================================================
@@ -4597,7 +4631,7 @@
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No words match these conditions — try a different type or direction", "err"); return; }
 
-    fillQueue = list; fillIdx = 0; fillScore = 0; fillMissed = [];
+    fillQueue = list; fillIdx = 0; fillScore = 0; fillMissed = []; fillRes = [];
     $("fillControls").classList.add("hidden");
     $("fillResult").classList.add("hidden");
     $("fillSession").classList.remove("hidden");
@@ -4628,6 +4662,8 @@
     inp.value = ""; inp.disabled = false;
     inp.placeholder = (dir === "th2en") ? "Type the English word..." : "Type the Thai meaning...";
     const fb = $("fillFeedback"); fb.className = "fill-feedback hidden"; fb.textContent = "";
+    if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
+    $("fillPrev").classList.toggle("hidden", fillIdx === 0);
     $("fillCheck").disabled = false; $("fillSkip").disabled = false;
     inp.focus();
     $("fillSpeak").onclick = function () { speak(i.word); };
@@ -4641,32 +4677,44 @@
     if (!typed) { $("fillInput").focus(); return; }
     const ok = acceptAnswer(typed, fillAnswerText(i, dir));
     const fb = $("fillFeedback");
+    const already = fillRes[fillIdx];
     if (ok) {
-      fillScore++;
       setFeedback(fb, "correct", "Correct!");
     } else {
       setFeedback(fb, "wrong", "Correct answer: " + fillAnswerText(i, dir));
-      fillMissed.push({ word: i.word, th: i.th, answer: fillAnswerText(i, dir) });
     }
     fb.className = "fill-feedback";
-    recordAnswer(i, ok);
+    if (already === undefined) recordAnswer(i, ok);
+    if (ok) { if (already === false) dropMissedByWord(fillMissed, i.word); }
+    else if (already !== false) fillMissed.push({ word: i.word, th: i.th, answer: fillAnswerText(i, dir) });
+    fillRes[fillIdx] = !!ok;
+    fillScore = resTrueCount(fillRes);
     $("fillInput").disabled = true;
     $("fillCheck").disabled = true;
     $("fillSkip").disabled = true;
-    setTimeout(nextFill, ok ? 700 : 1500);
+    if (fillAuto) clearTimeout(fillAuto);
+    fillAuto = setTimeout(nextFill, ok ? 700 : 1500);
   }
 
   function skipFill() {
     if ($("fillSkip").disabled) return;
     const i = fillQueue[fillIdx];
-    fillMissed.push({ word: i.word, th: i.th, answer: fillAnswerText(i, chipValue($("fillDir"))), skipped: true });
+    if (fillRes[fillIdx] !== false) fillMissed.push({ word: i.word, th: i.th, answer: fillAnswerText(i, chipValue($("fillDir"))), skipped: true });
+    fillRes[fillIdx] = false;
+    fillScore = resTrueCount(fillRes);
     nextFill();
   }
 
   function nextFill() {
+    if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
     fillIdx++;
     if (fillIdx >= fillQueue.length) endFill();
     else showFill();
+  }
+
+  function backFill() {
+    if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
+    if (fillIdx > 0) { fillIdx--; showFill(); }
   }
 
   function endFill() {
@@ -4847,7 +4895,7 @@
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No words match these conditions", "err"); return; }
 
-    tfQueue = list; tfIdx = 0; tfScore = 0; tfMissed = []; tfAnswered = 0;
+    tfQueue = list; tfIdx = 0; tfScore = 0; tfMissed = []; tfRes = []; tfAnswered = 0;
     tfTotalTime = parseInt(chipValue($("tfTime")), 10) || 60;
     tfTimeLeft = tfTotalTime;
     $("tfControls").classList.add("hidden");
@@ -4895,7 +4943,9 @@
     $("tfStatement").textContent = statement;
     $("tfStatement").dataset.correct = correctBool ? "1" : "0";
     const fb = $("tfFeedback"); fb.className = "quiz-feedback hidden"; fb.textContent = "";
+    if (tfAuto) { clearTimeout(tfAuto); tfAuto = null; }
     $("tfTrue").disabled = false; $("tfFalse").disabled = false;
+    $("tfPrev").classList.toggle("hidden", tfIdx === 0);
   }
 
   function answerTf(userSaysTrue) {
@@ -4904,31 +4954,40 @@
     const correct = $("tfStatement").dataset.correct === "1";
     const ok = (userSaysTrue === correct);
     const fb = $("tfFeedback");
-    tfAnswered++;
+    const already = tfRes[tfIdx];
     if (ok) {
-      tfScore++;
       setFeedback(fb, "correct", "Correct!");
     } else {
       setFeedback(fb, "wrong", "Correct answer: " + (correct ? "True" : "False") + " (" + i.th + ")");
-      tfMissed.push({ word: i.word, th: i.th });
     }
     fb.className = "quiz-feedback";
-    recordAnswer(i, ok);
+    if (already === undefined) recordAnswer(i, ok);
+    if (ok) { if (already === false) dropMissedByWord(tfMissed, i.word); }
+    else if (already !== false) tfMissed.push({ word: i.word, th: i.th });
+    tfRes[tfIdx] = !!ok;
+    tfScore = resTrueCount(tfRes);
     $("tfTrue").disabled = true; $("tfFalse").disabled = true;
-    setTimeout(nextTf, 900);
+    if (tfAuto) clearTimeout(tfAuto);
+    tfAuto = setTimeout(nextTf, 900);
   }
 
   function nextTf() {
+    if (tfAuto) { clearTimeout(tfAuto); tfAuto = null; }
     tfIdx++;
     if (tfIdx >= tfQueue.length) endTf(false);
     else showTf();
+  }
+
+  function backTf() {
+    if (tfAuto) { clearTimeout(tfAuto); tfAuto = null; }
+    if (tfIdx > 0) { tfIdx--; showTf(); }
   }
 
   function endTf(timeUp) {
     if (tfTimerId) { clearInterval(tfTimerId); tfTimerId = null; }
     $("tfSession").classList.add("hidden");
     const total = tfQueue.length;
-    const answered = tfAnswered;
+    const answered = resAnsweredCount(tfRes);
     const pct = answered ? Math.round((tfScore / answered) * 100) : 0;
     let missedHTML = tfMissed.map(function (m) {
       return "<div class=\"missed-item\"><b>" + m.word + "</b> — " + m.th + "</div>";
@@ -4988,7 +5047,7 @@
     list = shuffle(list);
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No words match these conditions", "err"); return; }
-    hangQueue = list; hangIdx = 0; hangScore = 0; hangMissed = [];
+    hangQueue = list; hangIdx = 0; hangScore = 0; hangMissed = []; hangRes = [];
     $("hangControls").classList.add("hidden");
     $("hangResult").classList.add("hidden");
     $("hangSession").classList.remove("hidden");
@@ -5032,7 +5091,9 @@
     renderHangLives(i._lives);
     renderHangKeyboard();
     const msg = $("hangMsg"); msg.className = "hang-msg hidden"; msg.textContent = "";
+    if (hangAuto) { clearTimeout(hangAuto); hangAuto = null; }
     $("hangSkip").disabled = false;
+    $("hangPrev").classList.toggle("hidden", hangIdx === 0);
   }
   function guessHang(L, btn) {
     if (btn.disabled) return;
@@ -5057,7 +5118,6 @@
     const msg = $("hangMsg");
     msg.className = "hang-msg";
     if (won) {
-      hangScore++;
       msg.innerHTML = svgIcon("check") + " Correct! The word was: " + esc(i.word);
       msg.style.color = "var(--good)";
       const fig = $("hangFigure"); if (fig) fig.classList.add("win");
@@ -5065,30 +5125,43 @@
     } else {
       msg.innerHTML = svgIcon("cross") + " The word was: " + esc(i.word);
       msg.style.color = "var(--bad)";
-      hangMissed.push({ word: i.word, th: i.th });
       playTone("wrong");
       try { if (navigator.vibrate) navigator.vibrate([0, 35, 25, 35]); } catch (e) {}
       flashElement($("hangSession"), "wrong");
     }
     Array.prototype.forEach.call($("hangKeyboard").children, function (b) { b.disabled = true; });
     $("hangSkip").disabled = true;
-    recordAnswer(i, won);
-    setTimeout(nextHang, 1400);
+    const already = hangRes[hangIdx];
+    if (already === undefined) recordAnswer(i, won);
+    if (won) { if (already === false) dropMissedByWord(hangMissed, i.word); }
+    else if (already !== false) hangMissed.push({ word: i.word, th: i.th });
+    hangRes[hangIdx] = !!won;
+    hangScore = resTrueCount(hangRes);
+    if (hangAuto) clearTimeout(hangAuto);
+    hangAuto = setTimeout(nextHang, 1400);
   }
   function skipHang() {
     if ($("hangSkip").disabled) return;
     const i = hangQueue[hangIdx];
-    hangMissed.push({ word: i.word, th: i.th, skipped: true });
+    if (hangRes[hangIdx] !== false) hangMissed.push({ word: i.word, th: i.th, skipped: true });
+    hangRes[hangIdx] = false;
+    hangScore = resTrueCount(hangRes);
     const msg = $("hangMsg"); msg.className = "hang-msg";
     msg.textContent = "Skipped — the word was: " + i.word; msg.style.color = "var(--muted)";
     Array.prototype.forEach.call($("hangKeyboard").children, function (b) { b.disabled = true; });
     $("hangSkip").disabled = true;
-    setTimeout(nextHang, 1000);
+    if (hangAuto) clearTimeout(hangAuto);
+    hangAuto = setTimeout(nextHang, 1000);
   }
   function nextHang() {
+    if (hangAuto) { clearTimeout(hangAuto); hangAuto = null; }
     hangIdx++;
     if (hangIdx >= hangQueue.length) endHang();
     else showHang();
+  }
+  function backHang() {
+    if (hangAuto) { clearTimeout(hangAuto); hangAuto = null; }
+    if (hangIdx > 0) { hangIdx--; showHang(); }
   }
   function endHang() {
     $("hangSession").classList.add("hidden");
@@ -5127,7 +5200,7 @@
     list = shuffle(list);
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No sentences match these conditions", "err"); return; }
-    buildQueue = list; buildIdx = 0; buildScore = 0; buildMissed = [];
+    buildQueue = list; buildIdx = 0; buildScore = 0; buildMissed = []; buildRes = [];
     $("buildControls").classList.add("hidden");
     $("buildResult").classList.add("hidden");
     $("buildSession").classList.remove("hidden");
@@ -5143,6 +5216,8 @@
     buildSentence = [];
     renderBuild();
     const fb = $("buildFeedback"); fb.className = "build-feedback hidden"; fb.textContent = "";
+    if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
+    $("buildPrev").classList.toggle("hidden", buildIdx === 0);
     $("buildCheck").disabled = false; $("buildSkip").disabled = false;
   }
   function renderBuild() {
@@ -5184,11 +5259,9 @@
     const ok = correct.length === buildSentence.length && correct.every(function (w, k) { return w === buildSentence[k]; });
     const fb = $("buildFeedback");
     if (ok) {
-      buildScore++;
       setFeedback(fb, "correct", "Correct! " + i.exEn);
     } else {
       setFeedback(fb, "wrong", "Correct sentence: " + i.exEn);
-      buildMissed.push({ word: i.word, exEn: i.exEn });
     }
     fb.className = "build-feedback";
     const tilesEl = $("buildSentence");
@@ -5197,20 +5270,33 @@
       if (correct[k] !== undefined && buildSentence[k] === correct[k]) t.classList.add("correct");
       else t.classList.add("wrong");
     });
-    recordAnswer(i, ok);
+    const already = buildRes[buildIdx];
+    if (already === undefined) recordAnswer(i, ok);
+    if (ok) { if (already === false) dropMissedByWord(buildMissed, i.word); }
+    else if (already !== false) buildMissed.push({ word: i.word, exEn: i.exEn });
+    buildRes[buildIdx] = !!ok;
+    buildScore = resTrueCount(buildRes);
     $("buildCheck").disabled = true; $("buildSkip").disabled = true;
-    setTimeout(nextBuild, ok ? 1000 : 1800);
+    if (buildAuto) clearTimeout(buildAuto);
+    buildAuto = setTimeout(nextBuild, ok ? 1000 : 1800);
   }
   function skipBuild() {
     if ($("buildSkip").disabled) return;
     const i = buildQueue[buildIdx];
-    buildMissed.push({ word: i.word, exEn: i.exEn, skipped: true });
+    if (buildRes[buildIdx] !== false) buildMissed.push({ word: i.word, exEn: i.exEn, skipped: true });
+    buildRes[buildIdx] = false;
+    buildScore = resTrueCount(buildRes);
     nextBuild();
   }
   function nextBuild() {
+    if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
     buildIdx++;
     if (buildIdx >= buildQueue.length) endBuild();
     else showBuild();
+  }
+  function backBuild() {
+    if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
+    if (buildIdx > 0) { buildIdx--; showBuild(); }
   }
   function endBuild() {
     $("buildSession").classList.add("hidden");
@@ -5249,7 +5335,7 @@
     list = shuffle(list);
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No sentences match these conditions", "err"); return; }
-    clozeQueue = list; clozeIdx = 0; clozeScore = 0; clozeMissed = []; clozeAnswered = 0;
+    clozeQueue = list; clozeIdx = 0; clozeScore = 0; clozeMissed = []; clozeRes = []; clozeAnswered = 0;
     $("clozeControls").classList.add("hidden");
     $("clozeResult").classList.add("hidden");
     $("clozeSession").classList.remove("hidden");
@@ -5274,24 +5360,29 @@
     });
     const fb = $("clozeFeedback"); fb.className = "quiz-feedback hidden"; fb.textContent = "";
     $("clozeNext").classList.add("hidden");
+    $("clozePrev").classList.toggle("hidden", clozeIdx === 0);
   }
   function chooseCloze(chosen, correct, btn) {
     const opts = $("clozeOptions").querySelectorAll(".quiz-opt");
     opts.forEach(function (o) { o.disabled = true; });
     const fb = $("clozeFeedback");
     const ok = (chosen === correct);
-    clozeAnswered++;
+    const item = clozeQueue[clozeIdx];
+    const already = clozeRes[clozeIdx];
     if (ok) {
-      clozeScore++; btn.classList.add("correct");
+      btn.classList.add("correct");
       setFeedback(fb, "correct", "Correct!");
     } else {
       btn.classList.add("wrong");
       opts.forEach(function (o) { if (o.textContent === correct) o.classList.add("correct"); });
       setFeedback(fb, "wrong", "Correct word: " + correct);
-      clozeMissed.push({ word: clozeQueue[clozeIdx].word, exEn: clozeQueue[clozeIdx].exEn });
     }
     fb.className = "quiz-feedback";
-    recordAnswer(clozeQueue[clozeIdx], ok);
+    if (already === undefined) recordAnswer(item, ok);
+    if (ok) { if (already === false) dropMissedByWord(clozeMissed, item.word); }
+    else if (already !== false) clozeMissed.push({ word: item.word, exEn: item.exEn });
+    clozeRes[clozeIdx] = !!ok;
+    clozeScore = resTrueCount(clozeRes);
     $("clozeProgress").style.width = ((clozeIdx + 1) / clozeQueue.length) * 100 + "%";
     $("clozeNext").classList.remove("hidden");
   }
@@ -5299,6 +5390,9 @@
     clozeIdx++;
     if (clozeIdx >= clozeQueue.length) endCloze();
     else showCloze();
+  }
+  function backCloze() {
+    if (clozeIdx > 0) { clozeIdx--; showCloze(); }
   }
   function endCloze() {
     $("clozeSession").classList.add("hidden");
@@ -5337,7 +5431,7 @@
     list = shuffle(list);
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No words match these conditions", "err"); return; }
-    listenQueue = list; listenIdx = 0; listenScore = 0; listenMissed = [];
+    listenQueue = list; listenIdx = 0; listenScore = 0; listenMissed = []; listenRes = [];
     $("listenControls").classList.add("hidden");
     $("listenResult").classList.add("hidden");
     $("listenSession").classList.remove("hidden");
@@ -5352,6 +5446,8 @@
     const inp = $("listenInput");
     inp.value = ""; inp.disabled = false; inp.placeholder = "Type what you hear...";
     const fb = $("listenFeedback"); fb.className = "fill-feedback hidden"; fb.textContent = "";
+    if (listenAuto) { clearTimeout(listenAuto); listenAuto = null; }
+    $("listenPrev").classList.toggle("hidden", listenIdx === 0);
     $("listenCheck").disabled = false; $("listenSkip").disabled = false;
     inp.focus();
     speak(i.word);
@@ -5365,28 +5461,39 @@
     const ok = typed === normText(i.word);
     const fb = $("listenFeedback");
     if (ok) {
-      listenScore++;
       setFeedback(fb, "correct", "Correct!");
     } else {
       setFeedback(fb, "wrong", "Correct word: " + i.word);
-      listenMissed.push({ word: i.word, th: i.th });
     }
     fb.className = "fill-feedback";
-    recordAnswer(i, ok);
+    const already = listenRes[listenIdx];
+    if (already === undefined) recordAnswer(i, ok);
+    if (ok) { if (already === false) dropMissedByWord(listenMissed, i.word); }
+    else if (already !== false) listenMissed.push({ word: i.word, th: i.th });
+    listenRes[listenIdx] = !!ok;
+    listenScore = resTrueCount(listenRes);
     $("listenInput").disabled = true;
     $("listenCheck").disabled = true; $("listenSkip").disabled = true;
-    setTimeout(nextListen, ok ? 700 : 1400);
+    if (listenAuto) clearTimeout(listenAuto);
+    listenAuto = setTimeout(nextListen, ok ? 700 : 1400);
   }
   function skipListen() {
     if ($("listenSkip").disabled) return;
     const i = listenQueue[listenIdx];
-    listenMissed.push({ word: i.word, th: i.th, skipped: true });
+    if (listenRes[listenIdx] !== false) listenMissed.push({ word: i.word, th: i.th, skipped: true });
+    listenRes[listenIdx] = false;
+    listenScore = resTrueCount(listenRes);
     nextListen();
   }
   function nextListen() {
+    if (listenAuto) { clearTimeout(listenAuto); listenAuto = null; }
     listenIdx++;
     if (listenIdx >= listenQueue.length) endListen();
     else showListen();
+  }
+  function backListen() {
+    if (listenAuto) { clearTimeout(listenAuto); listenAuto = null; }
+    if (listenIdx > 0) { listenIdx--; showListen(); }
   }
   function endListen() {
     $("listenSession").classList.add("hidden");
@@ -5683,6 +5790,7 @@
 
     $("startQuiz").onclick = startQuiz;
     $("quizNext").onclick = nextQuiz;
+    $("quizPrev").onclick = backQuiz;
 
     $("startPron").onclick = startPron;
     $("pronNext").onclick = nextPron;
@@ -5690,23 +5798,29 @@
     $("startFill").onclick = startFill;
     $("fillCheck").onclick = checkFill;
     $("fillSkip").onclick = skipFill;
+    $("fillPrev").onclick = backFill;
 
     $("startMatch").onclick = startMatch;
 
     $("startTf").onclick = startTf;
     $("tfTrue").onclick = function () { answerTf(true); };
     $("tfFalse").onclick = function () { answerTf(false); };
+    $("tfPrev").onclick = backTf;
 
     $("startHang").onclick = startHang;
     $("hangSkip").onclick = skipHang;
+    $("hangPrev").onclick = backHang;
     $("startBuild").onclick = startBuild;
     $("buildCheck").onclick = checkBuild;
     $("buildSkip").onclick = skipBuild;
+    $("buildPrev").onclick = backBuild;
     $("startCloze").onclick = startCloze;
     $("clozeNext").onclick = nextCloze;
+    $("clozePrev").onclick = backCloze;
     $("startListen").onclick = startListen;
     $("listenCheck").onclick = checkListen;
     $("listenSkip").onclick = skipListen;
+    $("listenPrev").onclick = backListen;
 
     $("browseSearch").oninput = function () {
       if (browseSearchTimer) clearTimeout(browseSearchTimer);

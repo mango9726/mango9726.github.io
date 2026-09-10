@@ -419,7 +419,10 @@
         </div>
         <div class="quiz-options" id="quizOptions"></div>
         <p class="quiz-feedback hidden" id="quizFeedback" aria-live="polite"></p>
-        <button class="btn btn-primary hidden" id="quizNext">Next Question →</button>
+        <div class="session-actions">
+          <button class="btn hidden" id="quizPrev" data-i18n="btn.back">← Back</button>
+          <button class="btn btn-primary hidden" id="quizNext" data-i18n="next.question">Next Question →</button>
+        </div>
       </div>
 
       <div class="result hidden" id="quizResult" role="status" aria-live="polite"></div>
@@ -556,6 +559,7 @@
         <input type="text" id="fillInput" class="fill-input" placeholder="Type your answer here…" autocomplete="off" inputmode="text" />
         <p class="fill-feedback hidden" id="fillFeedback"></p>
         <div class="session-actions">
+          <button class="btn hidden" id="fillPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="fillSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary" id="fillCheck" data-i18n="check.answer">Check Answer</button>
         </div>
@@ -644,6 +648,9 @@
           <button class="btn btn-good tf-opt-btn" id="tfTrue"><span class="opt-ico" data-icon="check"></span>True</button>
           <button class="btn btn-bad tf-opt-btn" id="tfFalse"><span class="opt-ico" data-icon="cross"></span>False</button>
         </div>
+        <div class="session-actions">
+          <button class="btn hidden" id="tfPrev" data-i18n="btn.back">← Back</button>
+        </div>
       </div>
 
       <div class="result hidden" id="tfResult"></div>
@@ -697,6 +704,7 @@
         <p class="hang-msg hidden" id="hangMsg"></p>
         <div class="hang-keyboard" id="hangKeyboard"></div>
         <div class="session-actions">
+          <button class="btn hidden" id="hangPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="hangSkip" data-i18n="skip">Skip</button>
         </div>
       </div>
@@ -733,6 +741,7 @@
         <div class="build-tiles" id="buildBank"></div>
         <p class="build-feedback hidden" id="buildFeedback"></p>
         <div class="session-actions">
+          <button class="btn hidden" id="buildPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="buildSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary" id="buildCheck" data-i18n="check.answer">Check Answer</button>
         </div>
@@ -767,7 +776,10 @@
         <p class="cloze-sentence" id="clozeSentence"></p>
         <div class="quiz-options" id="clozeOptions"></div>
         <p class="quiz-feedback hidden" id="clozeFeedback"></p>
-        <button class="btn btn-primary hidden" id="clozeNext">Next Question →</button>
+        <div class="session-actions">
+          <button class="btn hidden" id="clozePrev" data-i18n="btn.back">← Back</button>
+          <button class="btn btn-primary hidden" id="clozeNext" data-i18n="next.question">Next Question →</button>
+        </div>
       </div>
 
       <div class="result hidden" id="clozeResult"></div>
@@ -803,6 +815,7 @@
         <input type="text" id="listenInput" class="fill-input" placeholder="Type what you hear…" autocomplete="off" inputmode="text" />
         <p class="fill-feedback hidden" id="listenFeedback"></p>
         <div class="session-actions">
+          <button class="btn hidden" id="listenPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="listenSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary" id="listenCheck" data-i18n="check.answer">Check Answer</button>
         </div>

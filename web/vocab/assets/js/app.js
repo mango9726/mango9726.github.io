@@ -3603,6 +3603,7 @@
     }
     // Event delegation — one listener instead of per-card closures
     box.onclick = function (e) {
+      if (e.target.closest("[data-browse-eye]") || e.target.closest("[data-browse-speak]")) return;
       const card = e.target.closest("[data-browse-id]");
       if (!card) return;
       const item = list.find(function (it) { return it.id === card.dataset.browseId; }) || ALL_ITEMS.find(function (it) { return it.id === card.dataset.browseId; });
@@ -4200,7 +4201,7 @@
     // pronunciation practice inside modal
     const pbox = $("pronResult");
     pbox.className = "pron-feedback hidden"; pbox.innerHTML = "";
-    $("detailPron").textContent = currentLang() === "th" ? "แตะ แล้วพูดคำนี้" : "Tap, then say this word";
+    $("detailPron").textContent = settings.lang === "th" ? "แตะ แล้วพูดคำนี้" : "Tap, then say this word";
     attachMic($("detailPron"), null, pbox, function () { return item.word; }, function (result) {
       recordAnswer(item, result.score >= 70);
     });
@@ -4209,7 +4210,7 @@
     if (sbtn) {
       if (item.exEn) {
         sbtn.style.display = "";
-        sbtn.textContent = currentLang() === "th" ? "พูดประโยคตัวอย่าง" : "Speak Example Sentence";
+        sbtn.textContent = settings.lang === "th" ? "พูดประโยคตัวอย่าง" : "Speak Example Sentence";
         attachMic(sbtn, null, pbox, function () { return item.exEn; }, function (result) {
           recordAnswer(item, result.score >= 70);
         });

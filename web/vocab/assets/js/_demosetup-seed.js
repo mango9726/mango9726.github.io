@@ -1,22 +1,30 @@
 (function () {
-  /* Screenshot harness seed — runs BEFORE the app scripts (non-deferred, CSP-safe).
-     Uses plaintext localStorage; SecureStore treats it as legacy and re-encrypts. */
+  /* Demo-account setup seed — runs BEFORE the app scripts (non-deferred, CSP-safe).
+     Writes plaintext localStorage; SecureStore adopts it as legacy and re-encrypts
+     on the next flush, so it becomes the current guest state. Then when the user
+     registers (Firebase), pushLocalDataToAccount() uploads these SYNC_KEYS to the
+     new account in Firestore — producing a ready-to-record demo account. */
   try {
     var today = new Date();
     function addDaysStr(d, n) {
       var x = new Date(d.getTime() + n * 86400000);
       return x.toISOString().slice(0, 10);
     }
-    var qsStrength = (location.search || "").match(/[?&]streak=(\d+)/);
-    var seedStreak = qsStrength ? parseInt(qsStrength[1], 10) : 7;
-    if (!(seedStreak >= 0)) seedStreak = 7;
 
+    /* Keep the seeded guest data across the app restart: mark this as an
+       existing session so auth.resetGuestDataIfNewSession() does not wipe it. */
+    try { sessionStorage.setItem("vocab_guest_session", "1"); } catch (e) {}
+
+    /* ---- CEFR settings: Thai UI, day plan starting today, B1 selected ---- */
     localStorage.setItem("vocab_settings_v1", JSON.stringify({
       lang: "th",
-      planStartDate: "2026-08-25",
-      reviewGoal: 20
+      planStartDate: addDaysStr(today, 0),
+      reviewGoal: 20,
+      selectedCefrLevel: "B1",
+      usePlacementLevel: false
     }));
-    localStorage.setItem("vocab_streak_v1", JSON.stringify({ streak: seedStreak, last: addDaysStr(today, -1) }));
+
+    localStorage.setItem("vocab_streak_v1", JSON.stringify({ streak: 7, last: addDaysStr(today, -1) }));
     localStorage.setItem("vocab_game_v1", JSON.stringify({
       xp: 5210,
       achievements: {
@@ -34,16 +42,17 @@
     var history = {}, learned = {}, dailyCounts = {};
     for (var i = 1; i <= 100; i++) {
       var dt = addDaysStr(today, -i);
-      var wob = ((i * 7) % 5) - 2;                       // weekend-ish ups and downs
+      var wob = ((i * 7) % 5) - 2;
       var ans = Math.max(6, 18 + wob * 6 + ((i * 13) % 9));
-      if ((i * 3) % 17 === 0) ans = 0;                    // occasional off day
-      var acc = 0.68 + ((i * 11) % 20) / 100;             // 68%–88% accuracy
+      if ((i * 3) % 17 === 0) ans = 0;
+      var acc = 0.68 + ((i * 11) % 20) / 100;
       if (ans === 0) { history[dt] = { answered: 0, correct: 0 }; }
       else { history[dt] = { answered: ans, correct: Math.round(ans * acc) }; }
       learned[dt] = ans === 0 ? 0 : 4 + ((i * 5) % 14);
       dailyCounts[dt] = ans;
     }
     dailyCounts[addDaysStr(today, 0)] = 6;
+
     var g = localStorage.getItem("vocab_game_v1");
     var gameObj = JSON.parse(g);
     gameObj.dailyAnswered = dailyCounts;
@@ -60,6 +69,7 @@
     localStorage.setItem("vocab_history_v1", JSON.stringify(history));
     localStorage.setItem("vocab_learned_v1", JSON.stringify(learned));
 
+    /* ---- B1 progress: days 121–160 (10 words/day) with FSRS state ---- */
     var progress = {};
     for (var day = 121; day <= 160; day++) {
       for (var v = 0; v < 10; v++) {
@@ -69,7 +79,7 @@
         var st = stPool[gv];
         var reps = [0, 1, 2, 3, 4, 5, 6, 7, 3][(gv + v) % 9];
         var lapses = ((gv + v) % 5 === 0) ? 2 : (((gv + v) % 4 === 0) ? 1 : 0);
-        var dueShift = (gv % 5) - 2;                 // -2..+2 → บางคำ overdue/today/beyond
+        var dueShift = (gv % 5) - 2;
         var lastShift = (gv % 4 === 0) ? 30 : 3 + ((gv + v) % 18);
         progress[id] = {
           st: Math.round(st * 10) / 10,
@@ -90,6 +100,6 @@
     }
     localStorage.setItem("vocab_reviews_v1", JSON.stringify(reviews));
   } catch (e) {
-    /* ignore — screenshots still render with default state */
+    /* ignore — account still registers, just without demo data */
   }
 })();

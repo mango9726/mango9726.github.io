@@ -2,7 +2,7 @@
  * App-shell precache + runtime cache. Music is large, so it is cached
  * lazily on first play with an LRU cap instead of being precached.
  */
-const VERSION = "vocab-trainer-v20";
+const VERSION = "vocab-trainer-v25";
 const SHELL_CACHE = VERSION + "-shell";
 const RUNTIME_CACHE = VERSION + "-runtime";
 const MUSIC_CAP = 14; // max cached music tracks
@@ -27,6 +27,12 @@ const SHELL = [
   "assets/js/vocab-extra-colloc-c1.js",
   "assets/js/vocab-extra-colloc-c2.js",
   "assets/js/vocab-th-extra.js",
+  "assets/js/vocab-examples-a1.js",
+  "assets/js/vocab-examples-a2.js",
+  "assets/js/vocab-examples-b1.js",
+  "assets/js/vocab-examples-b2.js",
+  "assets/js/vocab-examples-c1.js",
+  "assets/js/vocab-examples-c2.js",
   "assets/js/vocab-i18n.js",
   "assets/js/vocab-fsrs.js",
   "assets/js/vocab-csv.js",
@@ -115,6 +121,20 @@ self.addEventListener("fetch", function (e) {
   }
 
   // Static assets: cache-first, then network (and cache the result).
+  // app.js is network-first so a code fix is never stuck behind an old cache.
+  if (url.pathname.endsWith("assets/js/app.js")) {
+    e.respondWith(
+      caches.open(RUNTIME_CACHE).then(function (cache) {
+        return fetch(req).then(function (res) {
+          if (res && res.ok && res.type === "basic") cache.put(req, res.clone());
+          return res;
+        }).catch(function () {
+          return cache.match(req);
+        });
+      })
+    );
+    return;
+  }
   e.respondWith(
     caches.match(req).then(function (hit) {
       if (hit) return hit;

@@ -76,7 +76,12 @@ window.VOCAB_ICONS = {
     plus: '<path d="M12 5v14M5 12h14"/>',
     bookmark: '<path d="M6 3h12v18l-6-4-6 4z"/>',
     quiz: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.8.5-1.5 1-1.5 2"/><path d="M12 17h.01"/>',
-    gitBranch: '<path d="M6 3v12"/><circle cx="6" cy="18" r="2.5"/><circle cx="6" cy="5" r="2.5"/><circle cx="18" cy="7" r="2.5"/><path d="M6 15c0-3 3-5 7-5 2.5 0 5-1.5 5-2.5"/>'
+    gitBranch: '<path d="M6 3v12"/><circle cx="6" cy="18" r="2.5"/><circle cx="6" cy="5" r="2.5"/><circle cx="18" cy="7" r="2.5"/><path d="M6 15c0-3 3-5 7-5 2.5 0 5-1.5 5-2.5"/>',
+    activity: '<path d="M3 12h4l3-8 5 16 3-8h3"/>',
+    play: '<circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/>',
+    arrowLeft: '<path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/>',
+    arrowRight: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+    layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/>'
   };
 
 window.VOCAB_STRINGS = {

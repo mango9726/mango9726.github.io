@@ -1,0 +1,76 @@
+const fs = require('fs');
+const path = 'C:\\Users\\HP\\Desktop\\codex\\web\\vocab\\assets\\js\\vocab-examples-c2.js';
+
+const W = {
+"abjure": ["The dissident was forced to abjure his political beliefs under duress.", "ผู้ต่อต้านถูกบังคับให้ละทิ้งความเชื่อทางการเมืองภายใต้การบีบบังคับ"],
+"abnegate": ["She chose to abnegate her personal ambitions for the sake of her family.", "เธอเลือกที่จะสละความทะเยอทะยานส่วนตัวเพื่อครอบครัว"],
+"abnegation": ["His abnegation of personal comfort inspired everyone in the commune.", "การสละความสะดวกสบายส่วนตัวของเขาสร้างแรงบันดาลใจให้ทุกคนในชุมชน"],
+"abrogate": ["The new regime moved swiftly to abrogate the treaty signed by its predecessor.", "รัฐบาลชุดใหม่ดำเนินการอย่างรวดเร็วเพื่อยกเลิกสนธิสัญญาที่ลงนามโดยรัฐบาลก่อน"],
+"abscond": ["The treasurer absconded with the entire endowment fund of the organization.", "เหรัญญิกหนีหายไปพร้อมเงินทุนทั้งหมดขององค์กร"],
+"abstemious": ["She maintained an abstemious lifestyle despite her considerable wealth.", "เธอดำรงวิถีชีวิตที่ประหยัดมัธยัสถ์แม้จะมีทรัพย์สมบัติมากมาย"],
+"abstruse": ["The professor's abstruse lectures left many students completely bewildered.", "การบรรยายที่ลึกซึ้งยากจะเข้าใจของศาสตราจารย์ทำให้นักเรียนหลายคนงุนงง"],
+"accede": ["After weeks of negotiation the board finally acceded to the union's demands.", "หลังจากเจรจาหลายสัปดาห์คณะกรรมการก็ยอมรับข้อเรียกร้องของสหภาพแรงงานในที่สุด"],
+"acclivity": ["The steep acclivity of the mountain path made the ascent exhausting.", "ความชันสูงชันของเส้นทางภูเขาทำให้การปีนเหนื่อยล้า"],
+"acerbic": ["Her acerbic wit made her a feared yet respected literary critic.", "ไหวพริบที่เฉียบคมของเธอทำให้เธอเป็นนักวิจารณ์วรรณกรรมที่น่ากลัวแต่เป็นที่เคารพ"],
+"acerbity": ["The acerbity of his response suggested he had been deeply offended.", "ความรุนแรงและความเฉียบขาดของคำตอบแนะนำว่าเขาโกรธมาก"],
+"acquiesce": ["She chose to acquiesce rather than engage in a protracted argument.", "เธอเลือกที่จะยอมเงียบแทนที่จะทะเลาะกันเป็นเวลานาน"],
+"acquiescence": ["His acquiescence to the policy change was met with quiet relief by colleagues.", "การยอมรับการเปลี่ยนแปลงนโยบายของเขาทำให้เพื่อนร่วมงานโล่งใจ"],
+"acquiescent": ["The acquiescent attitude of the committee allowed the proposal to pass.", "ทัศนคติที่ยอมรับง่ายของคณะกรรมการทำให้ข้อเสนอผ่านไปโดยไม่มีการคัดค้าน"],
+"admonitory": ["She cast him an admonitory glance when he reached for his phone.", "เธอมองเขาด้วยสายตาตักเตือนเมื่อเขาหยิบโทรศัพท์ขึ้นมา"],
+"adduce": ["The lawyer attempted to adduce new evidence that would exonerate his client.", "ทนายความพยายามเสนอหลักฐานใหม่ที่จะพิสูจน์ว่าลูกความไม่มีความผิด"],
+"adroit": ["The diplomat's adroit handling of the crisis prevented an international incident.", "การจัดการวิกฤตอย่างแยบยลของนักการทูตป้องกันไม่ให้เกิดเหตุการณ์ระหว่างประเทศ"],
+"adumbrate": ["The report adumbrated the main challenges facing the organization over the next decade.", "รายงานได้สรุปภาพรวมของความท้าทายหลักที่องค์กรต้องเผชิญในทศวรรษหน้า"],
+"affectation": ["His British accent was clearly an affectation as everyone knew he grew up in Texas.", "สำเนียงอังกฤษของเขาเป็นเพียงการสร้างภาพเพราะทุกคนรู้ว่าเขาเติบโตในเท็กซัส"],
+"aggrandize": ["The dictator sought to aggrandize his own image at the expense of the nation.", "ผู้เผด็จการพยายามขยายภาพลักษณ์ของตนเองบนความสูญเสียของชาติ"],
+"aggrandizement": ["Her relentless pursuit of aggrandizement alienated her closest friends.", "การแสวงหาอำนาจและอิทธิพลอย่างไม่หยุดยั้งของเธอทำให้เพื่อนสนิทห่างเหิน"],
+"alacrity": ["He accepted the challenging assignment with alacrity eager to prove himself.", "เขารับงานที่ท้าทายด้วยความเต็มใจกระตือรือร้นที่จะพิสูจน์ตนเอง"],
+"albatross": ["The failed project became an albatross around the manager's neck for years.", "โครงการที่ล้มเหลวกลายเป็นภาระอันหนักอึ้งที่คล้องอยู่รอบคอผู้จัดการมาหลายปี"],
+"allay": ["The governor held a press conference to allay public fears about the outbreak.", "ผู้ว่าราชการจัดงานแถลงข่าวเพื่อบรรเทาความกลัวของประชาชนเกี่ยวกับการระบาด"],
+"allegorical": ["The novel is an allegorical tale about the corruption of political power.", "นวนิยายเรื่องนี้เป็นนิยายเชิงอุปมาเกี่ยวกับการเสื่อมสลายของอำนาจทางการเมือง"],
+"alloy": ["Bronze is an alloy composed primarily of copper and tin in varying proportions.", "ทองแดงเป็นโลหะผสมที่มีส่วนประกอบหลักคือทองแดงและดีบุกในสัดส่วนที่ต่างกัน"],
+"amaranthine": ["The poet's amaranthine themes of love and loss resonate across generations.", "หัวข้ออมตะที่ไม่มีวันตายของกวีเรื่องความรักและความสูญเสียสะท้อนข้ามยุคสมัย"],
+"ambivalent": ["She felt deeply ambivalent about accepting the promotion that required relocation.", "เธอมีความรู้สึกสองแง่สองง่ามลึกซึ้งเกี่ยวกับการรับตำแหน่งที่ต้องย้ายถิ่นฐาน"],
+"ambrosia": ["The aroma of freshly baked bread was pure ambrosia to the hungry travelers.", "กลิ่นหอมของขนมปังที่เพิ่งออกจากเตาเป็นเหมือนอาหารทิพย์สำหรับนักเดินทางที่หิวโหย"],
+"ameliorate": ["The new irrigation system was designed to ameliorate the effects of prolonged drought.", "ระบบชลประทานใหม่ถูกออกแบบมาเพื่อบรรเทาผลกระทบจากภัยแล้งที่ยาวนาน"],
+"amortize": ["The company plans to amortize the cost of new equipment over the next five years.", "บริษัทวางแผนที่จะค่อยๆ ตัดจำหน่ายค่าใช้จ่ายของอุปกรณ์ใหม่ในอีกห้าปี"],
+"amorphous": ["The proposal remained amorphous lacking any clear structure or defined objectives.", "ข้อเสนอยังคงไม่มีรูปร่างชัดเจนขาดโครงสร้างหรือวัตถุประสงค์ที่ชัดเจน"],
+"anathema": ["To the traditionalists the idea of abolishing exams was anathema.", "สำหรับอนุรักษ์นิยมแนวคิดการยกเลิกการสอบเป็นสิ่งที่น่ารังเกียจอย่างยิ่ง"],
+"anodyne": ["The politician's anodyne speech avoided any mention of the controversial reforms.", "สุนทรพจน์ที่ไม่ทำให้ใครขุ่นเคืองของนักการเมืองหลีกเลี่ยงการกล่าวถึงการปฏิรูปที่เป็นข้อถกเถียง"],
+"antipathy": ["His longstanding antipathy toward corporate bureaucracy was well known.", "ความรู้สึกต่อต้านระบบราชการขององค์กรที่เขามีมาช้านานเป็นที่รู้จักดี"],
+"antithetical": ["The dictator's methods were antithetical to every principle of democratic governance.", "วิธีการของผู้เผด็จการตรงกันข้ามกับหลักการทุกประการของประชาธิปไตย"],
+"aphorism": ["His speech was peppered with quotable aphorisms that the audience immediately shared.", "สุนทรพจน์ของเขาเต็มไปด้วยคำพังเพยที่ผู้ชมแชร์ออนไลน์ทันที"],
+"apocryphal": ["The story about the ghost in the library is almost certainly apocryphal.", "เรื่องราวเกี่ยวกับผีในห้องสมุดแทบจะแน่นอนว่าเป็นเรื่องแต่ง"],
+"apogee": ["The painter reached the apogee of her career with a solo exhibition at the Met.", "จิตรกรได้ถึงจุดสูงสุดในอาชีพของเธอจากการจัดนิทรรศการเดี่ยวที่เดอะเมตร"],
+"apoplectic": ["The mayor became apoplectic when he discovered the extent of the financial fraud.", "นายกเทศมนตรีโกรธจนหน้าดำหน้าแดงเมื่อพบขอบเขตของการทุจริตทางการเงิน"],
+"apostate": ["He was branded an apostate after publicly renouncing the party he had founded.", "เขาถูกตราหน้าว่าเป็นคนทรยศหลังจากประกาศละทิ้งพรรคที่เขาเป็นผู้ก่อตั้ง"],
+"apposite": ["Her apposite remarks during the debate silenced her opponents completely.", "ข้อสังเกตที่เหมาะสมและตรงประเด็นของเธอระหว่างการอภิปรายทำให้คู่ต่อสู้เงียบสนิท"],
+"arcane": ["The ritual involved arcane symbols that only the high priest could decipher.", "พิธีกรรมประกอบด้วยสัญลักษณ์ลึกลับที่มีแต่หัวหน้าบาทหลวงเท่านั้นที่ถอดรหัสได้"],
+"arrogate": ["The general attempted to arrogate powers that belonged to the civilian government.", "นายพลพยายามยึดอำนาจที่เป็นของรัฐบาลพลเรือนมาเป็นของตนเอง"],
+"ascetic": ["The monk lived an ascetic existence owning nothing but a clay bowl and a robe.", "พระสงฆ์ใช้ชีวิตอย่างเคร่งครัดไม่มีอะไรนอกจากชามดินเผาและจีวร"],
+"asperity": ["She spoke with unusual asperity betraying how deeply the criticism had wounded her.", "เธอพูดด้วยความรุนแรงผิดปกติเผยให้เห็นว่าคำวิพากษ์วิจารณ์ทำให้เธอเจ็บปวดลึกซึ้งเพียงใด"],
+"assiduous": ["Her assiduous research over three decades produced groundbreaking findings.", "การวิจัยอย่างพิถีพิถันของเธอมาเป็นเวลาสามทศวรรษทำให้เกิดการค้นพบที่สร้างความเปลี่ยนแปลง"],
+"assiduously": ["The detective assiduously followed every lead until the case was finally solved.", "นักสืบติดตามเบาะแสทุกอย่างอย่างพิถีพิถันจนในที่สุดคดีก็คลี่คลาย"],
+"assuage": ["No amount of explanation could assuage the grief of the bereaved family.", "ไม่มีคำอธิบายใดสามารถบรรเทาความโศกเศร้าของครอบครัวผู้สูญเสียได้"],
+"asymptote": ["The function approaches the vertical asymptote but never actually touches it.", "ฟังก์ชันนี้เข้าใกล้เส้น asymptote แต่ไม่เคยแตะมันจริงๆ"],
+"atavism": ["The sudden outbreak of tribal violence was seen as a terrifying atavism.", "การระบาดของความรุนแรงระหว่างชนเผ่าถูกมองว่าเป็นการกลับไปสู่ยุคเก่าที่น่ากลัว"],
+"attenuate": ["The thick forest canopy attenuates the sunlight reaching the forest floor.", "พุ่มไม้ป่าที่หนาทึบลดทอนแสงแดดที่จะส่องลงไปถึงพื้นป่า"],
+"augment": ["She took a part-time job to augment her income while completing her dissertation.", "เธอหางานพาร์ทไทม์เพื่อเพิ่มรายได้ในระหว่างทำวิทยานิพนธ์"],
+"augur": ["The early election results augured a dramatic shift in the political landscape.", "ผลการเลือกตั้งเบื้องต้นบ่งชี้ว่าจะมีการเปลี่ยนแปลงครั้งใหญ่ในภูมิทัศน์ทางการเมือง"],
+"augury": ["The court's augury of a favorable outcome proved tragically premature.", "การทำนายของศาลว่าผลลัพธ์จะเป็นไปในทางที่ดีพิสูจน์แล้วว่าเร็วเกินไปอย่างน่าสลด"],
+"auspicious": ["The wedding was held on an auspicious date chosen by the village elder.", "งานแต่งงานจัดขึ้นในวันที่เป็นมงคลซึ่งผู้อาวุโสในหมู่บ้านเลือกให้"],
+"auspices": ["The research was conducted under the auspices of the National Science Foundation.", "งานวิจัยดำเนินการภายใต้การสนับสนุนของมูลนิธิวิทยาศาสตร์แห่งชาติ"],
+"austere": ["The monastery demanded an austere discipline that only the most devoted could endure.", "อารามเรียกร้องวินัยที่เคร่งครัดซึ่งเฉพาะผู้ศรัทธาที่มุ่งมั่นที่สุดเท่านั้นที่อดทนได้"],
+"autarky": ["The island nation pursued autarky after being cut off from international trade.", "ประเทศเกาะแสวงหาความพอเพียงหลังจากถูกตัดขาดจากการค้าระหว่างประเทศ"],
+"autochthonous": ["The museum displayed artifacts from the autochthonous peoples of the Amazon basin.", "พิพิธภัณฑ์จัดแสดงสิ่งของจากชนพื้นเมืองดั้งเดิมของลุ่มน้ำอเมซอน"],
+"avarice": ["His insatiable avarice led him to embezzle funds from the charity he founded.", "ความโลภไม่รู้จักพอของเขาทำให้เขายักยอกเงินจากมูลนิธิการกุศลที่เขาก่อตั้ง"],
+"avaricious": ["The avaricious landlord raised rents every year without making improvements.", "เจ้าของที่ดินโลภมากขึ้นค่าเช่าทุกปีโดยไม่ซ่อมแซมสิ่งใดเลย"],
+"axiomatic": ["It is axiomatic that good communication is essential for any successful partnership.", "เป็นสัจจธรรมที่ชัดเจนว่าการสื่อสารที่ดีเป็นสิ่งจำเป็นสำหรับความสัมพันธ์ที่ประสบความสำเร็จ"]
+};
+
+const lines = Object.entries(W).map(([k,v]) => {
+  const ee = v[0].replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+  const et = v[1].replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+  return '    "' + k + '": {exEn: "' + ee + '", exTh: "' + et + '"}';
+});
+fs.appendFileSync(path, lines.join(',\n') + ',\n', 'utf8');
+console.log('Batch 1: ' + Object.keys(W).length + ' words');

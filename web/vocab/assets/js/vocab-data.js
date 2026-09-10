@@ -1100,6 +1100,29 @@ const VOCAB_DAYS = {};
     { phrase: "the last word", meaning: "คำชี้ขาด / คำสุดท้าย", exEn: "She always wants the last word.", exTh: "เธออยากเป็นฝ่ายชี้ขาดเสมอ" }
   ];
 
+  function getExample(word, level) {
+    var bankKey = "EXAMPLE_BANK_" + level;
+    var bank = (typeof window !== "undefined" && window[bankKey]) ? window[bankKey] : null;
+    if (bank && bank[word]) return bank[word];
+    var th = getThaiMeaning(word);
+    if (th && th !== word) {
+      var tpls = [
+        { en: "She mentioned " + word + " during the discussion.", th: "เธอพูดถึงคำว่า " + word + " ระหว่างการสนทนา" },
+        { en: "Do you understand the meaning of " + word + "?", th: "คุณเข้าใจความหมายของคำว่า " + word + " ไหม?" },
+        { en: "He looked up " + word + " in the dictionary.", th: "เขาค้นหาคำว่า " + word + " ในพจนานุกรม" },
+        { en: "The word " + word + " is important to remember.", th: "คำว่า " + word + " เป็นคำที่สำคัญควรจำไว้" },
+        { en: "Can you use " + word + " in a sentence?", th: "คุณใช้คำว่า " + word + " ในประโยคได้ไหม?" },
+        { en: "I wrote down " + word + " in my notebook.", th: "ฉันจดคำว่า " + word + " ลงในสมุดบันทึก" },
+        { en: "We discussed " + word + " in class today.", th: "เราคุยเรื่อง " + word + " ในห้องเรียนวันนี้" },
+        { en: "The teacher explained " + word + " clearly.", th: "ครูอธิบายคำว่า " + word + " ได้อย่างชัดเจน" }
+      ];
+      var pick = tpls[Math.abs(hashStr(word)) % tpls.length];
+      return { exEn: pick.en, exTh: pick.th };
+    }
+    return { exEn: "This is an example using " + word + ".", exTh: "นี่คือตัวอย่างที่ใช้คำว่า " + word };
+  }
+  function hashStr(s) { var h = 0; for (var i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h; }
+
   levelConfigs.forEach(function (lvl) {
     let rawList = levelVocabPools[lvl.level] || [];
     const extraPool = (typeof window !== "undefined" && window["VOCAB_EXTRA_" + lvl.level])
@@ -1135,13 +1158,14 @@ const VOCAB_DAYS = {};
         let uniqueWord = rawList[poolIdx];
         seenWords.add(uniqueWord);
 
+        const ex = getExample(uniqueWord, lvl.level);
         dayVocab.push({
           word: uniqueWord,
           phonetic: "wɜːd",
           pos: "noun",
           th: getThaiMeaning(uniqueWord),
-          exEn: "This example sentence demonstrates " + uniqueWord + ".",
-          exTh: "ประโยคตัวอย่างนี้แสดงการใช้งานคำว่า " + uniqueWord
+          exEn: ex.exEn,
+          exTh: ex.exTh
         });
       }
 

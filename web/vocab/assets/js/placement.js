@@ -656,7 +656,6 @@
 
   function pTeardown() {
     const box = pBox();
-    if (box && box._kh) { document.removeEventListener("keydown", box._kh); box._kh = null; }
     pMode = "placement";
     pMountId = "placementTest";
     pStarted = false;
@@ -687,7 +686,6 @@
           ${svgIcon("play")}<span>${isPost ? "เริ่มแบบทดสอบหลังเรียน" : "เริ่มแบบทดสอบ"}</span>
         </button>
         ${isPost ? `<button class="btn btn-secondary btn-lg" id="placementCancelPost" style="margin-top:10px">${svgIcon("arrowLeft")}<span>ยกเลิก</span></button>` : ""}
-        <p class="placement-note">กดปุ่มหรือ <kbd>Enter</kbd>/<kbd>Space</kbd> เพื่อเริ่ม</p>
       </div>
     `;
 
@@ -753,9 +751,6 @@
         <div class="placement-word">${q.word}</div>
         <div class="placement-question">ความหมายของคำนี้คืออะไร?</div>
         <div class="placement-opts" role="radiogroup" aria-label="ตัวเลือกคำตอบ">${optsHtml}</div>
-      </div>
-      <div class="placement-hint-bar">
-        <kbd>1</kbd>–<kbd>6</kbd> / <kbd>A</kbd>–<kbd>F</kbd> ตอบ | <kbd>Enter</kbd> ยืนยัน
       </div>
     `;
 
@@ -852,17 +847,7 @@
       };
 
       btn.onclick = handle;
-      btn.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handle(); } };
     });
-
-    // Keyboard 1-4, A-D
-    const kh = e => {
-      if (pAnimating) return;
-      const idx = "123456ABCDEF".indexOf(e.key.toUpperCase());
-      if (idx >= 0 && idx < 6) { e.preventDefault(); opts[idx]?.click(); }
-    };
-    document.addEventListener("keydown", kh);
-    box._kh = kh;
   }
 
   /* ============================================================
@@ -907,6 +892,12 @@
         store.save("vocab_posttest_v1", list.slice(0, 10));
       }
     } catch (e) {}
+
+    if (!isPost) {
+      try {
+        if (window.VocabApp && typeof window.VocabApp.syncCefrLevel === "function") window.VocabApp.syncCefrLevel();
+      } catch (e) {}
+    }
 
     // Notify CEFR system of level change (pretest only)
     if (!isPost && window.VocabApp?.onCefrLevelChange) {
@@ -1065,7 +1056,6 @@
     `;
 
     // Cleanup
-    if (box._kh) { document.removeEventListener("keydown", box._kh); box._kh = null; }
 
     if (box.firstElementChild) {
       animateOut(box.firstElementChild, () => {

@@ -291,21 +291,13 @@
           ${q.kind === "fill" ? '<div class="placement-sentence">' + esc(q.sentence) + "</div>" : ""}
           <div class="placement-opts" role="radiogroup" aria-label="ตัวเลือกคำตอบ">${optsHtml}</div>
         </div>
-        <p class="exam-hint"><kbd>1</kbd>–<kbd>4</kbd> / <kbd>A</kbd>–<kbd>D</kbd> เลือกคำตอบ</p>
       </div>`;
 
     const opts = m.querySelectorAll(".placement-opt");
     opts.forEach(function (btn) {
       const handle = function () { submitAnswer(q, parseInt(btn.dataset.i, 10), opts); };
       btn.onclick = handle;
-      btn.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handle(); } };
     });
-    const kh = function (e) {
-      const idx = "1234ABCD".indexOf(e.key.toUpperCase());
-      if (idx >= 0 && opts[idx]) { e.preventDefault(); opts[idx].click(); }
-    };
-    document.addEventListener("keydown", kh);
-    S._kh = kh;
   }
 
   function submitAnswer(q, chosen, opts) {
@@ -330,7 +322,6 @@
 
   function finish() {
     if (!S) return;
-    if (S._kh) { document.removeEventListener("keydown", S._kh); S._kh = null; }
     const correct = S.results.filter((r) => r.correct).length;
     const total = S.qs.length;
     const pct = parsePct(correct, total);
@@ -416,7 +407,6 @@
 
   /* clean up when leaving the view elsewhere */
   function pause() {
-    if (S && S._kh) { document.removeEventListener("keydown", S._kh); S._kh = null; }
   }
 
   window.LevelUpExam = {

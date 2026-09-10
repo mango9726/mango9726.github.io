@@ -237,11 +237,6 @@
     if (ex && ex.timerId) { clearInterval(ex.timerId); ex.timerId = null; }
   }
 
-  function removeKeys() {
-    const ex = S && S.exam;
-    if (ex && ex.kh) { document.removeEventListener("keydown", ex.kh); ex.kh = null; }
-  }
-
   /* ---------- Screens ---------- */
   function render() {
     const mount = $("posttestMount");
@@ -346,7 +341,7 @@
           <div class="placement-question">${esc(t("exam.meaningQ", "ความหมายของคำนี้คืออะไร?"))}</div>
           <div class="placement-opts" role="radiogroup" aria-label="ตัวเลือกคำตอบ">${optsHtml}</div>
         </div>
-        <p class="exam-hint"><kbd>1</kbd>–<kbd>4</kbd> / <kbd>A</kbd>–<kbd>D</kbd> เลือกคำตอบ · เหลือ ${fmt(ex.secs)} นาที</p>
+        <p class="exam-hint">เหลือ ${fmt(ex.secs)} นาที</p>
       </div>`;
 
     ex.timerEl = $("examTimer");
@@ -354,15 +349,7 @@
     opts.forEach(function (btn) {
       const handle = function () { submitAnswer(q, parseInt(btn.dataset.i, 10), opts); };
       btn.onclick = handle;
-      btn.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handle(); } };
     });
-    removeKeys();
-    const kh = function (e) {
-      const idx = "1234ABCD".indexOf(e.key.toUpperCase());
-      if (idx >= 0 && opts[idx]) { e.preventDefault(); opts[idx].click(); }
-    };
-    document.addEventListener("keydown", kh);
-    ex.kh = kh;
   }
 
   function submitAnswer(q, chosen, opts) {
@@ -399,7 +386,6 @@
     if (!ex || ex.done) return;
     ex.done = true;
     stopTimer();
-    removeKeys();
     const correct = ex.results.filter(function (r) { return r.correct; }).length;
     const total = ex.qs.length;
     const score10 = Math.round((correct / total) * 10);

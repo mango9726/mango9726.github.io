@@ -618,18 +618,6 @@
       }
       track.addEventListener("pointerup", end);
       track.addEventListener("pointercancel", end);
-      // Keyboard a11y
-      slider.root.addEventListener("keydown", function (e) {
-        const cur = parseFloat(slider.root.getAttribute("aria-valuenow")) || 0;
-        let f = cur / 100;
-        if (e.key === "ArrowRight" || e.key === "ArrowUp") f = clamp(f + 0.05, 0, 1);
-        else if (e.key === "ArrowLeft" || e.key === "ArrowDown") f = clamp(f - 0.05, 0, 1);
-        else if (e.key === "Home") f = 0;
-        else if (e.key === "End") f = 1;
-        else return;
-        e.preventDefault(); e.stopPropagation();
-        paint(f); if (handlers.onCommit) handlers.onCommit(f);
-      });
       return { paint: paint, isDragging: function () { return slider.dragging; } };
     },
 
@@ -848,11 +836,6 @@
     },
     _wireRenameInput: function () {
       const r = this.refs, self = this;
-      r.renameInput.addEventListener("keydown", function (e) {
-        e.stopPropagation();
-        if (e.key === "Enter") { e.preventDefault(); self._commitRename(); }
-        else if (e.key === "Escape") { e.preventDefault(); self._cancelRename(); }
-      });
       r.renameInput.addEventListener("blur", function () { if (!r.renameInput.hidden) self._commitRename(); });
       r.renameInput.addEventListener("click", function (e) { e.stopPropagation(); });
     },
@@ -1122,14 +1105,8 @@
           self._renderQueue();
           self._refreshTabCounts();
         });
-        fav.addEventListener("keydown", function (e) {
-          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); fav.click(); }
-        });
         li.appendChild(idx); li.appendChild(eq); li.appendChild(name); li.appendChild(fav);
         li.addEventListener("click", function (e) { e.stopPropagation(); self.ctrl.loadTrack(i); self._renderQueue(); });
-        li.addEventListener("keydown", function (e) {
-          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); self.ctrl.loadTrack(i); self._renderQueue(); }
-        });
         r.qList.appendChild(li);
       });
     },
@@ -1152,10 +1129,8 @@
           self.ctrl.play();
         }
         document.removeEventListener("pointerdown", kick);
-        document.removeEventListener("keydown", kick);
       };
       document.addEventListener("pointerdown", kick, { once: true });
-      document.addEventListener("keydown", kick, { once: true });
     },
 
     /* ---------- Public API ---------- */

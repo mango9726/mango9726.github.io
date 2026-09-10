@@ -217,7 +217,6 @@
         }
         close(v);
       };
-      input.addEventListener("keydown", function (e) { if (e.key === "Enter") okBtn.click(); });
       overlay.classList.add("open");
       overlay.setAttribute("aria-hidden", "false");
       setTimeout(function () { input.focus(); }, 100);
@@ -1494,8 +1493,6 @@
     }
 
     submit.onclick = handleSubmit;
-    passInput.addEventListener("keydown", function (e) { if (e.key === "Enter") handleSubmit(); });
-    userInput.addEventListener("keydown", function (e) { if (e.key === "Enter") passInput.focus(); });
 
     overlay.classList.add("open");
     overlay.setAttribute("aria-hidden", "false");

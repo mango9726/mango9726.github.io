@@ -83,6 +83,9 @@ function setCefrLevel(level) {
     p.cefrLevel = level;
     store.save("vocab_progress_v1", p);
   } catch (e) {}
+  if (window.VocabApp && typeof window.VocabApp.syncCefrLevel === "function") {
+    try { window.VocabApp.syncCefrLevel(); } catch (e) {}
+  }
 }
 
 /* True if the user has completed the placement test */

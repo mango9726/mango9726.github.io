@@ -282,6 +282,23 @@
   }
 
   let progress, settings, reviews, history, learned, game, storyRead, storyWords;
+  function normalizeGameState() {
+    if (!game.achievements) game.achievements = {};
+    if (!game.modesUsed) game.modesUsed = [];
+    if (!game.typesTouched) game.typesTouched = [];
+    if (!game.dailyAnswered) game.dailyAnswered = {};
+    if (game.perfectGames == null) game.perfectGames = 0;
+    if (game.lastLevelUp == null) game.lastLevelUp = 0;
+    if (game.xp == null) game.xp = 0;
+    if (game.streakFreezes == null) game.streakFreezes = 0;
+    if (game._quizPerfect == null) game._quizPerfect = 0;
+    if (game.combo == null) game.combo = 0;
+    if (game.bestCombo == null) game.bestCombo = 0;
+    if (!game.dailyMastered) game.dailyMastered = {};
+    if (!game.dailyModes) game.dailyModes = {};
+    if (!game.dailyCombo) game.dailyCombo = {};
+  }
+
   function loadInitialState() {
     progress = load(K_PROGRESS, {});
     settings = load(K_SETTINGS, { theme: "light", accent: "aurora" });
@@ -314,6 +331,7 @@
       combo: 0, bestCombo: 0, dailyMastered: {}, dailyModes: {},
       dailyCombo: {}, questDate: "", questsClaimed: false
     });
+    normalizeGameState();
     migrateProgress();
   }
 
@@ -641,6 +659,26 @@
     save(K_STREAK, s);
   }
 
+  /* ---------- Streak flame tiers ----------
+   * The higher the day streak, the hotter the fire gets.
+   * Tier: 1 ember · 2 warm · 3 hot · 4 blazing · 5 inferno · 6 mythical · 7 legend */
+  function streakTier(n) {
+    n = n || 0;
+    if (n >= 100) return 7;
+    if (n >= 60) return 6;
+    if (n >= 30) return 5;
+    if (n >= 14) return 4;
+    if (n >= 7) return 3;
+    if (n >= 3) return 2;
+    return 1;
+  }
+
+  function applyStreakTier() {
+    const tier = streakTier(currentStreak());
+    const elms = document.querySelectorAll(".streak-card, #streakBox");
+    for (let i = 0; i < elms.length; i++) elms[i].setAttribute("data-streak-tier", tier);
+  }
+
   /* ============================================================
      GAMIFICATION — XP · Level · Rank · Achievements
      ต่อยอดจาก streak / history / learned / progress ที่มีอยู่แล้ว
@@ -656,20 +694,7 @@
     dailyCombo: {},
     questDate: "", questsClaimed: false
   });
-  if (!game.achievements) game.achievements = {};
-  if (!game.modesUsed) game.modesUsed = [];
-  if (!game.typesTouched) game.typesTouched = [];
-  if (!game.dailyAnswered) game.dailyAnswered = {};
-  if (game.perfectGames == null) game.perfectGames = 0;
-  if (game.lastLevelUp == null) game.lastLevelUp = 0;
-  if (game.xp == null) game.xp = 0;
-  if (game.streakFreezes == null) game.streakFreezes = 0;
-  if (game._quizPerfect == null) game._quizPerfect = 0;
-  if (game.combo == null) game.combo = 0;
-  if (game.bestCombo == null) game.bestCombo = 0;
-  if (!game.dailyMastered) game.dailyMastered = {};
-  if (!game.dailyModes) game.dailyModes = {};
-  if (!game.dailyCombo) game.dailyCombo = {};
+  normalizeGameState();
   let currentMode = ""; // โหมดเกมปัจจุบัน (เซ็ตตอน startXxx) — สำหรับความหลากหลาย
 
   function saveGame() { save(K_GAME, game); }
@@ -748,7 +773,7 @@
   function totalLearned() { let n = 0; for (const t in learned) n += (learned[t] || 0); return n; }
   function masteredCount() { let n = 0; ITEMS.forEach(function (it) { if (isMastered(it)) n++; }); return n; }
   function currentStreak() { return (load(K_STREAK, { streak: 0 })).streak || 0; }
-  function dailyAnsweredToday() { const t = todayStr(); return game.dailyAnswered[t] || 0; }
+  function dailyAnsweredToday() { const t = todayStr(); return (game.dailyAnswered || {})[t] || 0; }
 
   /* --- รายการ Achievement (คำนวณจากข้อมูลที่มี) --- */
   const ACHIEVEMENTS = [
@@ -877,7 +902,14 @@
   function newlyUnlocked(before, after) {
     return LEVEL_REWARDS.filter(function (r) { return r.level > before && r.level <= after; });
   }
-  function isChallengeUnlocked(id) { return unlockedRewards().some(function (r) { return r.challenge === id; }); }
+  function isChallengeUnlocked(id) {
+    if (id === "boss-rush") {
+      let tested = false;
+      try { tested = !!(window.hasTakenPlacementTest && window.hasTakenPlacementTest()); } catch (e) {}
+      if (tested) return true;
+    }
+    return unlockedRewards().some(function (r) { return r.challenge === id; });
+  }
   function hasBonusQuest() { return unlockedRewards().some(function (r) { return r.type === "quest"; }); }
 
   /* --- ให้ XP + เช็คเลเวล/achievement --- */
@@ -1414,7 +1446,7 @@
     { id: "accuracy", label: "Hit 80% accuracy (10+ answers)", target: 80,
       cur: function () { const h = history[todayStr()] || {}; const a = h.answered || 0; return a >= 10 ? Math.round((h.correct || 0) / a * 100) : 0; } },
     { id: "master3", label: "Master 3 words today", target: 3,
-      cur: function () { return game.dailyMastered[todayStr()] || 0; } }
+      cur: function () { return (game.dailyMastered || {})[todayStr()] || 0; } }
   ];
   function daySeed(str) {
     let h = 0;
@@ -1424,8 +1456,8 @@
   function questDefs() {
     const defs = [
       { id: "ans", label: "Answer 20 questions", target: 20, cur: function () { return dailyAnsweredToday(); } },
-      { id: "master", label: "Master 2 words", target: 2, cur: function () { return game.dailyMastered[todayStr()] || 0; } },
-      { id: "modes", label: "Play 3 game modes", target: 3, cur: function () { const m = game.dailyModes[todayStr()]; return m ? m.length : 0; } }
+      { id: "master", label: "Master 2 words", target: 2, cur: function () { return (game.dailyMastered || {})[todayStr()] || 0; } },
+      { id: "modes", label: "Play 3 game modes", target: 3, cur: function () { const m = (game.dailyModes || {})[todayStr()]; return m ? m.length : 0; } }
     ];
     // เควสต์หมุนเวียน 1 อันต่อวัน (เป้าหมายรายวันไม่ซ้ำจำเจ)
     const rot = QUEST_POOL[daySeed(todayStr()) % QUEST_POOL.length];
@@ -1434,7 +1466,7 @@
     if (hasBonusQuest()) {
       defs.push({
         id: "combo", label: "Reach a ×5 combo in one day", target: 5,
-        cur: function () { return Math.min(game.dailyCombo[todayStr()] || 0, 5); }
+        cur: function () { return Math.min((game.dailyCombo || {})[todayStr()] || 0, 5); }
       });
     }
     return defs;
@@ -1995,10 +2027,8 @@
       const kick = function () {
         if (!(musicAudio && !musicAudio.paused)) musicPlay();
         document.removeEventListener("pointerdown", kick);
-        document.removeEventListener("keydown", kick);
       };
       document.addEventListener("pointerdown", kick, { once: true });
-      document.addEventListener("keydown", kick, { once: true });
     }
     const cont = document.querySelector(".container");
     if (cont && "MutationObserver" in window) {
@@ -2163,15 +2193,12 @@
       function finish(val) {
         if (done) return; done = true;
         ov.classList.remove("open"); ov.setAttribute("aria-hidden", "true");
-        document.removeEventListener("keydown", onKey);
         setTimeout(function () { ov.innerHTML = ""; }, 250);
         resolve(val);
       }
-      function onKey(e) { if (e.key === "Escape") finish(false); }
       okBtn.onclick = function () { finish(true); };
       cancelBtn.onclick = function () { finish(false); };
       ov.onclick = function (e) { if (e.target === ov) finish(false); };
-      document.addEventListener("keydown", onKey);
       okBtn.focus();
     });
   }
@@ -2316,7 +2343,7 @@
     if (name === "dictation") renderDictationQuiz();
     if (name === "exam") renderExam();
     else if (window.LevelUpExam && typeof window.LevelUpExam.pause === "function") window.LevelUpExam.pause();
-    updateMiniQuest(name); // ซ่อนwidgetบนHome / โชว์+เรนเดอร์บนหน้าอื่น
+    try { updateMiniQuest(name); } catch (e) { console.error("[app] updateMiniQuest failed:", e); } // ซ่อนwidgetบนHome / โชว์+เรนเดอร์บนหน้าอื่น
     if (name === "fill") resetFill();
     if (name === "match") resetMatch();
     if (name === "tf") resetTf();
@@ -2667,7 +2694,7 @@
     }).join("");
 
     // Daily review goal progress bar (game.dailyAnswered[today])
-    const done = game.dailyAnswered[todayStr()] || 0;
+    const done = (game.dailyAnswered || {})[todayStr()] || 0;
     const goal = settings.reviewGoal || 20;
     const pct = Math.min(100, Math.round((done / goal) * 100));
     wrap.insertAdjacentHTML("beforeend",
@@ -2754,6 +2781,7 @@
     const s = load(K_STREAK, { streak: 0 });
     if ($("streakPill")) $("streakPill").textContent = s.streak || 0;
     if ($("streak")) $("streak").textContent = s.streak || 0;
+    applyStreakTier();
 
     // ---- Animated stat cards ----
     const total = ITEMS.length;
@@ -4069,17 +4097,6 @@
      ============================================================ */
   let detailLastFocus = null;
 
-  /** Keep Tab focus inside the open modal. */
-  function trapFocus(e) {
-    if (e.key !== "Tab") return;
-    const ov = $("detailModal");
-    const f = ov.querySelectorAll('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
-    if (!f.length) return;
-    const first = f[0], last = f[f.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  }
-
   function openDetail(item) {
     if (!item) return;
     const tlabel = item.type === "vocab" ? "VOCAB" : item.type === "collocation" ? "COLLOCATION" : "IDIOM";
@@ -4205,7 +4222,6 @@
     const ov = $("detailModal");
     ov.classList.add("open");
     ov.setAttribute("aria-hidden", "false");
-    ov.addEventListener("keydown", trapFocus);
     speak(item.word); // ออกเสียงทันทีเมื่อเปิด
     $("detailClose").focus();
   }
@@ -4214,7 +4230,6 @@
     const ov = $("detailModal");
     ov.classList.remove("open");
     ov.setAttribute("aria-hidden", "true");
-    ov.removeEventListener("keydown", trapFocus);
     try { window.speechSynthesis.cancel(); } catch (e) {}
     stopRecognition();
     if (detailLastFocus && detailLastFocus.focus) detailLastFocus.focus();
@@ -5648,7 +5663,6 @@
     $("startFill").onclick = startFill;
     $("fillCheck").onclick = checkFill;
     $("fillSkip").onclick = skipFill;
-    $("fillInput").addEventListener("keydown", function (e) { if (e.key === "Enter") checkFill(); });
 
     $("startMatch").onclick = startMatch;
 
@@ -5666,7 +5680,6 @@
     $("startListen").onclick = startListen;
     $("listenCheck").onclick = checkListen;
     $("listenSkip").onclick = skipListen;
-    $("listenInput").addEventListener("keydown", function (e) { if (e.key === "Enter") checkListen(); });
 
     $("browseSearch").oninput = function () {
       if (browseSearchTimer) clearTimeout(browseSearchTimer);
@@ -5818,14 +5831,10 @@
     $("detailClose").onclick = closeDetail;
     $("detailClose2").onclick = closeDetail;
     $("detailModal").onclick = function (e) { if (e.target === $("detailModal")) closeDetail(); };
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && $("detailModal").classList.contains("open")) closeDetail();
-    });
 
     initPWA();
     initA11y();
     startReminderScheduler();
-    const hb = $("helpBtn"); if (hb) hb.onclick = showHelp;
   }
 
   /* ============================================================
@@ -5882,44 +5891,8 @@
   }
 
   /* ============================================================
-     A11y — mobile drawer, keyboard shortcuts, help dialog
+     A11y — mobile drawer
      ============================================================ */
-  function trapIn(ov, e) {
-    if (e.key !== "Tab") return;
-    const f = ov.querySelectorAll('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
-    if (!f.length) return;
-    const first = f[0], last = f[f.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  }
-
-  function showHelp() {
-    const ov = $("kbHelp");
-    if (!ov) return;
-    const rows = [
-      ["Home", "1"], ["Daily Tasks", "2"], ["Word List", "3"],
-      ["Open Games menu", "4"], ["Settings", "5"],
-      ["Flip / reveal card", "Space"], ["Close dialog", "Esc"]
-    ];
-    let html = '<div class="kb-help-box" role="document"><h2><svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.2"/><path d="M6 9.5h.01M9.5 9.5h.01M13.5 9.5h.01M17 9.5h.01M7.5 13h9"/></svg> Keyboard Shortcuts</h2>';
-    rows.forEach(function (r) {
-      const keys = r[1].split(" ").map(function (k) { return '<kbd class="kb-key">' + k + "</kbd>"; }).join(" ");
-      html += '<div class="kb-row"><span>' + r[0] + '</span><span class="kb-keys">' + keys + "</span></div>";
-    });
-    html += '<div class="kb-row kb-actions"><button class="btn btn-primary" id="kbClose">Got it</button></div></div>';
-    ov.innerHTML = html;
-    const close = function () {
-      ov.classList.remove("open"); ov.setAttribute("aria-hidden", "true");
-      if (ov._last && ov._last.focus) ov._last.focus();
-    };
-    ov._last = document.activeElement;
-    ov.classList.add("open"); ov.setAttribute("aria-hidden", "false");
-    ov.onkeydown = function (e) { trapIn(ov, e); if (e.key === "Escape") close(); };
-    ov.onclick = function (e) { if (e.target === ov) close(); };
-    $("kbClose").onclick = close;
-    $("kbClose").focus();
-  }
-
   function initA11y() {
     // Mobile drawer & event delegation — single source of truth for the
     // hamburger toggle and the click-away scrim. (Removed the redundant
@@ -5960,23 +5933,6 @@
           const sc = $("scrim"); if (sc) sc.classList.remove("show");
         }
       });
-    });
-
-    // Global keyboard shortcuts (ignore while typing or a dialog is open)
-    document.addEventListener("keydown", function (e) {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = e.target;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      if ($("detailModal").classList.contains("open") || $("kbHelp").classList.contains("open")) return;
-      const map = { "1": "home", "2": "tasks", "3": "browse", "4": "_games", "5": "settings" };
-      if (map[e.key]) {
-        if (map[e.key] === "_games") { const sg = $("navGames"); if (sg) sg.click(); }
-        else showView(map[e.key]);
-        return;
-      }
-      if (e.key === " " && $("cardSession") && !$("cardSession").classList.contains("hidden")) {
-        e.preventDefault(); const fc = $("flipCard"); if (fc) fc.click();
-      }
     });
   }
 
@@ -8119,10 +8075,6 @@ bookPageIdx = 0;
       }
     };
 
-    input.onkeydown = function (e) {
-      if (e.key === "Enter") submit.click();
-    };
-
     nextWord();
   }
 
@@ -8168,6 +8120,7 @@ bookPageIdx = 0;
       if (window.CefrSelector && window.CefrSelector.onCefrLevelChange) {
         window.CefrSelector.onCefrLevelChange(newLevel);
       }
+      try { updateBossRushBtn(); } catch (e) {}
     },
     toast: toast,
     /* ---- Admin/test-mode helpers (used by the Admin Control Center) ---- */
@@ -8184,6 +8137,17 @@ bookPageIdx = 0;
       try { save(K_PROGRESS, progress); } catch (e) {}
       try { save(K_SETTINGS, settings); } catch (e) {}
       try { saveGame(); } catch (e) {}
+    },
+    syncCefrLevel: function () {
+      try {
+        const stored = window.SecureStore && typeof window.SecureStore.load === "function"
+          ? window.SecureStore.load(K_PROGRESS, null)
+          : null;
+        if (stored && typeof stored === "object" && Object.keys(stored).length) {
+          progress = stored;
+          save(K_PROGRESS, progress);
+        }
+      } catch (e) {}
     },
     awardXp: function (n) { try { awardXp(n, "admin"); } catch (e) {} },
     setXp: function (n) {

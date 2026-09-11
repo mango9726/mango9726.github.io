@@ -567,7 +567,7 @@
     if (hr >= 22 || hr < 5) game.nightOwl = true;
     if (hr < 6) game.earlyBird = true;
     saveGame();
-    if (q >= 3) showCombo(game.combo, mult); else hideCombo();
+    if (q >= 3) showCombo(game.combo, mult, !noXp); else hideCombo();
     if (!noXp) awardXp(xp, "answer"); // Flashcards ไม่ให้ XP
   }
 
@@ -744,7 +744,7 @@
     return 1;
   }
   let comboTimer = null;
-  function showCombo(combo, mult) {
+  function showCombo(combo, mult, showXp) {
     if (combo < 2 || !fxSubtle()) { hideCombo(); return; }
     let elc = $("comboFloat");
     if (!elc) {
@@ -764,7 +764,8 @@
     cy = Math.max(64, Math.min(vh - 64, cy));
     elc.style.top = cy + "px";
     const multTxt = (mult % 1 === 0) ? mult : mult.toFixed(1);
-    elc.innerHTML = '<span class="combo-flame">' + svgIcon("flame", "ico sm") + '</span><span class="combo-num">Combo ×' + combo + '</span><span class="combo-mult">×' + multTxt + ' XP</span>';
+    elc.innerHTML = '<span class="combo-flame">' + svgIcon("flame", "ico sm") + '</span><span class="combo-num">Combo ×' + combo + '</span>' +
+      (showXp === false ? '' : '<span class="combo-mult">×' + multTxt + ' XP</span>');
     elc.classList.remove("show"); void elc.offsetWidth; elc.classList.add("show");
     clearTimeout(comboTimer);
     comboTimer = setTimeout(function () { elc.classList.remove("show"); }, 1400);

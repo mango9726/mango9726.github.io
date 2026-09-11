@@ -108,13 +108,15 @@
       const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error || "Google sync failed");
 
-      // ใช้ backend token แทน firebase token เพื่อให้ login ด้วย username/password ได้
+      // เก็บ backend token เพื่อให้ login ด้วย username/password ได้
+      // แต่ไม่เขียนทับ userId — ต้องคง Firebase UID ไว้เพราะ Firestore ใช้ userId เป็น doc ID
       setToken(data.token);
       setUser({
         username: data.username,
-        userId: data.userId,
+        userId: user.uid,
         provider: "google",
-        googleUid: user.uid
+        googleUid: user.uid,
+        backendUserId: data.userId
       });
 
       // ถ้าเป็นบัญชีใหม่ แสดงรหัสผ่านอัตโนมัติให้ผู้ใช้บันทึก

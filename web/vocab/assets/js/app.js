@@ -4590,6 +4590,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     if (tfTimerId) { clearInterval(tfTimerId); tfTimerId = null; }
     [fillAuto, tfAuto, hangAuto, buildAuto, listenAuto].forEach(function (t) { if (t) { clearTimeout(t); } });
     fillAuto = null; tfAuto = null; hangAuto = null; buildAuto = null; listenAuto = null;
+    hangRevealed = false;
   }
 
   /* ============================================================
@@ -5035,7 +5036,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
   /* ============================================================
      HANGMAN
      ============================================================ */
-  let hangQueue = [], hangIdx = 0, hangScore = 0, hangMissed = [];
+  let hangQueue = [], hangIdx = 0, hangScore = 0, hangMissed = [], hangRevealed = false;
   const HANG_MAX = 6;
 
   function startHang() {
@@ -5092,6 +5093,9 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     renderHangKeyboard();
     const msg = $("hangMsg"); msg.className = "hang-msg hidden"; msg.textContent = "";
     if (hangAuto) { clearTimeout(hangAuto); hangAuto = null; }
+    hangRevealed = false;
+    const nxtLabel = t("next");
+    $("hangSkip").textContent = (nxtLabel && nxtLabel.toLowerCase() !== "next") ? nxtLabel : "Skip";
     $("hangSkip").disabled = false;
     $("hangPrev").classList.toggle("hidden", hangIdx === 0);
   }
@@ -5115,43 +5119,54 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     }
   }
   function hangWin(i, won) {
+    hangRevealed = true;
     const msg = $("hangMsg");
     msg.className = "hang-msg";
     if (won) {
       msg.innerHTML = svgIcon("check") + " Correct! The word was: " + esc(i.word);
       msg.style.color = "var(--good)";
       const fig = $("hangFigure"); if (fig) fig.classList.add("win");
-      celebrate($("hangSession"));
+      try { celebrate($("hangSession")); } catch (e) {}
     } else {
       msg.innerHTML = svgIcon("cross") + " The word was: " + esc(i.word);
       msg.style.color = "var(--bad)";
-      playTone("wrong");
+      try { playTone("wrong"); } catch (e) {}
       try { if (navigator.vibrate) navigator.vibrate([0, 35, 25, 35]); } catch (e) {}
-      flashElement($("hangSession"), "wrong");
+      try { flashElement($("hangSession"), "wrong"); } catch (e) {}
     }
     Array.prototype.forEach.call($("hangKeyboard").children, function (b) { b.disabled = true; });
-    $("hangSkip").disabled = true;
-    const already = hangRes[hangIdx];
-    if (already === undefined) recordAnswer(i, won);
-    if (won) { if (already === false) dropMissedByWord(hangMissed, i.word); }
-    else if (already !== false) hangMissed.push({ word: i.word, th: i.th });
-    hangRes[hangIdx] = !!won;
-    hangScore = resTrueCount(hangRes);
+    const nxtLabel = t("next");
+    $("hangSkip").textContent = (nxtLabel && nxtLabel.toLowerCase() !== "next") ? nxtLabel : "Next";
+    $("hangSkip").disabled = false;
     if (hangAuto) clearTimeout(hangAuto);
     hangAuto = setTimeout(nextHang, 1400);
+    try {
+      const already = hangRes[hangIdx];
+      if (already === undefined) recordAnswer(i, won);
+      if (won) { if (already === false) dropMissedByWord(hangMissed, i.word); }
+      else if (already !== false) hangMissed.push({ word: i.word, th: i.th });
+      hangRes[hangIdx] = !!won;
+      hangScore = resTrueCount(hangRes);
+    } catch (e) { try { console.error("hangWin record failed", e); } catch (e2) {} }
   }
   function skipHang() {
     if ($("hangSkip").disabled) return;
+    if (hangRevealed) { nextHang(); return; }
     const i = hangQueue[hangIdx];
-    if (hangRes[hangIdx] !== false) hangMissed.push({ word: i.word, th: i.th, skipped: true });
-    hangRes[hangIdx] = false;
-    hangScore = resTrueCount(hangRes);
     const msg = $("hangMsg"); msg.className = "hang-msg";
-    msg.textContent = "Skipped — the word was: " + i.word; msg.style.color = "var(--muted)";
+    msg.textContent = "Skipped \u2014 the word was: " + i.word; msg.style.color = "var(--muted)";
     Array.prototype.forEach.call($("hangKeyboard").children, function (b) { b.disabled = true; });
-    $("hangSkip").disabled = true;
+    const nxtLabel = t("next");
+    $("hangSkip").textContent = (nxtLabel && nxtLabel.toLowerCase() !== "next") ? nxtLabel : "Next";
+    $("hangSkip").disabled = false;
+    hangRevealed = true;
     if (hangAuto) clearTimeout(hangAuto);
     hangAuto = setTimeout(nextHang, 1000);
+    try {
+      if (hangRes[hangIdx] !== false) hangMissed.push({ word: i.word, th: i.th, skipped: true });
+      hangRes[hangIdx] = false;
+      hangScore = resTrueCount(hangRes);
+    } catch (e) {}
   }
   function nextHang() {
     if (hangAuto) { clearTimeout(hangAuto); hangAuto = null; }

@@ -5037,6 +5037,8 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
      HANGMAN
      ============================================================ */
   let hangQueue = [], hangIdx = 0, hangScore = 0, hangMissed = [], hangRevealed = false;
+  const HANG_HINT_LIMIT = 3;
+  let hangHints = 0;
   const HANG_MAX = 6;
 
   function startHang() {
@@ -5049,6 +5051,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No words match these conditions", "err"); return; }
     hangQueue = list; hangIdx = 0; hangScore = 0; hangMissed = []; hangRes = [];
+    hangHints = HANG_HINT_LIMIT;
     $("hangControls").classList.add("hidden");
     $("hangResult").classList.add("hidden");
     $("hangSession").classList.remove("hidden");
@@ -5060,6 +5063,39 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
       if (/[a-zA-Z]/.test(ch)) return guessed.indexOf(ch.toLowerCase()) >= 0 ? ch : "_";
       return ch;
     }).join(" ");
+  }
+  function hangRevealHTML(word, guessed) {
+    const tiles = word.split("").map(function (ch) {
+      if (/[a-zA-Z]/.test(ch)) {
+        const right = guessed.indexOf(ch.toLowerCase()) >= 0;
+        return '<span class="hang-ltr ' + (right ? "right" : "wrong") + '">' + ch + "</span>";
+      }
+      return '<span class="hang-ltr none">' + ch + "</span>";
+    }).join("");
+    return '<div class="hang-ltr-wrap">' + tiles + "</div>";
+  }
+  function updateHangHintUI() {
+    const b = $("hangHint");
+    if (!b) return;
+    b.textContent = t("build.hintBtn") + " (" + hangHints + ")";
+    b.disabled = hangHints <= 0 || hangRevealed;
+  }
+  function hintHang() {
+    if (hangRevealed) return;
+    if (hangHints <= 0) return;
+    const i = hangQueue[hangIdx];
+    const letters = i.word.toLowerCase().split("").filter(function (c) { return /[a-z]/.test(c); });
+    let next = null;
+    for (let n = 0; n < letters.length; n++) {
+      if (i._guessed.indexOf(letters[n]) < 0) { next = letters[n]; break; }
+    }
+    if (next == null) return;
+    i._guessed.push(next);
+    $("hangWord").textContent = hangDisplay(i.word, i._guessed);
+    hangHints--;
+    updateHangHintUI();
+    playFx("toast-ok");
+    if (letters.every(function (c) { return i._guessed.indexOf(c) >= 0; })) hangWin(i, true);
   }
   function renderHangLives(n) {
     let s = "";
@@ -5094,9 +5130,11 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     const msg = $("hangMsg"); msg.className = "hang-msg hidden"; msg.textContent = "";
     if (hangAuto) { clearTimeout(hangAuto); hangAuto = null; }
     hangRevealed = false;
-    const nxtLabel = t("next");
-    $("hangSkip").textContent = (nxtLabel && nxtLabel.toLowerCase() !== "next") ? nxtLabel : "Skip";
+    $("hangNext").classList.add("hidden");
+    $("hangSkip").classList.remove("hidden");
+    $("hangSkip").textContent = "Skip";
     $("hangSkip").disabled = false;
+    updateHangHintUI();
     $("hangPrev").classList.toggle("hidden", hangIdx === 0);
   }
   function guessHang(L, btn) {
@@ -5122,6 +5160,8 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     hangRevealed = true;
     const msg = $("hangMsg");
     msg.className = "hang-msg";
+    $("hangWord").innerHTML = hangRevealHTML(i.word, i._guessed);
+    $("hangHint").disabled = true;
     if (won) {
       msg.innerHTML = svgIcon("check") + " Correct! The word was: " + esc(i.word);
       msg.style.color = "var(--good)";
@@ -5135,11 +5175,17 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
       try { flashElement($("hangSession"), "wrong"); } catch (e) {}
     }
     Array.prototype.forEach.call($("hangKeyboard").children, function (b) { b.disabled = true; });
-    const nxtLabel = t("next");
-    $("hangSkip").textContent = (nxtLabel && nxtLabel.toLowerCase() !== "next") ? nxtLabel : "Next";
-    $("hangSkip").disabled = false;
     if (hangAuto) clearTimeout(hangAuto);
-    hangAuto = setTimeout(nextHang, 1400);
+    if (won) {
+      $("hangSkip").textContent = "Next";
+      $("hangSkip").disabled = false;
+      $("hangSkip").classList.remove("hidden");
+      $("hangNext").classList.add("hidden");
+      hangAuto = setTimeout(nextHang, 1400);
+    } else {
+      $("hangSkip").classList.add("hidden"); $("hangSkip").disabled = true;
+      $("hangNext").classList.remove("hidden");
+    }
     try {
       const already = hangRes[hangIdx];
       if (already === undefined) recordAnswer(i, won);
@@ -5155,13 +5201,13 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     const i = hangQueue[hangIdx];
     const msg = $("hangMsg"); msg.className = "hang-msg";
     msg.textContent = "Skipped \u2014 the word was: " + i.word; msg.style.color = "var(--muted)";
+    $("hangWord").innerHTML = hangRevealHTML(i.word, []);
     Array.prototype.forEach.call($("hangKeyboard").children, function (b) { b.disabled = true; });
-    const nxtLabel = t("next");
-    $("hangSkip").textContent = (nxtLabel && nxtLabel.toLowerCase() !== "next") ? nxtLabel : "Next";
-    $("hangSkip").disabled = false;
     hangRevealed = true;
+    $("hangHint").disabled = true;
+    $("hangSkip").classList.add("hidden"); $("hangSkip").disabled = true;
+    $("hangNext").classList.remove("hidden");
     if (hangAuto) clearTimeout(hangAuto);
-    hangAuto = setTimeout(nextHang, 1000);
     try {
       if (hangRes[hangIdx] !== false) hangMissed.push({ word: i.word, th: i.th, skipped: true });
       hangRes[hangIdx] = false;
@@ -5183,7 +5229,11 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     const total = hangQueue.length;
     const pct = total ? Math.round((hangScore / total) * 100) : 0;
     let missedHTML = hangMissed.map(function (m) {
-      return "<div class=\"missed-item\"><b>" + m.word + "</b> — " + (m.th || "") + "</div>";
+      const tiles = (m.word || "").split("").map(function (ch) {
+        if (/[a-zA-Z]/.test(ch)) return '<span class="hang-ltr wrong">' + ch + "</span>";
+        return '<span class="hang-ltr none">' + ch + "</span>";
+      }).join("");
+      return '<div class="missed-item"><div class="hang-ltr-wrap">' + tiles + "</div><b>" + (m.word || "") + "</b> — " + (m.th || "") + "</div>";
     }).join("");
     renderResult({
       id: "hangResult",
@@ -5205,6 +5255,8 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
      SENTENCE BUILDER
      ============================================================ */
   let buildQueue = [], buildIdx = 0, buildScore = 0, buildMissed = [], buildBank = [], buildSentence = [];
+  const BUILD_HINT_LIMIT = 3;
+  let buildHints = 0, buildHinted = [];
 
   function startBuild() {
     currentMode = "build";
@@ -5216,6 +5268,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No sentences match these conditions", "err"); return; }
     buildQueue = list; buildIdx = 0; buildScore = 0; buildMissed = []; buildRes = [];
+    buildHints = BUILD_HINT_LIMIT; buildHinted = [];
     $("buildControls").classList.add("hidden");
     $("buildResult").classList.add("hidden");
     $("buildSession").classList.remove("hidden");
@@ -5229,11 +5282,14 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     $("buildProgress").style.width = (buildIdx / total) * 100 + "%";
     buildBank = shuffle(buildWords(i.exEn));
     buildSentence = [];
+    buildHinted = [];
     renderBuild();
     const fb = $("buildFeedback"); fb.className = "build-feedback hidden"; fb.textContent = "";
     if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
     $("buildPrev").classList.toggle("hidden", buildIdx === 0);
+    $("buildNext").classList.add("hidden");
     $("buildCheck").disabled = false; $("buildSkip").disabled = false;
+    updateBuildHintUI();
   }
   function renderBuild() {
     const bank = $("buildBank");
@@ -5249,6 +5305,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     sentence.innerHTML = "";
     buildSentence.forEach(function (w, idx) {
       const t = el("button", "build-tile build-placed", w);
+      if (buildHinted[idx]) t.classList.add("hint");
       t.type = "button";
       t.dataset.idx = idx;
       t.onclick = function () { unplaceBuildWord(idx); };
@@ -5267,6 +5324,43 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     buildBank.push(buildSentence.splice(idx, 1)[0]);
     renderBuild();
   }
+  function updateBuildHintUI() {
+    const b = $("buildHint");
+    if (!b) return;
+    b.textContent = t("build.hintBtn") + " (" + buildHints + ")";
+    b.disabled = buildHints <= 0;
+  }
+  function hintBuild() {
+    if ($("buildCheck").disabled) return;
+    if (buildHints <= 0) return;
+    const i = buildQueue[buildIdx];
+    const correct = buildWords(i.exEn);
+    let k = 0;
+    while (k < correct.length && buildSentence[k] === correct[k]) k++;
+    if (k >= correct.length) return;
+    const word = correct[k];
+    const sourceBank = buildBank.indexOf(word);
+    if (sourceBank >= 0) {
+      buildBank.splice(sourceBank, 1);
+      if (buildSentence[k] !== undefined) buildBank.push(buildSentence[k]);
+      buildSentence[k] = word;
+    } else {
+      for (let j = k + 1; j < buildSentence.length; j++) {
+        if (buildSentence[j] === word) {
+          const tmp = buildSentence[k];
+          buildSentence[k] = buildSentence[j];
+          buildSentence[j] = tmp;
+          break;
+        }
+      }
+    }
+    buildHinted[k] = true;
+    buildHints--;
+    renderBuild();
+    updateBuildHintUI();
+    playFx("toast-ok");
+    flashElement($("buildHint"), "ok");
+  }
   function checkBuild() {
     if ($("buildCheck").disabled) return;
     const i = buildQueue[buildIdx];
@@ -5281,7 +5375,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     fb.className = "build-feedback";
     const tilesEl = $("buildSentence");
     Array.prototype.forEach.call(tilesEl.children, function (t, k) {
-      t.classList.remove("correct"); t.classList.remove("wrong");
+      t.classList.remove("hint"); t.classList.remove("correct"); t.classList.remove("wrong");
       if (correct[k] !== undefined && buildSentence[k] === correct[k]) t.classList.add("correct");
       else t.classList.add("wrong");
     });
@@ -5291,9 +5385,14 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     else if (already !== false) buildMissed.push({ word: i.word, exEn: i.exEn });
     buildRes[buildIdx] = !!ok;
     buildScore = resTrueCount(buildRes);
-    $("buildCheck").disabled = true; $("buildSkip").disabled = true;
+    $("buildCheck").disabled = true; $("buildSkip").disabled = true; $("buildHint").disabled = true;
     if (buildAuto) clearTimeout(buildAuto);
-    buildAuto = setTimeout(nextBuild, ok ? 1000 : 1800);
+    if (ok) {
+      $("buildNext").classList.add("hidden");
+      buildAuto = setTimeout(nextBuild, 1000);
+    } else {
+      $("buildNext").classList.remove("hidden");
+    }
   }
   function skipBuild() {
     if ($("buildSkip").disabled) return;
@@ -5823,11 +5922,15 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     $("tfPrev").onclick = backTf;
 
     $("startHang").onclick = startHang;
+    $("hangHint").onclick = hintHang;
     $("hangSkip").onclick = skipHang;
+    $("hangNext").onclick = nextHang;
     $("hangPrev").onclick = backHang;
     $("startBuild").onclick = startBuild;
+    $("buildHint").onclick = hintBuild;
     $("buildCheck").onclick = checkBuild;
     $("buildSkip").onclick = skipBuild;
+    $("buildNext").onclick = nextBuild;
     $("buildPrev").onclick = backBuild;
     $("startCloze").onclick = startCloze;
     $("clozeNext").onclick = nextCloze;

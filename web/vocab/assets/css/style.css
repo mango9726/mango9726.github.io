@@ -2133,6 +2133,18 @@ input:focus:not(:focus-visible),
   margin: 20px 0 6px; font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
   min-height: 40px;
 }
+.hang-ltr-wrap { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; letter-spacing: 0; margin: 0 auto; }
+.hang-ltr {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 42px; padding: 0 9px;
+  border-radius: 10px; border: 2px solid var(--border);
+  background: var(--panel-solid); color: var(--text);
+  font-size: 20px; font-weight: 800; text-transform: uppercase;
+  font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+}
+.hang-ltr.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); }
+.hang-ltr.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad); }
+.hang-ltr.none { border-color: transparent; background: transparent; color: var(--muted); font-style: italic; }
 .hang-lives { display: inline-flex; gap: 3px; align-items: center; font-size: 20px; }
 .life { display: inline-flex; }
 .life-on .ico { color: var(--bad); }
@@ -2184,6 +2196,7 @@ input:focus:not(:focus-visible),
   content: "Tap a word below to build the sentence"; color: var(--muted); font-size: 14px; font-style: italic;
 }
 .build-tile.build-placed { border-color: var(--primary); background: var(--grad); color: #fff; }
+.build-tile.build-placed.hint { border-color: var(--accent); border-style: dashed; background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent) inset; }
 
 /* ===================== Games: Cloze ===================== */
 .cloze-sentence {

@@ -320,6 +320,7 @@
     if (!settings.hiddenMeanings || typeof settings.hiddenMeanings !== "object") settings.hiddenMeanings = {};
     if (!settings.studiedDays || !Array.isArray(settings.studiedDays)) settings.studiedDays = [];
     if (!settings.dayDone || typeof settings.dayDone !== "object") settings.dayDone = {};
+    if (!settings.dailyTasksCompleted || typeof settings.dailyTasksCompleted !== "object") settings.dailyTasksCompleted = {};
     // Gate the mini-player boot flag on the user's preference (read by mini-player.js init).
     window.MINI_PLAYER_ENABLED = settings.showMiniPlayer !== false;
     reviews = load(K_REVIEWS, {});
@@ -1444,11 +1445,11 @@
   const QUEST_REWARD = 50;
   // เควสต์หมุนเวียนรายวัน — เลือก 1 อันต่อวัน แบบ deterministic จากวันที่ (ไม่จำเจ)
   const QUEST_POOL = [
-    { id: "correct", label: "Get 15 answers correct today", target: 15,
+    { id: "correct", i18n: "quest.correct", target: 15,
       cur: function () { const h = history[todayStr()] || {}; return h.correct || 0; } },
-    { id: "accuracy", label: "Hit 80% accuracy (10+ answers)", target: 80,
+    { id: "accuracy", i18n: "quest.accuracy", target: 80,
       cur: function () { const h = history[todayStr()] || {}; const a = h.answered || 0; return a >= 10 ? Math.round((h.correct || 0) / a * 100) : 0; } },
-    { id: "master3", label: "Master 3 words today", target: 3,
+    { id: "master3", i18n: "quest.master3", target: 3,
       cur: function () { return (game.dailyMastered || {})[todayStr()] || 0; } }
   ];
   function daySeed(str) {
@@ -1458,17 +1459,15 @@
   }
   function questDefs() {
     const defs = [
-      { id: "ans", label: "Answer 20 questions", target: 20, cur: function () { return dailyAnsweredToday(); } },
-      { id: "master", label: "Master 2 words", target: 2, cur: function () { return (game.dailyMastered || {})[todayStr()] || 0; } },
-      { id: "modes", label: "Play 3 game modes", target: 3, cur: function () { const m = (game.dailyModes || {})[todayStr()]; return m ? m.length : 0; } }
+      { id: "ans", i18n: "quest.ans", target: 20, cur: function () { return dailyAnsweredToday(); } },
+      { id: "master", i18n: "quest.master", target: 2, cur: function () { return (game.dailyMastered || {})[todayStr()] || 0; } },
+      { id: "modes", i18n: "quest.modes", target: 3, cur: function () { const m = (game.dailyModes || {})[todayStr()]; return m ? m.length : 0; } }
     ];
-    // เควสต์หมุนเวียน 1 อันต่อวัน (เป้าหมายรายวันไม่ซ้ำจำเจ)
     const rot = QUEST_POOL[daySeed(todayStr()) % QUEST_POOL.length];
     if (rot) defs.push(rot);
-    // รางวัล "Daily Quest +1" (L14): คอมโบ ×5 ในวันเดียว
     if (hasBonusQuest()) {
       defs.push({
-        id: "combo", label: "Reach a ×5 combo in one day", target: 5,
+        id: "combo", i18n: "quest.combo", target: 5,
         cur: function () { return Math.min((game.dailyCombo || {})[todayStr()] || 0, 5); }
       });
     }
@@ -1495,7 +1494,7 @@
       const row = el("div", "quest-row" + (done ? " done" : ""));
       row.innerHTML =
         '<span class="quest-check">' + (done ? svgIcon("check", "ico sm") : "") + "</span>" +
-        '<span class="quest-label">' + q.label + "</span>" +
+        '<span class="quest-label">' + t(q.i18n) + "</span>" +
         '<span class="quest-prog"><span class="quest-bar"><span data-w="' + pct + '%"></span></span></span>' +
         '<span class="quest-count">' + cur + " / " + q.target + "</span>";
       applyInlineStyles(row);
@@ -1523,7 +1522,7 @@
         const row = el("div", "quest-row" + (done ? " done" : ""));
         row.innerHTML =
           '<span class="quest-check">' + (done ? svgIcon("check", "ico sm") : "") + "</span>" +
-          '<span class="quest-label">' + q.label + "</span>" +
+          '<span class="quest-label">' + t(q.i18n) + "</span>" +
           '<span class="quest-prog"><span class="quest-bar"><span data-w="' + pct + '%"></span></span></span>' +
           '<span class="quest-count">' + cur + " / " + q.target + "</span>";
         applyInlineStyles(row);
@@ -1545,7 +1544,7 @@
     if (game.questsClaimed || !allQuestsDone()) return;
     game.questsClaimed = true; saveGame();
     awardXp(QUEST_REWARD, "daily-quest");
-    toast("Daily Quests complete! +" + QUEST_REWARD + " XP", "ok");
+    toast(t("quest.claimed").replace("{n}", QUEST_REWARD), "ok");
     renderDailyQuests();
   }
 
@@ -1674,14 +1673,14 @@
 
   /* ---------- Daily Tasks review state ---------- */
   function getReview(d) { return reviews[d] || { done: 0, nextDue: Number(d) + 1 }; }
-  function recordReview(d) {
+  function recordReview(d, noXp) {
     const r = getReview(d);
     r.done = (r.done || 0) + 1;
     const gap = (r.done - 1) < GAPS.length ? GAPS[r.done - 1] : 15;
     r.nextDue = currentPlanDay() + gap;
     reviews[d] = r;
     save(K_REVIEWS, reviews);
-    awardXp(15, "daily-task"); // ทำ Daily Task เสร็จ +15 XP
+    if (!noXp) awardXp(15, "daily-task"); // ทบทวนจริงผ่านควิซ +15 XP (กดปุ่มไม่ให้ XP)
   }
 
   /* ---------- "Mark today as done" (เรียนเสร็จแล้ว) ----------
@@ -1711,7 +1710,7 @@
       }
     });
     if (seeded) save(K_PROGRESS, progress);
-    recordReview(cp); // นับทบทวนวันนี้ → คำวันนี้จะกลับมาอีกครั้งตาม GAPS
+    recordReview(cp, true); // กดปุ่มเรียนเสร็จ → นับทบทวน แต่ไม่ให้ XP (ฟาร์มง่ายเกิน)
     bumpStreak();
     toast(t("tasks.doneToast").replace("{n}", items.length), "ok", "check");
     if (tasksViewActive()) renderTasks();
@@ -2362,7 +2361,7 @@
       b.classList.toggle("active", on);
       if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
-    var gameViews = ["cards","quiz","pron","fill","match","tf","hang","build","cloze","listen","dictation","exam"];
+    var gameViews = ["cards","quiz","pron","fill","match","tf","hang","build","cloze","listen","exam"];
     if (gameViews.indexOf(name) !== -1) {
       $("navGamesSub").classList.add("open");
       $("navGames").setAttribute("aria-expanded", "true");
@@ -2382,7 +2381,6 @@
     if (name === "stats") renderStats();
     if (name === "aichat") renderAiChat();
     if (name === "stories") renderStories();
-    if (name === "dictation") renderDictationQuiz();
     if (name === "exam") renderExam();
     else if (window.LevelUpExam && typeof window.LevelUpExam.pause === "function") window.LevelUpExam.pause();
     try { updateMiniQuest(name); } catch (e) { console.error("[app] updateMiniQuest failed:", e); } // ซ่อนwidgetบนHome / โชว์+เรนเดอร์บนหน้าอื่น
@@ -2423,6 +2421,7 @@
   const CHIP_DEFS = {
     cardFilterType: [["all", "All"], ["vocab", "Vocab"], ["collocation", "Collocations"], ["idiom", "Idioms"]],
     cardMode: [["all", "All"], ["due", "Due only"], ["random", "Random"]],
+    cardCount: [["10", "10"], ["20", "20"], ["50", "50"], ["all", "All"]],
     quizMode: [["meaning", "Word → Meaning"], ["sentence", "Sentence → Thai"]],
     quizCount: [["10", "10"], ["20", "20"], ["all", "All"]],
     quizType: [["all", "All"], ["vocab", "Vocab"], ["collocation", "Collocations"], ["idiom", "Idioms"]],
@@ -2447,7 +2446,7 @@
     listenCount: [["10", "10"], ["20", "20"], ["all", "All"]],
     browseCefrLevel: [["all", "All Levels"], ["A1", "A1"], ["A2", "A2"], ["B1", "B1"], ["B2", "B2"], ["C1", "C1"], ["C2", "C2"]]
   };
-  const CHIP_DEFAULT = { cardFilterType: "all", cardMode: "all", quizMode: "meaning", quizCount: "10", quizType: "all", browseType: "all", pronCount: "10", pronType: "vocab", fillDir: "th2en", fillType: "all", fillCount: "10", matchType: "all", matchSize: "8", tfType: "all", tfCount: "10", tfTime: "60", hangType: "vocab", hangCount: "10", buildType: "all", buildCount: "10", clozeType: "all", clozeCount: "10", listenType: "all", listenCount: "10", browseCefrLevel: "A1" };
+  const CHIP_DEFAULT = { cardFilterType: "all", cardMode: "all", cardCount: "20", quizMode: "meaning", quizCount: "10", quizType: "all", browseType: "all", pronCount: "10", pronType: "vocab", fillDir: "th2en", fillType: "all", fillCount: "10", matchType: "all", matchSize: "8", tfType: "all", tfCount: "10", tfTime: "60", hangType: "vocab", hangCount: "10", buildType: "all", buildCount: "10", clozeType: "all", clozeCount: "10", listenType: "all", listenCount: "10", browseCefrLevel: "A1" };
   function populateDayChips() {
     const cefrFilter = (document.getElementById("browseCefrLevel") ? chipValue($("browseCefrLevel")) : "all") || "all";
     let allowedDays = [];
@@ -3229,10 +3228,12 @@
     currentMode = "cards";
     const type = chipValue($("cardFilterType"));
     const mode = chipValue($("cardMode"));
+    const cnt = chipValue($("cardCount"));
     let list = getGameSourceItems("cards");
     if (type !== "all") list = list.filter(function (i) { return i.type === type; });
     if (mode === "due") list = list.filter(isDue);
     if (mode === "random") list = shuffle(list);
+    if (cnt !== "all") { const n = parseInt(cnt, 10); if (list.length > n) list = list.slice(0, n); }
     if (!list.length) { toast("No words match these filters — try loosening them", "err"); return; }
 
     cardQueue = list; cardIdx = 0;
@@ -3322,15 +3323,16 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
   function launchQuizForDay(dayNum, retView) {
     const items = itemsForDay(dayNum);
     if (!items.length) { toast("No words for this Day", "err"); return; }
-    showView("quiz"); // UI ข้อสอบอยู่ในหน้า quiz
+    showView("quiz");
     launchQuiz(items, "sentence", function () {
       recordReview(dayNum);
-      // ถ้าทำ quiz ของวันนี้เสร็จ → ถือว่าเรียนวันนี้เสร็จแล้วโดยอัตโนมัติ
       if (dayNum === currentPlanDay() && !isDayDone()) {
         settings.dayDone[dayNum] = todayStr();
         save(K_SETTINGS, settings);
-        if (tasksViewActive()) renderTasks();
       }
+      var isCurrentDay = dayNum === currentPlanDay();
+      markTaskComplete(isCurrentDay ? "learn-" + dayNum : "review-" + dayNum);
+      if (tasksViewActive()) renderTasks();
     }, retView || "tasks", true);
   }
 
@@ -3454,16 +3456,33 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
   /* ============================================================
      DAILY TASKS
      ============================================================ */
-  function taskCard(badge, title, btnLabel, onClick, meta) {
-    const card = el("div", "task-card");
+  function todayTaskKey() { return todayStr(); }
+  function isTaskComplete(taskId) {
+    var d = settings.dailyTasksCompleted[todayTaskKey()];
+    return !!(d && d[taskId]);
+  }
+  function markTaskComplete(taskId) {
+    var tk = todayTaskKey();
+    if (!settings.dailyTasksCompleted[tk]) settings.dailyTasksCompleted[tk] = {};
+    settings.dailyTasksCompleted[tk][taskId] = true;
+    save(K_SETTINGS, settings);
+  }
+  function taskCard(badge, title, btnLabel, onClick, meta, done, taskId) {
+    const card = el("div", "task-card" + (done ? " task-done" : ""));
     const left = el("div");
     left.appendChild(el("div", "task-badge", badge));
     left.appendChild(el("div", "task-title", title));
     if (meta) left.appendChild(el("div", "task-meta", meta));
     card.appendChild(left);
-    const btn = el("button", "btn btn-primary", btnLabel);
-    btn.onclick = onClick;
-    card.appendChild(btn);
+    if (done) {
+      const doneBtn = el("button", "btn btn-done", svgIcon("check", "ico sm") + " " + t("tasks.done"));
+      doneBtn.disabled = true;
+      card.appendChild(doneBtn);
+    } else {
+      const btn = el("button", "btn btn-primary", btnLabel);
+      btn.onclick = onClick;
+      card.appendChild(btn);
+    }
     return card;
   }
 
@@ -3479,90 +3498,137 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     const list = $("tasksList");
     list.innerHTML = "";
 
-    // การ์ด "เรียนเสร็จแล้ววันนี้" — กดบอกว่าระบบได้เรียนวันนี้ครบแล้ว
-    const todayDone = isDayDone();
-    const todayItems = itemsForDay(cp);
-    const doneCard = el("div", "task-card task-done-card" + (todayDone ? " done" : ""));
-    if (todayDone) {
-      doneCard.appendChild(el("div", "task-badge", svgIcon("check") + " " + t("tasks.doneBadge")));
-      doneCard.appendChild(el("div", "task-title", t("tasks.doneTitle")));
-      doneCard.appendChild(el("div", "task-meta", t("tasks.doneMeta")));
-      const undoBtn = el("button", "btn", svgIcon("refresh", "ico sm") + " " + t("tasks.undoDone"));
-      undoBtn.onclick = function () { unmarkDayDone(); };
-      doneCard.appendChild(undoBtn);
-    } else {
-      doneCard.appendChild(el("div", "task-badge", svgIcon("sparkle") + " " + t("tasks.markDone")));
-      doneCard.appendChild(el("div", "task-title", t("tasks.markDoneHint")));
-      doneCard.appendChild(el("div", "task-meta", t("tasks.markDoneMeta")));
-      const btn = el("button", "btn btn-primary", svgIcon("check", "ico sm") + " " + t("tasks.markDoneBtn"));
-      btn.onclick = function () { markDayDone(); };
-      doneCard.appendChild(btn);
-    }
-    doneCard.style.animationDelay = "0ms";
-    list.appendChild(doneCard);
+    /* --- Build task list --- */
+    var tasks = [];
 
-    // การ์ด "แบบทดสอบเลื่อนระดับ" — เมื่อเรียนครบทุกวันของระดับปัจจุบัน
-    const lvlNext = nextLevel();
+    // 1. "Mark today as done"
+    var todayDone = isDayDone();
+    tasks.push({ id: "markToday", done: todayDone });
+
+    // 2. Level-up exam (conditional)
+    var lvlNext = nextLevel();
     if (lvlNext && allPlanDaysDone()) {
-      const nextName = (window.CEFR_LEVELS && window.CEFR_LEVELS[lvlNext])
-        ? (settings.lang === "th" ? window.CEFR_LEVELS[lvlNext].th : window.CEFR_LEVELS[lvlNext].name)
-        : lvlNext;
-      const lu = taskCard(
-        svgIcon("award") + t("levelup.cardTitle"),
-        t("levelup.cardHint").replace("{lv}", lvlNext).replace("{name}", nextName),
-        t("levelup.cardBtn"),
-        function () {
-          if (window.LevelUpExam && typeof window.LevelUpExam.start === "function") window.LevelUpExam.start();
-          else toast(t("levelup.cardUnavailable"), "warn");
-        },
-        t("levelup.cardDesc")
-      );
-      lu.style.animationDelay = "0ms";
-      list.appendChild(lu);
+      tasks.push({ id: "levelup", done: false, lvlNext: lvlNext });
     }
 
-    // งานใหม่: ถ้ามีคำสำหรับวันนี้ (ในระดับปัจจุบัน — ใช้ ITEMS ที่กรอง+remap แล้ว)
+    // 3. Learn new words for today
+    var todayItems = itemsForDay(cp);
     if (todayItems.length) {
-      const topic = (todayItems[0] && todayItems[0].topic) || "";
-      const nc = taskCard(
-        svgIcon("sparkle") + "Learn new words",
-        "Day " + cp + " · " + topic,
-        "New-word quiz",
-        function () { launchQuizForDay(cp, "tasks"); },
-        "Word count: " + todayItems.length + " items"
-      );
-      nc.style.animationDelay = "0ms";
-      list.appendChild(nc);
+      var topic = (todayItems[0] && todayItems[0].topic) || "";
+      tasks.push({ id: "learn-" + cp, done: isTaskComplete("learn-" + cp), day: cp, topic: topic, count: todayItems.length });
     }
 
-    // งานทบทวน: วันก่อนหน้าในระดับเดียวกันที่ถึงกำหนด
-    const daySet = {};
+    // 4. Review cards for past days
+    var daySet = {};
     ITEMS.forEach(function (i) { daySet[Number(i.day)] = true; });
-    let dueCount = 0, k = 0;
+    var dueCount = 0;
     Object.keys(daySet).map(Number).sort(function (a, b) { return a - b; }).forEach(function (d) {
-      if (d >= cp) return; // เฉพาะวันที่ผ่านมา
-      const r = getReview(d);
+      if (d >= cp) return;
+      var r = getReview(d);
       if (r.nextDue <= cp) {
         dueCount++;
-        const dayItems = itemsForDay(d);
-        const topic = (dayItems[0] && dayItems[0].topic) || "";
-        const meta = "Reviewed " + (r.done || 0) + " times · Next: Day " + r.nextDue;
-        const rc = taskCard(
-          svgIcon("refresh") + "Review",
-          "Day " + d + " · " + topic,
-          "Take a quiz",
-          function () { launchQuizForDay(d, "tasks"); },
-          meta
-        );
-        rc.style.animationDelay = (k * 60) + "ms"; k++;
-        list.appendChild(rc);
+        var dayItems = itemsForDay(d);
+        var topic = (dayItems[0] && dayItems[0].topic) || "";
+        var overdue = r.nextDue < cp;
+        tasks.push({ id: "review-" + d, done: isTaskComplete("review-" + d), day: d, topic: topic, reviewCount: r.done || 0, nextDue: r.nextDue, overdue: overdue });
       }
     });
 
-    if (dueCount === 0 && !todayItems.length) {
-      list.appendChild(el("p", "hint", svgIcon("check", "ico sm") + " Nothing to do today If you haven't added words for Day " + cp + " yet, tell Claude: \"Day " + cp + ", [topic or random]\" to add new words"));
-    } else if (dueCount === 0) {
-      list.appendChild(el("p", "hint", svgIcon("party", "ico sm") + " Nothing to review today — you've finished the new words. Take a break!"));
+    /* --- Progress indicator --- */
+    var totalTasks = tasks.length;
+    var doneTasks = tasks.filter(function (tk) { return tk.done; }).length;
+    if (totalTasks > 0) {
+      var progWrap = el("div", "tasks-progress-wrap");
+      var pct = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
+      progWrap.innerHTML =
+        '<div class="tasks-progress-label">' + t("tasks.progress").replace("{n}", doneTasks).replace("{m}", totalTasks) + '</div>' +
+        '<div class="tasks-progress-bar"><div class="tasks-progress-fill" style="width:' + pct + '%"></div></div>';
+      list.appendChild(progWrap);
+    }
+
+    /* --- Render cards --- */
+    var k = 0;
+    tasks.forEach(function (tk) {
+      var card;
+      if (tk.id === "markToday") {
+        // Already done — show done card
+        if (tk.done) {
+          card = el("div", "task-card task-done-card done");
+          card.appendChild(el("div", "task-badge", svgIcon("check") + " " + t("tasks.doneBadge")));
+          card.appendChild(el("div", "task-title", t("tasks.doneTitle")));
+          card.appendChild(el("div", "task-meta", t("tasks.doneMeta")));
+          var undoBtn = el("button", "btn", svgIcon("refresh", "ico sm") + " " + t("tasks.undoDone"));
+          undoBtn.onclick = function () { unmarkDayDone(); };
+          card.appendChild(undoBtn);
+        } else {
+          card = el("div", "task-card task-done-card");
+          card.appendChild(el("div", "task-badge", svgIcon("sparkle") + " " + t("tasks.markDone")));
+          card.appendChild(el("div", "task-title", t("tasks.markDoneHint")));
+          card.appendChild(el("div", "task-meta", t("tasks.markDoneMeta")));
+          var btn = el("button", "btn btn-primary", svgIcon("check", "ico sm") + " " + t("tasks.markDoneBtn"));
+          btn.onclick = function () { markDayDone(); };
+          card.appendChild(btn);
+        }
+      } else if (tk.id === "levelup") {
+        var nextName = (window.CEFR_LEVELS && window.CEFR_LEVELS[tk.lvlNext])
+          ? (settings.lang === "th" ? window.CEFR_LEVELS[tk.lvlNext].th : window.CEFR_LEVELS[tk.lvlNext].name)
+          : tk.lvlNext;
+        card = taskCard(
+          svgIcon("award") + t("tasks.levelup"),
+          t("levelup.cardHint").replace("{lv}", tk.lvlNext).replace("{name}", nextName),
+          t("tasks.levelupBtn"),
+          function () {
+            if (window.LevelUpExam && typeof window.LevelUpExam.start === "function") window.LevelUpExam.start();
+            else toast(t("levelup.cardUnavailable"), "warn");
+          },
+          t("tasks.levelupMeta"), false
+        );
+      } else if (tk.id.indexOf("learn-") === 0) {
+        var isDone = tk.done;
+        card = taskCard(
+          svgIcon("sparkle") + " " + t("tasks.learn"),
+          "Day " + tk.day + " · " + tk.topic,
+          isDone ? t("tasks.reviewAgain") : t("tasks.learnBtn"),
+          function () { launchQuizForDay(tk.day, "tasks"); },
+          t("tasks.learnMeta").replace("{n}", tk.count),
+          isDone
+        );
+      } else if (tk.id.indexOf("review-") === 0) {
+        var meta = t("tasks.reviewMeta").replace("{n}", tk.reviewCount).replace("{d}", tk.nextDue);
+        if (tk.overdue) meta = t("tasks.overdue") + " " + meta;
+        card = taskCard(
+          svgIcon("refresh") + " " + t("tasks.review"),
+          "Day " + tk.day + " · " + tk.topic,
+          tk.done ? t("tasks.reviewAgain") : t("tasks.reviewBtn"),
+          function () { launchQuizForDay(tk.day, "tasks"); },
+          meta, tk.done
+        );
+      }
+      if (card) {
+        card.style.animationDelay = (k * 60) + "ms";
+        list.appendChild(card);
+        k++;
+      }
+    });
+
+    /* --- Quest summary --- */
+    ensureDailyQuests();
+    var qDefs = questDefs();
+    var qDone = qDefs.filter(function (q) { return q.cur() >= q.target; }).length;
+    if (qDefs.length) {
+      var qWrap = el("div", "tasks-quest-summary");
+      var qPct = Math.round(qDone / qDefs.length * 100);
+      qWrap.innerHTML =
+        '<div class="tasks-quest-label">' + t("quest.heading") + ' — ' + qDone + '/' + qDefs.length + '</div>' +
+        '<div class="tasks-progress-bar"><div class="tasks-progress-fill quest-fill" style="width:' + qPct + '%"></div></div>';
+      list.appendChild(qWrap);
+    }
+
+    /* --- Empty states --- */
+    if (totalTasks === 0) {
+      list.appendChild(el("p", "hint", svgIcon("check", "ico sm") + " " + t("tasks.emptyAll").replace("{n}", cp)));
+    } else if (dueCount === 0 && todayItems.length && doneTasks === totalTasks) {
+      list.appendChild(el("p", "hint", svgIcon("party", "ico sm") + " " + t("tasks.emptyReview")));
     }
   }
 
@@ -4665,6 +4731,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     const fb = $("fillFeedback"); fb.className = "fill-feedback hidden"; fb.textContent = "";
     if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
     $("fillPrev").classList.toggle("hidden", fillIdx === 0);
+    $("fillNext").classList.add("hidden");
     $("fillCheck").disabled = false; $("fillSkip").disabled = false;
     inp.focus();
     $("fillSpeak").onclick = function () { speak(i.word); };
@@ -4694,7 +4761,12 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     $("fillCheck").disabled = true;
     $("fillSkip").disabled = true;
     if (fillAuto) clearTimeout(fillAuto);
-    fillAuto = setTimeout(nextFill, ok ? 700 : 1500);
+    if (ok) {
+      $("fillNext").classList.add("hidden");
+      fillAuto = setTimeout(nextFill, 700);
+    } else {
+      $("fillNext").classList.remove("hidden");
+    }
   }
 
   function skipFill() {
@@ -5285,6 +5357,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     buildHinted = [];
     renderBuild();
     const fb = $("buildFeedback"); fb.className = "build-feedback hidden"; fb.textContent = "";
+    clearBuildCorrect();
     if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
     $("buildPrev").classList.toggle("hidden", buildIdx === 0);
     $("buildNext").classList.add("hidden");
@@ -5329,6 +5402,23 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     if (!b) return;
     b.textContent = t("build.hintBtn") + " (" + buildHints + ")";
     b.disabled = buildHints <= 0;
+  }
+  function renderBuildCorrect(correct) {
+    const el = $("buildCorrect");
+    if (!el) return;
+    let html = '<span class="build-correct-label">' + t("build.correctOrder") + "</span>";
+    html += correct.map(function (w, k) {
+      const cls = (buildSentence[k] === w) ? "correct" : "wrong";
+      return '<div class="build-tile build-placed ' + cls + '">' + esc(w) + "</div>";
+    }).join("");
+    el.innerHTML = html;
+    el.classList.remove("hidden");
+  }
+  function clearBuildCorrect() {
+    const el = $("buildCorrect");
+    if (!el) return;
+    el.classList.add("hidden");
+    el.innerHTML = "";
   }
   function hintBuild() {
     if ($("buildCheck").disabled) return;
@@ -5379,6 +5469,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
       if (correct[k] !== undefined && buildSentence[k] === correct[k]) t.classList.add("correct");
       else t.classList.add("wrong");
     });
+    if (ok) clearBuildCorrect(); else renderBuildCorrect(correct);
     const already = buildRes[buildIdx];
     if (already === undefined) recordAnswer(i, ok);
     if (ok) { if (already === false) dropMissedByWord(buildMissed, i.word); }
@@ -5913,6 +6004,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     $("fillCheck").onclick = checkFill;
     $("fillSkip").onclick = skipFill;
     $("fillPrev").onclick = backFill;
+    $("fillNext").onclick = nextFill;
 
     $("startMatch").onclick = startMatch;
 
@@ -8281,64 +8373,6 @@ bookPageIdx = 0;
   /* ============================================================
      DICTATION QUIZ (Feature 2) & WRITING JOURNAL (Feature 3)
      ============================================================ */
-  function renderDictationQuiz() {
-    const audioBtn = $("dictationAudioBtn");
-    const input = $("dictationInput");
-    const submit = $("dictationSubmit");
-    const feedback = $("dictationFeedback");
-    if (!audioBtn || !input || !submit) return;
-
-    let currentDictWord = null;
-
-    function nextWord() {
-      input.value = "";
-      if (feedback) feedback.textContent = "";
-      const candidates = ITEMS;
-      currentDictWord = candidates[Math.floor(Math.random() * candidates.length)];
-      try {
-        if ("speechSynthesis" in window) {
-          const u = new SpeechSynthesisUtterance(currentDictWord.word);
-          u.lang = "en-US";
-          window.speechSynthesis.speak(u);
-        }
-      } catch (e) {}
-    }
-
-    audioBtn.onclick = function () {
-      if (!currentDictWord) nextWord();
-      else {
-        try {
-          if ("speechSynthesis" in window) {
-            const u = new SpeechSynthesisUtterance(currentDictWord.word);
-            u.lang = "en-US";
-            window.speechSynthesis.speak(u);
-          }
-        } catch (e) {}
-      }
-    };
-
-    submit.onclick = function () {
-      if (!currentDictWord) { nextWord(); return; }
-      const typed = input.value.trim().toLowerCase();
-      if (typed === currentDictWord.word.toLowerCase()) {
-        if (feedback) {
-          feedback.innerHTML = '<span style="color:var(--success);">' + svgIcon("check", "ico sm") + ' Correct! The word was: <b>' + esc(currentDictWord.word) + '</b></span>';
-        }
-        awardXp(15);
-        fireConfetti(32);
-        setTimeout(nextWord, 1500);
-      } else {
-        if (feedback) {
-          feedback.innerHTML = '<span style="color:var(--danger);">' + svgIcon("cross", "ico sm") + ' Incorrect. Try again or listen closely!</span>';
-        }
-      }
-    };
-
-    nextWord();
-  }
-
-
-
   /* ============================================================
      REAL PUSH NOTIFICATIONS VIA SERVICE WORKER
      ============================================================ */

@@ -484,7 +484,7 @@
     "habitat": {"exEn": "Deforestation destroys the natural habitat of many animals.", "exTh": "การตัดไม้ทำลายป่าทำลายถิ่นที่อยู่ตามธรรมชาติของสัตว์หลายชนิด"},
     "hammer": {"exEn": "He used a hammer to fix the loose shelf in the kitchen.", "exTh": "เขาใช้ค้อนซ่อมชั้นวางที่หลวมในครัว"},
     "handful": {"exEn": "Only a handful of students passed the difficult entrance exam.", "exTh": "มีนักเรียนเพียงหยิบมือเดียวที่ผ่านการสอบเข้าที่ยาก"},
-    "handle": {"exEn": "She can handle pressure very well under tight deadlines.", "exTh": "เธอจัดการกับแรงกดดันได้ดีมากภายใต้กำหนดเวลาที่紧"},
+    "handle": {"exEn": "She can handle pressure very well under tight deadlines.", "exTh": "เธอจัดการกับแรงกดดันได้ดีมากภายใต้กำหนดเวลาที่เคร่งครัด"},
     "hang": {"exEn": "Please hang your coat on the hook by the front door.", "exTh": "กรุณาแขวนเสื้อคลุมของคุณบนตะขอข้างประตูหน้า"},
     "hardly": {"exEn": "He could hardly hear the speaker because of the loud noise.", "exTh": "เขาแทบไม่ได้ยินผู้บรรยายเพราะเสียงดัง"},
     "hardware": {"exEn": "The store sells computer hardware at very competitive prices.", "exTh": "ร้านค้าขายฮาร์ดแวร์คอมพิวเตอร์ในราคาที่แข่งขันได้มาก"},

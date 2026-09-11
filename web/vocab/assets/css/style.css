@@ -1632,6 +1632,17 @@ select:focus, input[type="text"]:focus { outline: none; border-color: var(--prim
 .task-done-card.done { background: rgba(34,197,94,0.07); }
 .task-done-card.done .task-badge { color: var(--good); background: none; -webkit-background-clip: initial; background-clip: initial; }
 .task-done-card .btn { white-space: nowrap; }
+/* Completed task card + progress */
+.task-card.task-done { opacity: 0.62; }
+.task-card.task-done .task-badge { color: var(--good); background: none; -webkit-background-clip: initial; background-clip: initial; }
+.btn.btn-done { background: rgba(34,197,94,0.12); color: var(--good); border-color: rgba(34,197,94,0.35); cursor: default; }
+.tasks-progress-wrap { display: flex; flex-direction: column; gap: 8px; padding: 4px 2px; }
+.tasks-progress-label { font-size: 13px; font-weight: 700; color: var(--muted); }
+.tasks-progress-bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.tasks-progress-fill { height: 100%; border-radius: 999px; background: var(--grad); transition: width 0.5s ease; }
+.tasks-progress-fill.quest-fill { background: var(--good); }
+.tasks-quest-summary { display: flex; flex-direction: column; gap: 8px; padding: 18px 22px; margin-top: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 16px; }
+.tasks-quest-label { font-size: 13px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 8px; }
 
 /* ===================== Result ===================== */
 .result {
@@ -2181,8 +2192,8 @@ input:focus:not(:focus-visible),
 .build-tile.selected { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 35%, transparent); }
 .build-feedback { font-size: 15px; font-weight: 600; margin: 4px 0 12px; text-align: center; }
 .build-feedback.hidden { display: none; }
-.build-tile.correct { background: rgba(22,163,74,0.14); border-color: var(--good); color: var(--good); }
-.build-tile.wrong { background: rgba(239,68,68,0.14); border-color: var(--bad); color: var(--bad); animation: shake 0.4s; }
+.build-tile.build-placed.correct { background: rgba(22,163,74,0.16); border-color: var(--good); color: var(--good); box-shadow: var(--shadow); }
+.build-tile.build-placed.wrong { background: rgba(239,68,68,0.16); border-color: var(--bad); color: var(--bad); animation: shake 0.4s; box-shadow: var(--shadow); }
 
 /* sentence answer zone (words the user has placed) */
 .build-zone-label { text-align: center; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin: 14px 0 8px; }
@@ -2195,6 +2206,17 @@ input:focus:not(:focus-visible),
 .build-answer:empty::before {
   content: "Tap a word below to build the sentence"; color: var(--muted); font-size: 14px; font-style: italic;
 }
+.build-correct {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;
+  min-height: 50px; padding: 12px; margin-bottom: 8px;
+  border: 2px dashed var(--good); border-radius: 16px;
+  background: color-mix(in srgb, var(--good) 7%, transparent);
+}
+.build-correct-label {
+  font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 700;
+  color: var(--good); margin-right: 4px; width: 100%; text-align: center;
+}
+.build-correct .build-tile { pointer-events: none; cursor: default; transform: none !important; }
 .build-tile.build-placed { border-color: var(--primary); background: var(--grad); color: #fff; }
 .build-tile.build-placed.hint { border-color: var(--accent); border-style: dashed; background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent) inset; }
 

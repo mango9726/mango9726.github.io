@@ -815,7 +815,7 @@ const VOCAB_TH_EXTRA = {
   "digital": "ดิจิทัล",
   "dignity": "ศักดิ์ศรี",
   "digress": "ออกนอกเรื่อง / พูดนอกประเด็น",
-  "dilemma": "ภาวะกลilemma",
+  "dilemma": "ภาวะกลืนไม่เข้าคายไม่ออก",
   "diligence": "ความขยัน",
   "diligent": "ขยันหมั่นเพียร",
   "dimension": "มิติ / ขนาด",

@@ -104,7 +104,6 @@
           <button class="nav-sub-btn" data-view="build"><span class="nav-ico"><span class="ico ico-tile" data-icon="puzzle"></span></span><span data-i18n="nav.build">Sentence Builder</span></button>
           <button class="nav-sub-btn" data-view="cloze"><span class="nav-ico"><span class="ico ico-tile" data-icon="pencil"></span></span><span data-i18n="nav.cloze">Cloze</span></button>
           <button class="nav-sub-btn" data-view="listen"><span class="nav-ico"><span class="ico ico-tile" data-icon="speaker"></span></span><span data-i18n="nav.listen">Listen &amp; Type</span></button>
-          <button class="nav-sub-btn" data-view="dictation"><span class="nav-ico"><span class="ico ico-tile" data-icon="speaker"></span></span><span data-i18n="nav.dictation">Dictation Quiz</span></button>
           <button class="nav-sub-btn" data-view="exam"><span class="nav-ico"><span class="ico ico-tile" data-icon="award"></span></span><span data-i18n="nav.exam">Exam</span></button>
         </div>
       </div>
@@ -347,6 +346,10 @@
             <span class="field-label" data-i18n="label.mode">Mode</span>
             <div class="chip-group" id="cardMode"></div>
           </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of cards</span>
+            <div class="chip-group" id="cardCount"></div>
+          </div>
         </div>
         <button class="btn btn-primary" id="startCards" data-i18n="btn.startLearning">Start Learning</button>
       </div>
@@ -562,6 +565,7 @@
           <button class="btn hidden" id="fillPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="fillSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary" id="fillCheck" data-i18n="check.answer">Check Answer</button>
+          <button class="btn btn-primary hidden" id="fillNext" data-i18n="next.question">Next Question →</button>
         </div>
       </div>
 
@@ -661,11 +665,20 @@
       <div class="panel" id="hangControls">
         <h2><span class="ico ico-tile" data-icon="target"></span><span data-i18n="cfg.hang">Hangman</span></h2>
         <p class="hint">Guess the English word from the Thai clue, one letter at a time — you get 6 wrong guesses</p>
-        <div class="controls">
+<div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.type">Type</span>
-            <div class="chip-group" id="hangType"></div>
+            <div class="chip-group" id="cardFilterType"></div>
           </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.mode">Mode</span>
+            <div class="chip-group" id="cardMode"></div>
+          </div>
+          <div class="field">
+            <span class="field-label" data-i18n="label.count">Number of cards</span>
+            <div class="chip-group" id="cardCount"></div>
+          </div>
+        </div>
           <div class="field">
             <span class="field-label" data-i18n="label.count">Number of questions</span>
             <div class="chip-group" id="hangCount"></div>
@@ -739,6 +752,7 @@
         </div>
         <p class="build-hint" data-i18n="build.hint">Tap a word below to place it in the sentence · tap a word in the sentence to take it back down</p>
         <div class="build-answer" id="buildSentence" aria-label="Your sentence"></div>
+        <div class="build-correct hidden" id="buildCorrect"></div>
         <p class="build-zone-label" data-i18n="zone.wordsLeft">Words left</p>
         <div class="build-tiles" id="buildBank"></div>
         <p class="build-feedback hidden" id="buildFeedback"></p>
@@ -915,22 +929,6 @@
             <h4 style="font-weight:700;margin-bottom:10px;color:var(--primary);"><span class="ico" data-icon="quiz"></span> <span data-i18n="stories.quizTitle">Comprehension Quiz</span></h4>
             <div id="storyQuizBox" style="font-size:14px;"></div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== DICTATION QUIZ ===== -->
-    <section class="view" id="view-dictation">
-      <div class="panel">
-        <h2><span class="ico ico-tile" data-icon="speaker"></span><span data-i18n="dictation.heading">Dictation Quiz</span></h2>
-        <p class="hint" data-i18n="dictation.hint">Listen to the audio pronunciation and type the word you hear.</p>
-        <div class="dictation-card" style="margin-top:20px;padding:24px;background:var(--panel-solid);border:1px solid var(--border);border-radius:16px;text-align:center;">
-          <button class="btn btn-primary btn-lg" id="dictationAudioBtn" style="margin-bottom:16px;"><span class="ico" data-icon="speaker"></span> <span data-i18n="dictation.listen">Listen Audio</span></button>
-          <div style="margin-bottom:16px;">
-            <input type="text" id="dictationInput" placeholder="Type what you hear..." style="padding:12px 16px;font-size:18px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text);width:100%;max-width:320px;text-align:center;" autocomplete="off" />
-          </div>
-          <button class="btn btn-primary" id="dictationSubmit" data-i18n="check.answer">Check Answer</button>
-          <div id="dictationFeedback" style="margin-top:14px;font-weight:600;font-size:16px;"></div>
         </div>
       </div>
     </section>

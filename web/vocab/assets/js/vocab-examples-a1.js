@@ -87,7 +87,7 @@
     "clean": {exEn: "Please keep the kitchen clean.", exTh: "กรุณา giữ ห้องครัวให้สะอาด"},
     "dirty": {exEn: "Your shoes are very dirty.", exTh: "รองเท้าของคุณสกปรกมาก"},
     "open": {exEn: "Please open the window.", exTh: "กรุณาเปิดหน้าต่าง"},
-    "close": {exEn: "Close your eyes and sleep.", exTh: "หลับตาแล้วนอน吧"},
+    "close": {exEn: "Close your eyes and sleep.", exTh: "หลับตาแล้วนอนหลับ"},
     "eat": {exEn: "I want to eat some rice.", exTh: "ฉันอยากกินข้าว"},
     "drink": {exEn: "I need to drink more water.", exTh: "ฉันต้องดื่มน้ำให้มากขึ้น"},
     "sleep": {exEn: "The baby sleeps twelve hours a day.", exTh: "เด็กทารกนอนวันละสิบสองชั่วโมง"},

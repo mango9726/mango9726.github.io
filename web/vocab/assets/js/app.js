@@ -496,7 +496,7 @@
   }
 
   /** FSRS-5 grade: q in {Again=1, Hard=3, Good=4, Easy=5}. */
-  function gradeAnswer(item, q) {
+  function gradeAnswer(item, q, noXp) {
     if (!item) return;
     const p = getP(item.id);
     const wasNew = !p.seen;
@@ -568,7 +568,7 @@
     if (hr < 6) game.earlyBird = true;
     saveGame();
     if (q >= 3) showCombo(game.combo, mult); else hideCombo();
-    awardXp(xp, "answer");
+    if (!noXp) awardXp(xp, "answer"); // Flashcards ไม่ให้ XP
   }
 
   /** Backward-compatible wrapper — keeps every legacy game mode working. */
@@ -3276,7 +3276,7 @@
   }
 
   function cardGrade(q) {
-    gradeAnswer(cardQueue[cardIdx], q);
+    gradeAnswer(cardQueue[cardIdx], q, true);
     cardIdx++;
     if (cardIdx >= cardQueue.length) {
       $("cardProgress").style.width = "100%";
@@ -3324,7 +3324,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     const items = itemsForDay(dayNum);
     if (!items.length) { toast("No words for this Day", "err"); return; }
     showView("quiz");
-    launchQuiz(items, "sentence", function () {
+    launchQuiz(items, "meaning", function () {
       recordReview(dayNum);
       if (dayNum === currentPlanDay() && !isDayDone()) {
         settings.dayDone[dayNum] = todayStr();
@@ -4476,7 +4476,13 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
   /* --- จับเสียงจากไมค์ครั้งเดียว --- */
   let activeRec = null;
   function stopRecognition() {
-    if (activeRec) { try { activeRec.abort(); } catch (e) {} activeRec = null; }
+    if (activeRec) {
+      const r = activeRec;
+      activeRec = null;
+      r.onerror = null; // หยุดเอง → อย่าให้ error "aborted" เด้งขึ้นมา
+      r.onend = null;
+      try { r.abort(); } catch (e) {}
+    }
   }
   function recognizeOnce(handlers) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -4493,8 +4499,15 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
       for (let i = 0; i < r.length; i++) alts.push(r[i].transcript);
       handlers.onresult && handlers.onresult(alts);
     };
-    rec.onerror = function (e) { handlers.onerror && handlers.onerror(e.error || "error"); };
-    rec.onend = function () { activeRec = null; handlers.onend && handlers.onend(); };
+    rec.onerror = function (e) {
+      // "aborted" = ถูก cancel/new session หรือ Chrome ขัดจังหวะเอง — ไม่ใช่ความผิดจริง ไม่ต้องโชว์
+      if (e.error === "aborted") return;
+      handlers.onerror && handlers.onerror(e.error || "error");
+    };
+    rec.onend = function () {
+      if (activeRec === rec) activeRec = null;
+      handlers.onend && handlers.onend();
+    };
     activeRec = rec;
     try { rec.start(); } catch (e) { handlers.onerror && handlers.onerror("start-failed"); }
   }
@@ -4730,7 +4743,9 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     inp.placeholder = (dir === "th2en") ? "Type the English word..." : "Type the Thai meaning...";
     const fb = $("fillFeedback"); fb.className = "fill-feedback hidden"; fb.textContent = "";
     if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
-    $("fillPrev").classList.toggle("hidden", fillIdx === 0);
+    var canBack = false;
+    for (var bi = 0; bi < fillIdx; bi++) { if (fillRes[bi] === false) { canBack = true; break; } }
+    $("fillPrev").classList.toggle("hidden", !canBack);
     $("fillNext").classList.add("hidden");
     $("fillCheck").disabled = false; $("fillSkip").disabled = false;
     inp.focus();

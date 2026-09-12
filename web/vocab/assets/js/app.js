@@ -5384,6 +5384,7 @@ $("fillSkip").classList.remove("hidden");
     if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
     $("buildPrev").classList.toggle("hidden", buildIdx === 0);
     $("buildNext").classList.add("hidden");
+    $("buildRetry").classList.add("hidden");
     $("buildCheck").disabled = false; $("buildSkip").disabled = false;
     updateBuildHintUI();
   }
@@ -5506,7 +5507,11 @@ $("fillSkip").classList.remove("hidden");
       buildAuto = setTimeout(nextBuild, 1000);
     } else {
       $("buildNext").classList.remove("hidden");
+      $("buildRetry").classList.remove("hidden");
     }
+  }
+  function retryBuild() {
+    showBuild();
   }
   function skipBuild() {
     if ($("buildSkip").disabled) return;
@@ -6047,6 +6052,7 @@ $("fillSkip").classList.remove("hidden");
     $("buildCheck").onclick = checkBuild;
     $("buildSkip").onclick = skipBuild;
     $("buildNext").onclick = nextBuild;
+    $("buildRetry").onclick = retryBuild;
     $("buildPrev").onclick = backBuild;
     $("startCloze").onclick = startCloze;
     $("clozeNext").onclick = nextCloze;

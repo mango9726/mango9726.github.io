@@ -16,53 +16,60 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Vocab Trainer" />
-  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg" />
   <link rel="icon" type="image/png" sizes="192x192" href="assets/img/icon-192.png" />
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
-  <script defer src="assets/js/vocab-data-a1.js"></script>
-  <script defer src="assets/js/vocab-data-a2.js"></script>
-  <script defer src="assets/js/vocab-data-a1-to-a2.js"></script>
-  <script defer src="assets/js/vocab-data-b1.js"></script>
-  <script defer src="assets/js/vocab-data-b2.js"></script>
-  <script defer src="assets/js/vocab-data-c1.js"></script>
-  <script defer src="assets/js/vocab-data-c2.js"></script>
-  <script defer src="assets/js/vocab-extra-a1.js"></script>
-  <script defer src="assets/js/vocab-extra-a2.js"></script>
-  <script defer src="assets/js/vocab-extra-b1.js"></script>
-  <script defer src="assets/js/vocab-extra-b2.js"></script>
-  <script defer src="assets/js/vocab-extra-c1.js"></script>
-  <script defer src="assets/js/vocab-extra-c2.js"></script>
-  <script defer src="assets/js/vocab-extra-colloc.js"></script>
-  <script defer src="assets/js/vocab-extra-colloc-b.js"></script>
-  <script defer src="assets/js/vocab-extra-colloc-c1.js"></script>
-  <script defer src="assets/js/vocab-extra-colloc-c2.js"></script>
-  <script defer src="assets/js/vocab-th-extra.js"></script>
-  <script defer src="assets/js/vocab-examples-a1.js"></script>
-  <script defer src="assets/js/vocab-examples-a2.js"></script>
-  <script defer src="assets/js/vocab-examples-b1.js"></script>
-  <script defer src="assets/js/vocab-examples-b2.js"></script>
-  <script defer src="assets/js/vocab-examples-c1.js"></script>
-  <script defer src="assets/js/vocab-examples-c2.js"></script>
-<script defer src="assets/js/vocab-data.js"></script>
-  <script defer src="assets/js/vocab-i18n.js"></script>
-  <script defer src="assets/js/vocab-fsrs.js"></script>
-  <script defer src="assets/js/vocab-csv.js"></script>
-  <script defer src="assets/js/cefr.js"></script>
-  <script defer src="assets/js/cefr-selector.js"></script>
-  <script defer src="assets/js/app.js"></script>
-  <script defer src="assets/js/placement.js"></script>
-  <script defer src="assets/js/exam.js"></script>
-  <script defer src="assets/js/levelup-exam.js"></script>
-  <script defer src="assets/js/mini-player.js"></script>
-  <script defer src="assets/js/boot.js"></script>
+<!-- Data: weekly-day vocab plans per CEFR level -->
+  <script defer src="assets/js/data/levels/vocab-data-a1.js"></script>
+  <script defer src="assets/js/data/levels/vocab-data-a2.js"></script>
+  <script defer src="assets/js/data/levels/vocab-data-a1-to-a2.js"></script>
+  <script defer src="assets/js/data/levels/vocab-data-b1.js"></script>
+  <script defer src="assets/js/data/levels/vocab-data-b2.js"></script>
+  <script defer src="assets/js/data/levels/vocab-data-c1.js"></script>
+  <script defer src="assets/js/data/levels/vocab-data-c2.js"></script>
+  <!-- Data: extra words / collocations / idioms per level -->
+  <script defer src="assets/js/data/extras/vocab-extra-a1.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-a2.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-b1.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-b2.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-c1.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-c2.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-colloc.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-colloc-b.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-colloc-c1.js"></script>
+  <script defer src="assets/js/data/extras/vocab-extra-colloc-c2.js"></script>
+  <script defer src="assets/js/data/extras/vocab-th-extra.js"></script>
+  <!-- Data: example sentences per level -->
+  <script defer src="assets/js/data/examples/vocab-examples-a1.js"></script>
+  <script defer src="assets/js/data/examples/vocab-examples-a2.js"></script>
+  <script defer src="assets/js/data/examples/vocab-examples-b1.js"></script>
+  <script defer src="assets/js/data/examples/vocab-examples-b2.js"></script>
+  <script defer src="assets/js/data/examples/vocab-examples-c1.js"></script>
+  <script defer src="assets/js/data/examples/vocab-examples-c2.js"></script>
+  <!-- Data: main CEFR loader -->
+  <script defer src="assets/js/data/cefr-main.js"></script>
+  <!-- Core: shared strings/icons, algorithms, app engine -->
+  <script defer src="assets/js/core/i18n.js"></script>
+  <script defer src="assets/js/core/fsrs-scheduler.js"></script>
+  <script defer src="assets/js/core/csv-tools.js"></script>
+  <script defer src="assets/js/core/cefr-levels.js"></script>
+  <script defer src="assets/js/core/cefr-selector.js"></script>
+  <script defer src="assets/js/core/app.js"></script>
+  <!-- Games / exams: separate modules loaded after the engine -->
+  <script defer src="assets/js/games/placement.js"></script>
+  <script defer src="assets/js/games/exam.js"></script>
+  <script defer src="assets/js/games/levelup-exam.js"></script>
+  <!-- UI widget -->
+  <script defer src="assets/js/ui/mini-player.js"></script>
+  <script defer src="assets/js/core/boot.js"></script>
   <!-- Firebase SDK (compat) — โหลดก่อน auth.js -->
   <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script defer src="assets/js/firebase-config.js"></script>
-  <script defer src="assets/js/auth.js"></script>
-  <script defer src="assets/js/admin-panel.js"></script>
+  <!-- Auth: Firebase config, login/register, admin panel -->
+  <script defer src="assets/js/auth/firebase-config.js"></script>
+  <script defer src="assets/js/auth/auth.js"></script>
+  <script defer src="assets/js/auth/admin-panel.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -124,7 +131,6 @@
       <button class="btn btn-sm btn-auth" id="sidebarAuthBtn">
         <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span> <span>Login</span>
       </button>
-      <button class="icon-btn" id="installBtn" hidden title="Install Vocab Trainer" aria-label="Install Vocab Trainer as an app"><span class="ico" data-icon="download"></span></button>
       <button class="icon-btn" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode"><span class="ico" data-icon="moon"></span></button>
     </div>
   </aside>
@@ -423,7 +429,7 @@
         <div class="quiz-options" id="quizOptions"></div>
         <p class="quiz-feedback hidden" id="quizFeedback" aria-live="polite"></p>
         <div class="session-actions">
-          <button class="btn hidden" id="quizPrev" data-i18n="btn.back">← Back</button>
+          <button class="btn" id="quizSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary hidden" id="quizNext" data-i18n="next.question">Next Question →</button>
         </div>
       </div>
@@ -488,7 +494,7 @@
       <div class="panel" id="pronControls">
         <h2><span class="ico ico-tile" data-icon="mic"></span><span data-i18n="cfg.pron">Pronunciation Test</span></h2>
         <p class="hint">Speak the word into your microphone — the app checks accuracy and highlights the syllables you missed</p>
-        <p class="hint pron-file-warn" id="pronFileWarn"><span class="ico" data-icon="alert"></span> You're opening this as a direct file (file://) — the browser will ask for microphone permission every time. Run <b>start.bat</b> and open <b>http://localhost:8000</b> so "Allow always" sticks</p>
+        <p class="hint pron-file-warn" id="pronFileWarn"><span class="ico" data-icon="alert"></span> You're opening this as a direct file (file://) — the browser will ask for microphone permission every time. Run <b>python -m http.server 8000</b> inside the <b>web/vocab</b> folder and open <b>http://localhost:8000</b> so "Allow always" sticks</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.count">Number of questions</span>
@@ -562,7 +568,6 @@
         <input type="text" id="fillInput" class="fill-input" placeholder="Type your answer here…" autocomplete="off" inputmode="text" />
         <p class="fill-feedback hidden" id="fillFeedback"></p>
         <div class="session-actions">
-          <button class="btn hidden" id="fillPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="fillSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary" id="fillCheck" data-i18n="check.answer">Check Answer</button>
           <button class="btn btn-primary hidden" id="fillRetry" data-i18n="check.retry">Try again</button>
@@ -654,7 +659,7 @@
           <button class="btn btn-bad tf-opt-btn" id="tfFalse"><span class="opt-ico" data-icon="cross"></span>False</button>
         </div>
         <div class="session-actions">
-          <button class="btn hidden" id="tfPrev" data-i18n="btn.back">← Back</button>
+          <button class="btn" id="tfSkip" data-i18n="skip">Skip</button>
         </div>
       </div>
 
@@ -709,7 +714,6 @@
         <p class="hang-msg hidden" id="hangMsg"></p>
         <div class="hang-keyboard" id="hangKeyboard"></div>
         <div class="session-actions">
-          <button class="btn hidden" id="hangPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="hangHint">Hint</button>
           <button class="btn" id="hangSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary hidden" id="hangNext" data-i18n="next.question">Next Question →</button>
@@ -749,7 +753,6 @@
         <div class="build-tiles" id="buildBank"></div>
         <p class="build-feedback hidden" id="buildFeedback"></p>
         <div class="session-actions">
-          <button class="btn hidden" id="buildPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="buildHint">Hint</button>
           <button class="btn" id="buildSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary" id="buildCheck" data-i18n="check.answer">Check Answer</button>
@@ -788,7 +791,7 @@
         <div class="quiz-options" id="clozeOptions"></div>
         <p class="quiz-feedback hidden" id="clozeFeedback"></p>
         <div class="session-actions">
-          <button class="btn hidden" id="clozePrev" data-i18n="btn.back">← Back</button>
+          <button class="btn" id="clozeSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary hidden" id="clozeNext" data-i18n="next.question">Next Question →</button>
         </div>
       </div>
@@ -826,7 +829,6 @@
         <input type="text" id="listenInput" class="fill-input" placeholder="Type what you hear…" autocomplete="off" inputmode="text" />
         <p class="fill-feedback hidden" id="listenFeedback"></p>
         <div class="session-actions">
-          <button class="btn hidden" id="listenPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="listenSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary" id="listenCheck" data-i18n="check.answer">Check Answer</button>
         </div>
@@ -991,20 +993,6 @@
           <button class="btn" id="syncNowBtn"><span class="ico" data-icon="refresh"></span><span data-i18n="settings.syncNow">Sync Now</span></button>
         </div>
 
-        <div class="backup-box">
-          <h3><span class="ico ico-tile sm" data-icon="save"></span><span data-i18n="settings.backup">Backup / Restore (move to another device)</span></h3>
-          <p class="hint" data-i18n="settings.backupHint">Progress is stored only on this device. To move to another device or browser, 'Export' from the old one and 'Import' on the new one.</p>
-          <div class="backup-actions">
-            <button class="btn btn-primary" id="exportFile"><span class="ico" data-icon="download"></span><span data-i18n="settings.export">Download Backup File</span></button>
-            <button class="btn" id="exportCopy"><span class="ico" data-icon="copy"></span><span data-i18n="settings.copy">Copy Backup Code</span></button>
-          </div>
-          <textarea id="backupCode" class="backup-code" placeholder="Paste a backup code here to import, or click 'Copy Backup Code' to get this device's code"></textarea>
-          <div class="backup-actions">
-            <button class="btn btn-accent" id="importCode"><span class="ico" data-icon="upload"></span><span data-i18n="settings.import">Import from Code Above</span></button>
-            <label class="btn file-label"><span class="ico" data-icon="file"></span><span data-i18n="settings.chooseFile">Choose Backup File</span><input type="file" id="importFile" accept=".json,application/json" hidden /></label>
-          </div>
-          <p class="backup-status hidden" id="backupStatus"></p>
-        </div>
         <p class="hint"><span class="ico" data-icon="bulb"></span><span data-i18n="settings.tip">Add new words daily by telling Claude: <em>"Day N, [topic or random]"</em> — they'll appear here automatically</span></p>
       </div>
     </section>

@@ -13,8 +13,10 @@ A browser-based **English vocabulary trainer** (B1 level, with a Thai-language U
 *Vocab Trainer*. It helps you learn words through spaced repetition (Leitner/SRS) plus a
 suite of study modes and mini-games: Flashcards, Quiz, Pronunciation (mic), Fill-in-the-Blank,
 Card Match, True/False (timed), Hangman, Sentence Builder, Cloze, and Listen & Type. It also
-has Daily Tasks, a Browse/Search view, theme + sound + music settings, and a backup/restore
-system. Most recently, an in-game **Spotify-style Mini Music Player** overlay was added.
+has Daily Tasks, a Browse/Search view, theme + sound + music settings, account sync
+(Firebase Email/Password + Firestore, or a guest account saved in this browser), and a
+Progress Reset tool. The in-game **Spotify-style Mini Music Player** overlay and a
+categorized code structure (`core/data/games/ui/auth`) were added recently.
 
 **Tech stack**
 - **Vanilla HTML5 + CSS3 + JavaScript** (ES5/ES6). **No framework, no bundler, no transpile.**
@@ -22,8 +24,8 @@ system. Most recently, an in-game **Spotify-style Mini Music Player** overlay wa
 - **Audio:** HTML5 `<audio>` for music + the Web Audio API for UI sound effects (no files needed).
 - **Icons:** inline SVG icon set (no icon library).
 - **Fonts:** Google Fonts — *Inter* + *Noto Sans Thai*.
-- **Served as a static site** by Python's `http.server` (no Node.js in the toolchain).
-- **No package manager, no build step**; tests run with plain Node (`node --test "tests/*.test.js"`, see `web/vocab/package.json`).
+- **Served as a static site** — `web/vocab/` is published to GitHub Pages (see `.github/workflows/pages.yml`).
+- **No package manager, no backend server, no build step** (no `node_modules`).
 
 **Project structure**
 ```
@@ -32,25 +34,26 @@ codex/                         ← repository root
 ├─ README.md                   ← original project readme
 ├─ WORKFLOW.md                 ← knowledge-base day-to-day routine
 ├─ notes/                      ← markdown knowledge base
-├─ web/vocab/                  ← ★ THE WEB APP (this is what you run) ★
-│  ├─ index.html               ← entry point (loads the scripts below, in order)
-│  ├─ vocab-data.js            ← word/collocation/idiom data
-│  ├─ app.js                   ← all UI + game logic (one big IIFE)
-│  ├─ style.css                ← app styles (uses --accent/--panel/--text tokens, light+dark)
-│  ├─ mini-player.js           ← Spotify-style music overlay (manager + UI)
-│  ├─ mini-player.css          ← music overlay styles (clean white & blue, decoupled from host theme)
-│  ├─ MINI_PLAYER_GUIDE.md     ← how to integrate / hook up the player
-│  ├─ start-server.bat         ← Windows launcher (python -m http.server 8000)
-│  ├─ button sound.mp3         ← UI click sound
-│  └─ song/
-│     ├─ onpage/               ← background "on-page" music (10 tracks)
-│     └─ ingame/               ← "in-game" music (8 tracks)
-└─ .claude/                    ← Claude Code session settings
+├─ project-report/             ← school report docs
+├─ .github/workflows/pages.yml ← deploys web/vocab → GitHub Pages
+└─ web/vocab/                  ← ★ THE WEB APP (the deploy root) ★
+   ├─ index.html               ← entry point (loads the scripts below, in order)
+   ├─ README.md                ← how to run / deploy doc
+   ├─ file-guide.txt           ← plain-language map of every file
+   └─ assets/
+      ├─ css/style.css         ← all styles
+      ├─ js/
+      │  ├─ core/              ← engine + base (app, i18n, cefr, fsrs, csv, boot)
+      │  ├─ data/              ← vocab data (cefr-main, levels/, extras/, examples/)
+      │  ├─ games/             ← placement, exam, levelup-exam
+      │  ├─ ui/                ← mini music player
+      │  └─ auth/              ← firebase-config, auth, admin-panel
+      ├─ audio/                ← UI click sound
+      ├─ img/                  ← favicon + icons
+      └─ music/                ← onpage/ (10) + ingame/ (8) background tracks
 ```
 
-**Main entry point:** `web/vocab/index.html` → `vocab-data.js` → `app.js` → `mini-player.js`.
-The app is a single page; "views" (Home, Games, Settings, …) are sections toggled by JS, not
-separate routes.
+**Main entry point:** `index.html` → `assets/js/data/*` (word data) → `core/cefr-main.js` + `core/i18n.js` → `core/app.js` (all UI + game logic) → `games/*`, `ui/mini-player.js`, `auth/*`.
 
 ---
 
@@ -66,20 +69,14 @@ separate routes.
 
 **Run the dev server**
 ```bash
-# Windows (double-click also works):
-cd web/vocab
-start-server.bat
-# → serves http://localhost:8000
-
-# Any OS / manual:
 cd web/vocab
 python -m http.server 8000
 # → open http://localhost:8000 in your browser
 ```
 
-**Build** — none. It's static; what you see in `web/vocab/` is what ships.
+**Build** — none. It's static; what you see in `web/vocab/` is what ships (GitHub Pages deploys the whole folder).
 
-**Test** — `npm test` (from `web/vocab/`) runs `node --test "tests/*.test.js"` — pure Node unit tests for FSRS-5 (`tests/fsrs.test.js`), CSV parsing/import (`tests/csv.test.js`), and TH↔EN i18n key parity (`tests/i18n.test.js`). No browser tests yet.
+**Test** — currently **no automated tests** in the repo: the `tests/` folder and `web/vocab/package.json` were removed during the GitHub Pages cleanup (2026-09-12). Historically they ran `node --test "tests/*.test.js"` at 26/26 passing.
 
 **Deploy** — copy the `web/vocab/` folder to any static host (GitHub Pages, Netlify,
 Cloudflare Pages, an S3 bucket, etc.). No build step. If you move it to a sub-path,
@@ -96,8 +93,7 @@ Do this every time you (or Claude) start work on the project:
 - [ ] **1. Sync & check git.** At the repo root: `git status`, then `git pull`
       (current branch is `master`; PRs target `main`).
 - [ ] **2. Verify tooling.** `python --version` (needs 3.x). No `npm install` needed.
-- [ ] **3. Start the server.** `cd web/vocab && start-server.bat`
-      (or `python -m http.server 8000`).
+- [ ] **3. Start the dev server.** `cd web/vocab && python -m http.server 8000`.
 - [ ] **4. Open it.** Browse to `http://localhost:8000` in Chrome/Edge; allow the
       microphone once when prompted.
 - [ ] **5. Read the state.** *(Claude does this automatically.)* You: skim the
@@ -125,6 +121,11 @@ Do this every time you (or Claude) start work on the project:
 - [ ] *(none right now — all recent work completed, see Done below)*
 
 ### Done (recently completed)
+- [x] **Removed the in-game Back button from every game + Skip now reveals the answer like a wrong answer (เอา Back ออกจากทุกเกม + กด Skip ให้เฉลยเหมือนตอบผิดทันที)** — user asked: no more `← Back` button in any game session, and pressing Skip must reveal the correct answer immediately styled exactly like a wrong answer. (1) **Back removed from all 7 linear games** — deleted the `← Back` buttons (`#quizPrev/#fillPrev/#tfPrev/#hangPrev/#buildPrev/#clozePrev/#listenPrev`) from `index.html`, removed the `backQuiz/backFill/backTf/backHang/backBuild/backCloze/backListen` functions + their `init()` bindings + the per-question show/hide logic (`showQuiz` scan loop, `showFill` canBack scan, `showTf/showHang/showBuild/showCloze/showListen` `toggle("hidden", idx === 0)` calls) in `app.js`, and deleted the now-unused `btn.back` i18n key from TH & EN. `bookPrev` (stories reader) and the mini-player prev-track button are unrelated and kept. (2) **Skip reveals like a wrong answer everywhere + every game now has Skip** — rewrote `skipFill()/skipListen()/skipBuild()` and added brand-new `skipQuiz()/skipTf()/skipCloze()` (Quiz/True-False/Cloze previously had no Skip): each one renders the exact wrong-answer visual (`setFeedback("wrong", "Correct answer: …")`, green correct option + red wrong options on quiz/cloze, `renderBuildCorrect()` + red/green tiles on Build, full hangman reveal via `hangWin(word, false)` on Hangman), records `recordAnswer(item, false)` (SRS lapse + due today, first-attempt-only so it never double-counts), pushes the word into the game's missed list for the result screen, then auto-advances to the next question (~1.2–1.4s so the reveal is readable). Answering normally disables/hides each Skip so it can't fire mid-reveal; `showX()` re-arms it per question. Removed SW version bump (SW no longer exists). Verified: `node --check` clean on `app.js` + `i18n.js`, grep confirms zero residual `backQuiz|*Prev|btn.back` references in game code (remaining `Prev` hits are `bookPrev`/mini-player/`applyPreview` — unrelated). — 2026-09-12
+- [x] **Trimmed web/vocab to only what GitHub Pages needs (เหลือเฉพาะไฟล์ที่จำเป็นสำหรับ GitHub Pages)** — the Pages workflow (`.github/workflows/pages.yml`) uploads the **whole** `web/vocab` folder, so the backend, tests, screenshots and dev launcher were being published publicly too (including `server/node_modules` + `vocab-db.json` user data). User approved deleting: `web/vocab/server/` (Express backend + 626 `node_modules` files + `vocab-db.json`), `web/vocab/tests/` (3 dev test files), `web/vocab/screenshots/` (33 PNGs ~12MB), `web/vocab/start.bat`, and `web/vocab/package.json` (its only script pointed at the deleted `tests/`). After cleanup `web/vocab/` is a pure static site: `index.html`, `README.md`, `file-guide.txt`, `assets/` (css/js/audio/img/music). **Doc fixes so nothing points at deleted files**: `index.html` mic hint now says "Run `python -m http.server 8000`" (was `start.bat`); `README.md` rewritten (removed server/tests/start.bat from tree, run instructions now `python -m http.server 8000`, deploy section now only GitHub Pages + Firebase / localStorage — dropped the local-backend mode); `file-guide.txt` updated to list the removed folders; `DEVELOPMENT_WORKFLOW.md` overview/quick-start updated (no backend, no tests, run via `python -m http.server`). Verified: `node --check` clean on all remaining JS, every `index.html` script `src`/asset path resolves to an existing file, grep confirms no live references to the deleted paths (remaining hits are historical task-board entries). — 2026-09-12
+- [x] **Offline / PWA system removed + one-time dev scripts deleted + settings tree simplified (เอาระบบพักข้อมูลออฟไลน์กับติดตั้งแอปออก + ลบสคริปต์ใช้ครั้งเดียว)** — user asked to remove the offline system and delete unnecessary files. **Deleted** (via `git rm`): `web/vocab/service-worker.js` (offline cacher), `web/vocab/offline.html` (offline fallback page), `web/vocab/manifest.webmanifest` (install-as-app manifest), and the whole `web/vocab/tools/` folder (`extract-i18n.js`, `fix-cefr-imports.js`, `merge-cefr-data.js` — one-time scripts, unreferenced by app or tests; user chose to delete, **kept** `screenshots/`). **Code changes**: `index.html` (removed `<link rel="manifest">` + `#installBtn` button), `app.js` (`initPWA()` reduced to `initThemePrefs()` — kept OS-theme default, dropped service-worker registration + install-prompt listeners; `startReminderScheduler()` and the daily-reminder timer now use plain `new Notification()` instead of the service worker), `README.md` (removed PWA/offline/tools from structure tree + features), `project-report/chapter-2.md` (§2.7 rewritten: "PWA + Service Worker" claims replaced with a truthful description — front-end tech + SecureStore encrypted local storage; §2.8 Firebase/SecureStore unchanged). No SW version bump applies since the SW is gone. Verified: `node --check` clean, **26/26 tests pass**, grep confirms zero residual `serviceWorker|service-worker|offline.html|manifest.webmanifest|installBtn|initPWA|beforeinstallprompt|tools/` references. — 2026-09-12
+- [x] **Backup / Restore (move to another device) removed (ลบระบบสำรอง–กู้คืน ย้ายเครื่องออก)** — user asked to remove the Backup/Restore system from Settings; progress stays transferable via account sync (Firebase Email/Password + Firestore / backend / guest account) instead of manual file/code export. Removed from `app.js`: `collectBackup()`, `backupStatus()`, `exportFile()`, `exportCopy()`, `importFromCode()`, `importFromFile()`, `isValidBackup()`/`applyBackup()` (+ helper `isObj`), and the init wiring (`#exportFile`/`#exportCopy`/`#importCode`/`#importFile` handlers). Removed `.backup-box` block (buttons, `#backupCode` textarea, `#backupStatus`) from Settings in `index.html`. Removed i18n keys `settings.backup/backupHint/export/copy/import/chooseFile/importStatus` from both TH & EN (kept `settings.tip`). Removed CSS `.backup-box/.backup-actions/.backup-code/.file-label/.backup-status` main block + 5 media-query rules. Updated `web/vocab/README.md` (dropped the Backup/Restore feature bullet) and the app description in `DEVELOPMENT_WORKFLOW.md`. Vocabulary data entries that happen to contain the word "backup" (vocab-extra-b1/examples-b1 etc.) are real words — kept. Verified: `node --check` clean, **26/26 tests pass**, grep confirms zero residual references (remaining matches are unrelated `.profile-label`). — 2026-09-12
+- [x] **Repo reorganization — categorized folders + clear filenames (จัดหมวดหมู่โฟเดอร์ + ตั้งชื่อไฟล์ให้รู้ว่าทำอะไร)** — user asked to organize the code into folders and name files so each one's purpose is obvious. **Web app JS** (`web/vocab/assets/js/`) split into 6 categories via `git mv`: `core/` (engine + base: `app.js`, `boot.js`, `cefr-levels.js` ← `cefr.js`, `cefr-selector.js`, `i18n.js` ← `vocab-i18n.js`, `fsrs-scheduler.js` ← `vocab-fsrs.js`, `csv-tools.js` ← `vocab-csv.js`), `data/` (`cefr-main.js` ← `vocab-data.js`, `levels/` 8 แผนรายวัน, `extras/` คำเสริม + collocations/idioms + `vocab-th-extra.js`, `examples/` 6 ชุดประโยคตัวอย่าง), `games/` (`placement.js`, `exam.js`, `levelup-exam.js`), `ui/` (`mini-player.js`), `auth/` (`firebase-config.js`, `auth.js`, `admin-panel.js`). Updated every reference: `index.html` script-tag order (kept load order), `service-worker.js` SHELL precache (added the `levels/` + colloc files that were previously missing from precache — fixes a latent offline gap) + network-first rule now matches `assets/js/core/app.js`, `tests/*` require paths, `tools/fix-cefr-imports.js` + `tools/extract-i18n.js` paths. Also removed `assets/css/mini-player.css` from the SHELL precache (file was merged into `style.css` and doesn't exist — a 404 in `caches.addAll()` would fail SW install). **Root cleanup**: deleted throwaway `dom_out.html` + untracked `tmp-audit.json`/`tmp-existing-words.json`, moved `VOCAB_LEVEL_SYSTEM_DESIGN.md` → `notes/vocab-level-system-design.md` (kebab-case) and fixed its file-path references; updated `web/vocab/README.md` structure tree + removed Google Login mentions (Email/Password only). Verified: `node --check` clean on all 39 JS files, **26/26 tests pass**, every script/SHELL path resolves to an existing file. — 2026-09-12
 - [x] **Sentence Builder: "Try again" button on wrong answers (เพิ่มระบบ redo เวลาทำผิด)** — same pattern as Fill's redo. `checkBuild()` wrong branch now shows a new **`#buildRetry`** button (`data-i18n="check.retry"` TH `ทำใหม่` / EN `Try again`, added to `.session-actions` in `index.html` after `#buildNext`; reuses the existing key, no new i18n); `retryBuild()` calls `showBuild()` to re-render the same question (re-shuffles the word bank, clears the placed sentence + feedback + correct-order hint, re-enables Check/Skip/Hint; `buildHints` not restored for the retry, consistent with `backBuild()` revisits). Scoring stays safe: `recordAnswer()` still only fires on the first attempt, so redoing never double-counts XP/SRS; a correct redo flips `buildRes[idx]` to true and `dropMissedByWord` updates the missed list. `showBuild()` hides `#buildRetry` on every new/back question. SW → `vocab-trainer-v51`. Verified: `node --check` clean on `app.js`, **26/26 tests pass**. — 2026-09-12
 - [x] **Google login removed — Email/Password only (เอาระบบล็อกอินหรือสมัครผ่าน google ออก)** — user asked to remove the Google login/signup system entirely; kept username/password login + Firestore sync + leaderboard (Firebase still enabled). Removed from `auth.js`: `signInWithGoogle()`, `firebaseCheckRedirectResult()`, `syncGoogleWithBackend()`, `showGoogleCredentialToast()`, the social button section + Google handler in `createAuthModal()`, exports `signInWithGoogle`/`firebaseCheckRedirectResult`, and the redirect-handling block in `initAuthUI()` (incl. `vocab_oauth_pending` flag logic) — the Firebase `onAuthStateChanged` listener remains and now maps `provider` from `user.providerData[0].providerId` (password → "email"); legacy `provider:"google"` profile-label users show "Email". Also: `firebase-config.js` (removed `GoogleAuthProvider` + `window.googleProvider`, comment now Email/Password), `server.js` (removed `/api/auth/google` route + `googleUid` account linking), `vocab-i18n.js` (removed 7 `auth.google*` keys + `auth.orDivider` TH/EN, keeping parity), `style.css` (removed `.auth-social`/`.btn-social`/`.btn-google`/`.auth-divider` + duplicate `.google-credential-toast` blocks), `index.html` CSP (trimmed OAuth-only sources `apis.google.com`/`lh3.googleusercontent.com`/`frame-src accounts.google.com`). SW → `vocab-trainer-v50`. Verified: `node --check` clean on all touched JS, **26/26 tests pass**, grep confirms zero remaining `google|oauth_pending|googleProvider` refs. — 2026-09-12
 - [x] **Fill in the Blank: "Try again" button on wrong answers (ทำผิดมีปุ่มทำใหม่)** — user asked for a way to retry a wrong Fill-in-the-Blank answer. `checkFill()` wrong branch now shows a new **`#fillRetry`** button (`data-i18n="check.retry"` TH `ทำใหม่` / EN `Try again`, added to `.session-actions` in `index.html`) alongside `#fillNext`; `retryFill()` calls `showFill()` to re-render the same question (clears input, hides both buttons, re-enables grading) — the user can study the "Correct answer" hint then try again; `showFill()` hides `#fillRetry` on every new/back question. Scoring stays safe: `recordAnswer()` still only fires on the first attempt, so retrying never double-counts XP/SRS; a correct retry flips `fillRes[idx]` to true and `dropMissedByWord` updates the missed list (same model as the existing Back button). SW → `vocab-trainer-v50`. Verified: `node --check` clean on `app.js`+`vocab-i18n.js`, **26/26 tests pass** (incl. i18n parity). — 2026-09-12

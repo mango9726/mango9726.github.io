@@ -1,75 +1,85 @@
 # Vocab Trainer
 
-แอปฝึกคำศัพท์ภาษาอังกฤษระดับ B1 — Flashcards + SRS (Spaced Repetition) + Quiz + เกมฝึกคำศัพท์ 10 โหมด + ระบบบัญชีผู้ใช้ (Login/Register/Sync)
+แอปฝึกคำศัพท์ภาษาอังกฤษครอบคลุมระดับ **CEFR A1–C2** — Flashcards + SRS (Spaced Repetition แบบ FSRS-5) + Quiz + เกมฝึกคำศัพท์ 10+ โหมด + ระบบบัญชีผู้ใช้ (Login/Register/Sync) + เครื่องเล่นเพลง Lo-Fi ในตัว
 
-## วิธีเริ่มใช้งาน
+ทำให้เป็น **Static site 100%** — ไม่มี backend, ไม่มี build step, deploy ไป GitHub Pages ได้ทันที
 
-รันไฟล์ **`start.bat`** แล้วเลือกโหมด:
+## วิธีเริ่มใช้งาน (รันในเครื่อง)
 
-| โหมด | พอร์ต | ฟีเจอร์ |
-|------|-------|---------|
-| **1. With User Accounts** | `http://localhost:3001` | Login/Register + Sync ข้อมูลกับ server (Node.js + Express) |
-| **2. Static Only** | `http://localhost:8000` | ไม่มี backend — บันทึกความคืบหน้าในเครื่องเท่านั้น |
+เปิดโฟลเดอร์ `web/vocab` แล้วรันคำสั่ง:
 
-> 💡 **แนะนำโหมด 1** เพื่อใช้ระบบ Login/Register และ Sync ข้อมูลข้ามเครื่อง
+```bash
+python -m http.server 8000
+```
+
+เปิดเบราว์เซอร์ (Chrome/Edge แนะนำ) ไปที่ **http://localhost:8000**
+
+> 💡 *อย่าเปิด `index.html` โดยการดับเบิลคลิก (protocol `file://`) — ไมโครโฟนจะขออนุญาตใหม่ทุกครั้ง ควรใช้ `http://localhost` เสมอ*
 
 ## โครงสร้างโปรเจกต์
 
 ```
 vocab/
-├── index.html              # หน้าเว็บหลัก (SPA)
-├── start.bat               # ตัวรัน server (เลือกโหมด 1 หรือ 2)
-├── manifest.webmanifest    # PWA manifest
-├── service-worker.js       # Service worker (offline + installable)
-├── offline.html            # หน้า offline fallback
+├── index.html              # หน้าเว็บหลัก (SPA) — รวมทุกหน้าจอ
 ├── README.md               # เอกสารนี้
+├── file-guide.txt          # อธิบายหน้าที่ทุกไฟล์ แบบเข้าใจง่าย
 ├── assets/
 │   ├── css/
-│   │   └── style.css       # รวม CSS ทั้งหมด (รวม mini-player.css แล้ว)
+│   │   └── style.css       # ชุดหน้าตาของแอป (รวม CSS ทั้งหมด)
 │   ├── js/
-│   │   ├── vocab-data.js   # ข้อมูลคำศัพท์ (VOCAB_DAYS)
-│   │   ├── app.js          # ตัวหลัก: เกม, SRS, i18n, UI (รวม flags.js แล้ว)
-│   │   ├── mini-player.js  # เครื่องเล่นเพลงลอย
-│   │   ├── boot.js         # Boot mini-player
-│   │   └── auth.js         # ระบบ Login/Register/Sync
+│   │   ├── core/           # เครื่องยนต์หลัก (โหลดก่อนหมด)
+│   │   │   ├── app.js          # ตัวหลัก: เกม, SRS, UI, ระบบทั้งหมด
+│   │   │   ├── i18n.js         # ข้อความภาษาไทย/อังกฤษ + ไอคอน
+│   │   │   ├── cefr-levels.js  # นิยามระดับ CEFR A1–C2
+│   │   │   ├── cefr-selector.js# ตัวเลือกระดับ + กรองคำศัพท์
+│   │   │   ├── fsrs-scheduler.js # อัลกอริทึม FSRS-5 (spaced repetition)
+│   │   │   ├── csv-tools.js    # เครื่องมือ CSV (นำเข้า/ส่งออก)
+│   │   │   └── boot.js         # Boot mini-player
+│   │   ├── data/           # ข้อมูลคำศัพท์
+│   │   │   ├── cefr-main.js    # ข้อมูลหลัก + getThaiMeaning
+│   │   │   ├── levels/         # แผนรายวันแต่ละระดับ (A1–C2)
+│   │   │   ├── extras/         # คำเสริม / collocations / idioms
+│   │   │   └── examples/       # ตัวอย่างประโยคแต่ละระดับ
+│   │   ├── games/          # เกม/แบบทดสอบแยกโมดูล
+│   │   │   ├── placement.js    # Placement Test (วัดระดับ)
+│   │   │   ├── exam.js         # Test Center (ข้อสอบจับเวลา)
+│   │   │   └── levelup-exam.js # Level-Up Exam
+│   │   ├── ui/             # วิดเจ็ต UI
+│   │   │   └── mini-player.js  # เครื่องเล่นเพลงลอย
+│   │   └── auth/           # ระบบผู้ใช้
+│   │       ├── firebase-config.js # config Firebase (Email/Password)
+│   │       ├── auth.js          # Login/Register/Sync
+│   │       └── admin-panel.js   # Admin Control Center
 │   ├── audio/              # เสียงเอฟเฟกต์
 │   ├── img/                # ไอคอน/รูปภาพ
 │   └── music/              # เพลงพื้นหลัง (onpage/ingame)
-├── server/
-│   ├── server.js           # Backend: Express + JWT + bcrypt
-│   ├── package.json        # Dependencies
-│   └── vocab-db.json       # ฐานข้อมูลผู้ใช้ (JSON file)
-├── docs/
-│   ├── DEPLOY.md           # คู่มือ deploy
-│   └── MINI_PLAYER_GUIDE.md # คู่มือ mini-player
-└── tools/
-    └── gen_icons.py        # สคริปต์สร้างไอคอน
 ```
+
+> มี `file-guide.txt` อยู่ในโฟลเดอร์นี้ — เปิดอ่านได้เลยว่าหน้าที่ของแต่ละไฟล์คืออะไร
 
 ## ฟีเจอร์หลัก
 
-- **Flashcards** — SRS (SM-2) เกรด Again/Hard/Good/Easy
+- **Flashcards** — SRS (FSRS-5) เกรด Again/Hard/Good/Easy
 - **Quiz** — Word→Meaning / Sentence→Thai
 - **Daily Tasks** — ทบทวนแบบห่างกัน (spaced review)
-- **เกม 10 โหมด** — Pronunciation, Fill-in-the-Blank, Card Match, True/False, Hangman, Sentence Builder, Cloze, Listen & Type, Boss Rush
+- **เกม 10+ โหมด** — Pronunciation, Fill-in-the-Blank, Card Match, True/False, Hangman, Sentence Builder, Cloze, Listen & Type, Boss Rush
 - **Gamification** — XP, Level, Rank, Achievements, Daily Quests, Streak
-- **ระบบบัญชี** — สมัคร/เข้าสู่ระบบ/ออกจากระบบ + Sync ข้อมูลกับ server
-- **PWA** — ติดตั้งเป็นแอปได้, ใช้งาน offline
+- **ระบบบัญชี** — สมัคร/เข้าสู่ระบบ/ออกจากระบบ + Sync ข้อมูลผ่าน Firebase
 - **i18n** — ไทย / English
-- **Backup/Restore** — ย้ายข้อมูลข้ามเครื่อง
+- **เครื่องเล่นเพลง Lo-Fi** — Spotify-style overlay (Favorites / History / Stations)
 
 ## การ deploy
 
-### วิธีที่ 1: GitHub Pages + Firebase (แนะนำ — Google Login + sync ข้ามเครื่อง)
+### วิธีที่ 1: GitHub Pages + Firebase (แนะนำ — Email/Password + sync ข้ามเครื่อง)
 
 **ขั้นตอนติดตั้ง Firebase:**
 
 1. ไป https://console.firebase.google.com → สร้าง project ใหม่ (ฟรี)
-2. เปิด **Authentication** → Sign-in method → เปิด **Google** และ **Email/Password**
+2. เปิด **Authentication** → Sign-in method → เปิด **Email/Password**
 3. สร้าง **Firestore Database** (เลือก "Start in test mode")
 4. ไป **Project Settings** → General → Your apps → เพิ่ม Web app (คลิกไอคอน `</>`)
 5. คัดลอก Firebase config (apiKey, authDomain, projectId, ฯลฯ)
-6. เปิดไฟล์ `web/vocab/assets/js/firebase-config.js` แล้ววาง config ของคุณแทนค่า placeholder
+6. เปิดไฟล์ `web/vocab/assets/js/auth/firebase-config.js` แล้ววาง config ของคุณแทนค่า placeholder
 7. ใน **Authentication** → Settings → Authorized domains → เพิ่ม domain ของ GitHub Pages (เช่น `username.github.io`)
 
 **Deploy ขึ้น GitHub Pages:**
@@ -80,7 +90,6 @@ git subtree push --prefix web/vocab origin gh-pages
 ```
 
 หลัง deploy แล้ว:
-- ✅ **Google Login** คลิกปุ่ม → ล็อกอินด้วย Google ได้เลย
 - ✅ **Email/Password** สมัคร/ล็อกอินได้
 - ✅ **Sync ข้ามเครื่อง** ข้อมูลเก็บใน Firestore — เปิดเครื่องไหนก็เห็นข้อมูลเดียวกัน
 - ✅ **จดจำการเข้าสู่ระบบ** เลือกได้ว่าจะจำหรือไม่
@@ -94,16 +103,11 @@ git subtree push --prefix web/vocab origin gh-pages
 - รหัสผ่านถูก hash ด้วย SHA-256
 - ไม่มี sync ข้ามเครื่อง
 
-### วิธีที่ 3: Local server (มี backend เต็มรูปแบบ)
-
-รัน `start.bat` แล้วเลือก **1** (With User Accounts) — จะมี login/register/sync ผ่าน backend บนพอร์ต 3001
-
 ## หมายเหตุ
 
-- ข้อมูลความคืบหน้าเก็บใน `localStorage` (เข้ารหัส AES-GCM ผ่าน IndexedDB)
-- เมื่อล็อกอิน ข้อมูลจะ sync ไปยัง server อัตโนมัติ (debounce 2 วินาที)
+- ข้อมูลความคืบหน้าเก็บใน `localStorage` (เข้ารหัส AES-GCM ผ่าน IndexedDB — SecureStore)
+- เมื่อล็อกอิน ข้อมูลจะ sync ไปยัง Firebase อัตโนมัติ (debounce 2 วินาที) — เก็บใน Firestore
 - เพิ่มคำศัพท์ใหม่รายวันโดยบอก Claude: `"Day N, [หัวข้อหรือ random]"`
-- บน GitHub Pages + Firebase: Google Login + sync ข้ามเครื่องได้ (Firestore)
+- บน GitHub Pages + Firebase: Email/Password + sync ข้ามเครื่องได้ (Firestore)
 - บน GitHub Pages ไม่มี Firebase: ใช้ localStorage (สมัคร/ล็อกอินได้ แต่ไม่ sync ข้ามเครื่อง)
-- บน Local server (พอร์ต 3001): ระบบ login/register/sync แบบเต็มรูปแบบ (sync ข้ามเครื่องได้)
-- ระบบเลือกโหมดอัตโนมัติ: Firebase > Backend > localStorage
+- ระบบเลือกโหมดอัตโนมัติ: Firebase > localStorage

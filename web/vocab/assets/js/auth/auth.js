@@ -835,10 +835,19 @@
     "vocab_reviews_v1", "vocab_history_v1", "vocab_learned_v1", "vocab_game_v1"
   ];
 
+  // เกตกันการเขียนทับข้อมูลใน cloud: หลังโหลดหน้าใหม่ (เช่น ล็อกเอาต์ → ล็อกอินใหม่)
+  // ข้อมูลในเครื่องถูกเคลียร์แล้ว แต่ pull จาก server ยัง async ไม่เสร็จ — ถ้า app
+  // เซฟสถานะ "ว่าง" ขึ้น cloud ตอนนั้นจะทับข้อมูลจริงหายถาวร.
+  // จะเปิดเกตเมื่อดึงข้อมูลเทียบจาก server ครั้งแรกสำเร็จ (initial sync done) แล้วเท่านั้น.
+  let initialSyncDone = false;
+
   async function syncBackendDataToLocal(userId, opts) {
     if (!userId) return false;
     try {
       const res = await fetchData();
+      // fetchData() คืน null เมื่อผิดพลาด (offline/auth) — ยังไม่เปิดเกต กันข้อมูลถูกเขียนทับ
+      if (res == null) { setLastSyncTime(); return false; }
+      initialSyncDone = true;
       // Firebase returns {data, syncMeta}; other modes return a flat key->JSON map.
       const data = res && res.data ? res.data : res;
       const remoteMeta = (res && res.syncMeta) || {};
@@ -1118,14 +1127,7 @@
               ${esc(t("auth.noAccount"))} <a href="#" id="authToggle">${esc(t("auth.registerLink"))}</a>
             </p>
           </div>
-          <div class="auth-footer">
-            <a href="#" id="authTerms">${esc(t("auth.terms"))}</a>
-            <span class="auth-sep">·</span>
-            <a href="#" id="authPrivacy">${esc(t("auth.privacy"))}</a>
-            <span class="auth-sep">·</span>
-            <a href="#" id="authHelp">${esc(t("auth.help"))}</a>
           </div>
-        </div>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -1149,9 +1151,6 @@
     const pwdStrength = overlay.querySelector("#authPwdStrength");
     const pwdBars = pwdStrength ? pwdStrength.querySelectorAll(".auth-pwd-strength-bar") : [];
     const forgotLink = overlay.querySelector("#authForgot");
-    const termsLink = overlay.querySelector("#authTerms");
-    const privacyLink = overlay.querySelector("#authPrivacy");
-    const helpLink = overlay.querySelector("#authHelp");
 
     function getAuthSubText(m) {
       if (isFirebaseMode()) return m === "login" ? t("auth.loginSubFirebase") : t("auth.registerSubFirebase");
@@ -1271,17 +1270,7 @@
       };
     }
 
-    // Terms / Privacy / Help links (open in new tab or show toast)
-    function handleLink(e, msg) {
-      e.preventDefault();
-      error.textContent = msg;
-      error.classList.remove("hidden");
-      error.style.color = "var(--primary)";
-      setTimeout(function () { error.classList.add("hidden"); }, 3000);
-    }
-    if (termsLink) termsLink.onclick = function (e) { handleLink(e, t("auth.termsMsg") || "Terms of Service — coming soon"); };
-    if (privacyLink) privacyLink.onclick = function (e) { handleLink(e, t("auth.privacyMsg") || "Privacy Policy — coming soon"); };
-    if (helpLink) helpLink.onclick = function (e) { handleLink(e, t("auth.helpMsg") || "Help Center — coming soon"); };
+    // Forgot password handler — จริง (Firebase: ส่งอีเมล / backend: ขอ reset code / static: ตั้งใหม่เลย)
 
     async function handleSubmit() {
       const username = userInput.value.trim();
@@ -1875,6 +1864,7 @@
   // --- Expose API ---
   window.VocabAuth = {
     isLoggedIn: isLoggedIn,
+    syncReady: function () { return initialSyncDone; },
     getToken: getToken,
     getUser: getUser,
     getLastSyncTime: getLastSyncTime,

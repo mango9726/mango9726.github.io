@@ -266,10 +266,13 @@
 
   /* ---------- Storage load/save (delegates to SecureStore) ---------- */
   function load(key, fallback) { return SecureStore.load(key, fallback); }
-  function save(key, val) {
+function save(key, val) {
     SecureStore.save(key, val);
-    // Sync to server if logged in (debounced in auth.js — waits 2s before sending)
-    if (window.VocabAuth && window.VocabAuth.isLoggedIn() && progress !== undefined) {
+    // Sync to server if logged in (debounced in auth.js — waits 2s before sending).
+    // เปลี่ยนเป็น "เกต": จะอัปโหลดเมื่อ pull ข้อมูลจาก server ครั้งแรกหลังโหลดหน้าเสร็จแล้วเท่านั้น
+    // (VocabAuth.syncReady) — กันเซฟสถานะว่างหลังล็อกเอาต์→ล็อกอินใหม่เขียนทับข้อมูลจริงใน cloud.
+    if (window.VocabAuth && window.VocabAuth.isLoggedIn() && progress !== undefined &&
+        (!window.VocabAuth.syncReady || window.VocabAuth.syncReady())) {
       try {
         window.VocabAuth.saveData({
           vocab_progress_v1: JSON.stringify(progress),

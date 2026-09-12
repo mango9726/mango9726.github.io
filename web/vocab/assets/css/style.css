@@ -3557,10 +3557,37 @@ html[data-accent="mono"][data-theme="dark"] {
   pointer-events: none;
 }
 .auth-hero-icon {
-  width: 52px; height: 52px; border-radius: 16px;
-  background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
-  display: grid; place-items: center; margin: 0 auto 12px;
-  font-size: 24px; color: #fff;
+  position: relative; width: 60px; height: 60px; border-radius: 18px;
+  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.22);
+  display: grid; place-items: center; margin: 0 auto 14px;
+  font-size: 26px; color: #fff; isolation: isolate;
+  animation: authIconIn 0.55s cubic-bezier(.34,1.56,.64,1) 0.05s both;
+  will-change: transform;
+}
+/* วงไฟหมุนรอบไอคอน (การหมุน) — แยกชั้นจากตัวไอคอนเพื่อไม่ให้รวนการเรนเดอร์ */
+.auth-hero-icon::before {
+  content: ""; position: absolute; inset: -3px; border-radius: 21px; z-index: -1;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.9) 90deg, transparent 180deg, transparent 360deg);
+  animation: authSpinRing 3.6s linear infinite;
+  will-change: transform;
+}
+.auth-hero-icon .ico {
+  display: inherit; animation: authIconBob 3.2s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes authIconIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.35) rotate(-28deg); }
+  to   { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+}
+@keyframes authSpinRing { to { transform: rotate(360deg); } }
+@keyframes authIconBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-3px) rotate(-7deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-hero-icon { animation: none; }
+  .auth-hero-icon::before { animation: none; }
+  .auth-hero-icon .ico { animation: none; }
 }
 .auth-hero h2 { font-size: 22px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.3px; }
 .auth-hero p { font-size: 13px; opacity: 0.85; margin: 0; }

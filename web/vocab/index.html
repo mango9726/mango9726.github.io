@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.gstatic.com https://*.googleapis.com https://apis.google.com https://securetoken.googleapis.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://lh3.googleusercontent.com; media-src 'self' blob:; connect-src 'self' https://*.gstatic.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; frame-src https://accounts.google.com https://*.googleapis.com https://*.firebaseapp.com;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://*.gstatic.com https://*.googleapis.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://*.gstatic.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self';" />
   <meta name="referrer" content="no-referrer" />
   <title>Vocab Trainer · Learn English Vocabulary</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -565,6 +565,7 @@
           <button class="btn hidden" id="fillPrev" data-i18n="btn.back">← Back</button>
           <button class="btn" id="fillSkip" data-i18n="skip">Skip</button>
           <button class="btn btn-primary" id="fillCheck" data-i18n="check.answer">Check Answer</button>
+          <button class="btn btn-primary hidden" id="fillRetry" data-i18n="check.retry">Try again</button>
           <button class="btn btn-primary hidden" id="fillNext" data-i18n="next.question">Next Question →</button>
         </div>
       </div>
@@ -866,10 +867,6 @@
         <h2><span class="ico ico-tile" data-icon="target"></span><span data-i18n="stats.weak">Weak spots</span></h2>
         <p class="hint" data-i18n="stats.weakHint">Sorted weakest-first — tap Review to drill them</p>
         <div class="weak-list" id="weakList"></div>
-      </div>
-      <div class="panel" id="assessmentsPanel">
-        <h2><span class="ico ico-tile" data-icon="medal"></span><span data-i18n="exam.heading">Assessment Center</span></h2>
-        <div id="assessmentsBox"></div>
       </div>
     </section>
 

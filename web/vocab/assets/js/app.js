@@ -1198,9 +1198,6 @@
     renderLeaderboard();
     const ec = $("exportCsv");
     if (ec) ec.onclick = exportCSV;
-    if (window.VocabExam && typeof window.VocabExam.renderSummary === "function") {
-      window.VocabExam.renderSummary();
-    }
   }
 
   /** Weekly leaderboard from Firestore (competing with real users). */
@@ -3360,7 +3357,9 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     $("quizProgress").style.width = (quizIdx / total) * 100 + "%";
     const fb = $("quizFeedback"); fb.className = "quiz-feedback hidden"; fb.textContent = "";
     $("quizNext").classList.add("hidden");
-    $("quizPrev").classList.toggle("hidden", quizIdx === 0);
+    var quizCanBack = false;
+    for (var qbi = 0; qbi < quizIdx; qbi++) { if (quizRes[qbi] === false) { quizCanBack = true; break; } }
+    $("quizPrev").classList.toggle("hidden", !quizCanBack);
 
     let promptText, answerOpt, distractItems;
     if (quizMode === "meaning") {
@@ -4748,7 +4747,9 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     for (var bi = 0; bi < fillIdx; bi++) { if (fillRes[bi] === false) { canBack = true; break; } }
     $("fillPrev").classList.toggle("hidden", !canBack);
     $("fillNext").classList.add("hidden");
+    $("fillRetry").classList.add("hidden");
     $("fillCheck").disabled = false; $("fillSkip").disabled = false;
+$("fillSkip").classList.remove("hidden");
     inp.focus();
     $("fillSpeak").onclick = function () { speak(i.word); };
   }
@@ -4776,13 +4777,19 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     $("fillInput").disabled = true;
     $("fillCheck").disabled = true;
     $("fillSkip").disabled = true;
+    $("fillSkip").classList.add("hidden");
     if (fillAuto) clearTimeout(fillAuto);
     if (ok) {
       $("fillNext").classList.add("hidden");
       fillAuto = setTimeout(nextFill, 700);
     } else {
       $("fillNext").classList.remove("hidden");
+      $("fillRetry").classList.remove("hidden");
     }
+  }
+
+  function retryFill() {
+    showFill();
   }
 
   function skipFill() {
@@ -6020,6 +6027,7 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     $("fillCheck").onclick = checkFill;
     $("fillSkip").onclick = skipFill;
     $("fillPrev").onclick = backFill;
+    $("fillRetry").onclick = retryFill;
     $("fillNext").onclick = nextFill;
 
     $("startMatch").onclick = startMatch;

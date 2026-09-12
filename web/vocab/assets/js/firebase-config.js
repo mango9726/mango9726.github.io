@@ -4,7 +4,7 @@
    วิธีตั้งค่า:
    1. ไป https://console.firebase.google.com
    2. สร้าง project ใหม่ (หรือใช้ project ที่มี)
-   3. เปิด Authentication → Sign-in method → เปิด Google และ Email/Password
+   3. เปิด Authentication → Sign-in method → เปิด Email/Password
    4. สร้าง Firestore Database (เลือก "Start in test mode")
    5. ไป Project Settings → General → Your apps → เพิ่ม Web app
    6. คัดลอก config ด้านล่างมาวางแทนค่า placeholder
@@ -33,15 +33,11 @@ function isFirebaseSdkReady() {
 try {
   if (firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("YOUR_") === -1 && isFirebaseSdkReady()) {
     firebase.initializeApp(firebaseConfig);
-    // เปิดใช้งาน Google Auth provider
-    const googleProvider = new firebase.auth.GoogleAuthProvider();
-    googleProvider.setCustomParameters({ prompt: "select_account" });
 
     // Expose ให้ auth.js ใช้
     window.FIREBASE_CONFIGURED = true;
     window.firebaseAuth = firebase.auth();
     window.firebaseDb = firebase.firestore();
-    window.googleProvider = googleProvider;
 
     // ตั้งค่า Firestore persistence (ให้ทำงาน offline ได้)
     try {
@@ -53,7 +49,7 @@ try {
       console.warn("[firebase] persistence init:", e);
     }
 
-    console.log("[firebase] เริ่มต้นสำเร็จ — Google Login + Firestore sync พร้อมใช้");
+    console.log("[firebase] เริ่มต้นสำเร็จ — Email/Password Login + Firestore sync พร้อมใช้");
   } else if (!isFirebaseSdkReady()) {
     window.FIREBASE_CONFIGURED = false;
     console.warn("[firebase] SDK โหลดไม่สำเร็จ (อาจถูก CSP บล็อก) — ใช้ localStorage mode");

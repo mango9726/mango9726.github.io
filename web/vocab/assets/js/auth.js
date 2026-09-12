@@ -2,7 +2,7 @@
    Vocab Trainer — Auth System
    ระบบบัญชีผู้ใช้: สมัคร / เข้าสู่ระบบ / sync ข้อมูล
    รองรับ 3 โหมด (เรียงตามลำดับความสามารถ):
-     1. Firebase mode (แนะนำ) — Google Login + Firestore sync ข้ามเครื่อง
+     1. Firebase mode (แนะนำ) — Email/Password Login + Firestore sync ข้ามเครื่อง
      2. Backend mode (มี server) — sync ข้ามเครื่องผ่าน server.js
      3. Static mode (GitHub Pages ไม่มี Firebase) — เก็บใน localStorage
    ============================================================ */
@@ -14,148 +14,11 @@
   const API_BASE = "";
 
   /* ============================================================
-     FIREBASE MODE — Google Login + Firestore sync ข้ามเครื่อง
+     FIREBASE MODE — Email/Password Login + Firestore sync ข้ามเครื่อง
      (ต้องตั้งค่าใน firebase-config.js ก่อน)
      ============================================================ */
   function isFirebaseMode() {
     return !!(window.FIREBASE_CONFIGURED && window.firebaseAuth && window.firebaseDb);
-  }
-
-  // --- Google Sign-in (popup เป็นหลัก — เสถียรบน GitHub Pages; redirect เป็น fallback) ---
-  async function signInWithGoogle() {
-    if (!isFirebaseMode()) throw new Error("Firebase not configured");
-    const provider = window.googleProvider || new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-
-    // พยายามใช้ popup ก่อน: ได้ผลลัพธ์ทันที ไม่ต้องรอ redirect กลับมา
-    // (redirect บน static host อย่าง GitHub Pages มีปัญหาเรื่อง navigation ถูกขวางบ่อย)
-    try {
-      console.log("[firebase] เริ่ม Google Sign-in แบบ popup");
-      const result = await window.firebaseAuth.signInWithPopup(provider);
-      if (result && result.user) {
-        const user = result.user;
-        setToken("firebase:" + user.uid);
-        setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
-        try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
-        syncGoogleWithBackend(user);
-        return { redirecting: false, user: user };
-      }
-      throw new Error("Popup sign-in ไม่ได้ผล");
-    } catch (e) {
-      // popup ถูกเบราว์เซอร์บล็อก — fallback ไปใช้ redirect
-      if (e && (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user")) {
-        console.log("[firebase] popup ถูกบล็อก — fallback เป็น redirect");
-        try { sessionStorage.setItem("vocab_oauth_pending", JSON.stringify({ t: Date.now() })); } catch (e2) {}
-        try {
-          await window.firebaseAuth.signInWithRedirect(provider);
-        } catch (e3) {
-          try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e4) {}
-          throw e3;
-        }
-        return { redirecting: true };
-      }
-      throw e;
-    }
-  }
-
-  // --- ตรวจสอบผลลัพธ์จาก redirect (เรียกตอนเริ่มแอป) ---
-  async function firebaseCheckRedirectResult() {
-    if (!isFirebaseMode()) return false;
-    try {
-      const result = await window.firebaseAuth.getRedirectResult();
-      if (result && result.user) {
-        const user = result.user;
-        try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
-        setToken("firebase:" + user.uid);
-        setUser({ username: user.displayName || user.email || "Google User", userId: user.uid, provider: "google" });
-        // Sync กับ backend เพื่อสร้างบัญชี locally ที่ login ด้วย username/password ได้
-        syncGoogleWithBackend(user);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e2) {}
-      console.warn("[firebase] redirect result error:", e.message || e.code);
-      if (window.VocabApp && window.VocabApp.toast) {
-        try {
-          window.VocabApp.toast(firebaseErrorMessage(e), "err", "alert");
-        } catch (err2) {
-          console.warn("[firebase] redirect error toast failed:", err2);
-        }
-      }
-      return false;
-    }
-  }
-
-  // --- Sync บัญชี Google กับ backend เพื่อสร้าง local account ---
-  // หลังจากล็อกอินผ่าน Google สำเร็จ จะสร้างบัญชีใน server ด้วย
-  // ทำให้สามารถล็อกอินด้วย username/password ได้ด้วย
-  async function syncGoogleWithBackend(user) {
-    if (!user) return;
-    // ถ้าไม่มี backend หรืออยู่ใน static mode ให้ข้าม
-    if (isGitHubPages || !(await isBackendAvailable())) return;
-
-    try {
-      const res = await fetch(API_BASE + "/api/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          googleUid: user.uid,
-          displayName: user.displayName || user.email || "Google User",
-          email: user.email || ""
-        })
-      });
-      const data = await safeJson(res);
-      if (!res.ok) throw new Error(data.error || "Google sync failed");
-
-      // เก็บ backend token เพื่อให้ login ด้วย username/password ได้
-      // แต่ไม่เขียนทับ userId — ต้องคง Firebase UID ไว้เพราะ Firestore ใช้ userId เป็น doc ID
-      setToken(data.token);
-      setUser({
-        username: data.username,
-        userId: user.uid,
-        provider: "google",
-        googleUid: user.uid,
-        backendUserId: data.userId
-      });
-
-      // ถ้าเป็นบัญชีใหม่ แสดงรหัสผ่านอัตโนมัติให้ผู้ใช้บันทึก
-      if (data.isNew && data.autoPassword) {
-        showGoogleCredentialToast(data.username, data.autoPassword);
-      }
-
-      console.log("[auth] Google account synced with backend:", data.username);
-    } catch (e) {
-      console.warn("[auth] Google sync with backend failed:", e.message);
-      // ไม่ fail — ผู้ใช้ยังล็อกอินผ่าน Firebase ได้ตามปกติ
-    }
-  }
-
-  // --- แสดง toast แจ้งรหัสผ่านอัตโนมัติหลัง Google สมัครใหม่ ---
-  function showGoogleCredentialToast(username, autoPassword) {
-    const existing = document.getElementById("googleCredentialToast");
-    if (existing) existing.parentNode.removeChild(existing);
-
-    const toast = document.createElement("div");
-    toast.id = "googleCredentialToast";
-    toast.className = "google-credential-toast";
-    toast.innerHTML =
-      '<div class="google-credential-toast-content">' +
-        '<strong>' + esc(t("auth.googleAccountCreated")) + '</strong>' +
-        '<p>' + t("auth.googleCredentialHint") + '</p>' +
-        '<div class="google-credential-fields">' +
-          '<label>' + esc(t("auth.username")) + ': <strong>' + esc(username) + '</strong></label>' +
-          '<label>' + esc(t("auth.password")) + ': <strong>' + esc(autoPassword) + '</strong></label>' +
-        '</div>' +
-        '<p class="google-credential-warning"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l9 16H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/></svg></span> ' + esc(t("auth.googlePasswordWarning")) + '</p>' +
-        '<button class="btn btn-primary btn-sm" id="googleCredentialOk">' + esc(t("auth.ok")) + '</button>' +
-      '</div>';
-    document.body.appendChild(toast);
-
-    document.getElementById("googleCredentialOk").onclick = function () {
-      toast.classList.add("hidden");
-      setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-    };
   }
 
   // --- Modal พรอมต์ 1 ช่อง input (ใช้กับ social login / เปลี่ยนข้อมูล) ---
@@ -1201,24 +1064,9 @@
      UI: โมดอล login/register — modern glassmorphism design
      ============================================================ */
   function createAuthModal() {
-    const firebaseOn = isFirebaseMode();
     const overlay = document.createElement("div");
     overlay.className = "auth-overlay";
     overlay.id = "authModal";
-
-    // Social login buttons
-    const googleBtn = firebaseOn ? `
-      <button class="btn-social" id="authGoogle">
-        <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
-        <span>${esc(t("auth.googleButton"))}</span>
-      </button>` : "";
-
-    const socialSection = googleBtn ? `
-      <div class="auth-social">
-        ${googleBtn}
-      </div>
-      <div class="auth-divider"><span>${esc(t("auth.orDivider"))}</span></div>
-    ` : "";
 
     let mode = "login";
     overlay.innerHTML = `
@@ -1230,7 +1078,6 @@
           <button class="auth-hero-close" id="authClose" title="${esc(t("settings.close"))}" aria-label="Close"><span class="ico" data-icon="close"></span></button>
         </div>
         <div class="auth-body">
-          ${socialSection}
           <div class="auth-form">
             <div class="auth-field">
               <label class="auth-label" for="authUser">${esc(t("auth.username"))}</label>
@@ -1298,7 +1145,6 @@
     const userInput = overlay.querySelector("#authUser");
     const passInput = overlay.querySelector("#authPass");
     const rememberInput = overlay.querySelector("#authRemember");
-    const googleBtnEl = overlay.querySelector("#authGoogle");
     const pwdToggle = overlay.querySelector("#authTogglePwd");
     const pwdStrength = overlay.querySelector("#authPwdStrength");
     const pwdBars = pwdStrength ? pwdStrength.querySelectorAll(".auth-pwd-strength-bar") : [];
@@ -1379,32 +1225,6 @@
         updatePwdStrength(passInput.value);
       });
     }
-
-    // Google Sign-in handler
-    if (googleBtnEl) {
-      googleBtnEl.onclick = async function () {
-        googleBtnEl.disabled = true;
-        error.classList.add("hidden");
-        try {
-          const result = await signInWithGoogle();
-          if (result && result.redirecting) {
-            error.textContent = t("auth.redirectingToGoogle") || "กำลังไปที่หน้า Google...";
-            error.classList.remove("hidden");
-            error.style.color = "var(--primary)";
-          } else {
-            closeAuthModal();
-            location.reload();
-          }
-        } catch (e) {
-          error.textContent = e.message;
-          error.classList.remove("hidden");
-          error.style.color = "";
-          googleBtnEl.disabled = false;
-        }
-      };
-    }
-
-
 
     // Forgot password handler — จริง (Firebase: ส่งอีเมล / backend: ขอ reset code / static: ตั้งใหม่เลย)
     if (forgotLink) {
@@ -1752,7 +1572,7 @@
     else if (staticMode) syncLabel = t("auth.syncLocal");
     else syncLabel = t("auth.syncAuto");
 
-    const providerLabel = user.provider === "google" ? "Google" : (user.provider === "email" ? "Email" : "—");
+    const providerLabel = user.provider === "email" || user.provider === "password" ? "Email" : (user.provider ? user.provider : "—");
 
     const stats = window.VocabApp && window.VocabApp.getStats ? window.VocabApp.getStats() : null;
     const learnedCount = stats ? stats.wordsLearned || 0 : 0;
@@ -2072,8 +1892,6 @@
     getProfile: getProfile,
     isStaticMode: isStaticMode,
     isFirebaseMode: isFirebaseMode,
-    signInWithGoogle: signInWithGoogle,
-    firebaseCheckRedirectResult: firebaseCheckRedirectResult,
     resetGuestDataIfNewSession: resetGuestDataIfNewSession,
     forgotPassword: forgotPassword,
     resetPasswordWithCode: resetPasswordWithCode,
@@ -2175,84 +1993,20 @@
   function initAuthUI() {
     try { updateSidebarAuthBtn(); } catch (e) { console.warn("[auth] updateSidebarAuthBtn:", e); }
 
-    // ถ้า Firebase mode — ใช้ onAuthStateChanged เป็นหลัก (เชื่อถือได้กว่า getRedirectResult)
+    // ถ้า Firebase mode — ใช้ onAuthStateChanged ยืนยัน session ที่ persist ไว้
     if (isFirebaseMode()) {
-      // ลงทะเบียน listener ทันที (ไม่รอ getRedirectResult) เพื่อไม่พลาด session
-      // ที่ Firebase persist ไว้แล้วแม้ getRedirectResult จะค้างหรือตอบ null
       window.firebaseAuth.onAuthStateChanged(function (user) {
         if (user) {
           const displayName = user.displayName || user.email || "User";
+          const fbProvider = (user.providerData && user.providerData[0] && user.providerData[0].providerId) || "password";
           setToken("firebase:" + user.uid);
-          setUser({ username: displayName, userId: user.uid, provider: "google" });
+          setUser({ username: displayName, userId: user.uid, provider: fbProvider === "password" ? "email" : fbProvider });
           console.log("[firebase] onAuthStateChanged: ล็อกอินแล้ว —", displayName);
-          try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
           // Pull latest cloud data on every app open (B2) — merge per key, then notify app.
           syncBackendDataToLocal(user.uid, { notify: true });
-          // Sync กับ backend เพื่อสร้าง local account
-          syncGoogleWithBackend(user);
           updateSidebarAuthBtn();
         } else {
           console.log("[firebase] onAuthStateChanged: ยังไม่ล็อกอิน");
-        }
-      });
-
-      // ตรวจสอบ redirect result (มาจาก Google Sign-in แบบ redirect)
-      firebaseCheckRedirectResult().then(function (redirectOk) {
-        if (redirectOk) {
-          console.log("[firebase] redirect login สำเร็จ");
-          updateSidebarAuthBtn();
-          // ไม่รีโหลดทันที — sync กับ backend ก่อนเพื่อสร้าง local account
-          const user = getUser();
-          if (user && user.provider === "google") {
-            syncGoogleWithBackend({ uid: user.userId, displayName: user.username, email: "" })
-              .then(function () {
-                updateSidebarAuthBtn();
-              });
-          }
-          return;
-        }
-
-        // Redirect กลับมาแล้วแต่ไม่มี session — แจ้งผู้ใช้ (เฉพาะเมื่อมี redirect ที่ค้างอยู่จริง)
-        // กัน false-positive สองกรณี: (1) getRedirectResult() อาจตอบ null ก่อนที่
-        // onAuthStateChanged จะยืนยัน session ใหม่ (ล็อกอินเพิ่งสำเร็จไปแป๊บเดียว), และ
-        // (2) ธง vocab_oauth_pending ที่ค้างจากครั้งก่อน (ผู้ใช้กดลองหลายครั้ง)
-        let pending = false;
-        let pendingAt = -Infinity;
-        try {
-          const raw = sessionStorage.getItem("vocab_oauth_pending");
-          pending = !!raw;
-          try {
-            const parsed = JSON.parse(raw || "{}");
-            if (parsed && typeof parsed.t === "number") { pendingAt = parsed.t; }
-          } catch (e2) { pendingAt = -Infinity; }
-        } catch (e) { pending = false; }
-
-        // เช็คว่าหน้านี้เพิ่งกลับมาจากหน้า auth handler ของ Firebase (OAuth redirect) จริงไหม
-        // ใช้ document.referrer กันกรณีโหลดเว็บ/รีเฟรชธรรมดา แต่ flag ยังค้างจากครั้งก่อน
-        const cameFromAuth = /(?:firebaseapp\.com|google\.com|firebaseio\.com)/.test(document.referrer || "");
-
-        if (pending) {
-          // flag ที่ parse ไม่ได้ (เช่น "1" จากโค้ดเก่า) หรือไม่มี timestamp → ถือว่าเก่าเสมอ
-          const isFresh = pendingAt > 0 && Date.now() - pendingAt < 60000; // ภายใน 60 วิ ถือว่าเพิ่งลองจริง
-          if (!isFresh || !cameFromAuth) {
-            // ธงค้างจากการลองเก่า หรือไม่ได้กลับมาจาก Google (เปิดเว็บ/รีเฟรชธรรมดา)
-            // ล้างออกเงียบ ๆ อย่าแจ้งเตือนซ้ำตอนเปิดเว็บปกติ
-            try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
-            return;
-          }
-          // ลองอีกครั้งหลัง onAuthStateChanged น่าจะยืนยันเสร็จ (กัน race) แล้วค่อยตัดสิน
-          setTimeout(function () {
-            if (getUser()) return; // ล็อกอินสำเร็จไปแล้ว — ไม่แจ้งเตือน
-            try { sessionStorage.removeItem("vocab_oauth_pending"); } catch (e) {}
-            console.warn("[firebase] redirect กลับมาแต่ไม่มี session — hostname:", window.location.hostname, "href:", window.location.href);
-            if (window.VocabApp && window.VocabApp.toast) {
-              try {
-                window.VocabApp.toast(t("auth.googleRedirectEmpty"), "err", "alert");
-              } catch (err2) {
-                console.warn("[firebase] redirect-empty toast failed:", err2);
-              }
-            }
-          }, 1500);
         }
       });
     }

@@ -478,75 +478,9 @@
     if (S && S.screen === "question") finishExam();
   }
 
-  /* ---------- Summary used by the Statistics view ---------- */
-  function renderSummary() {
-    const box = $("assessmentsBox");
-    if (!box) return;
-    const results = store().load(K_RESULTS, []) || [];
-    const posts = store().load(K_POST, []) || [];
-    const latest = results[0];
-    const post = posts[0];
-    const progress = store().load("vocab_progress_v1", {}) || {};
-    const hasCefr = !!window.getCefrLevel && !!window.getCefrLevel();
-
-    let examHtml;
-    if (latest) {
-      const grade = gradeOf(latest.pct);
-      examHtml =
-        '<div class="assess-big">' + latest.score10 + '<span>/10</span></div>' +
-        '<div class="assess-meta">' + latest.pct + "% · ถูก " + latest.correct + "/" + latest.total + " · " + latest.level + " · " + latest.date + "</div>" +
-        '<div class="assess-grade ' + grade.cls + '">' + esc(grade.label) + "</div>";
-    } else {
-      examHtml = '<div class="assess-meta">' + esc(t("exam.noGraded", "ยังไม่มีการสอบเก็บคะแนน")) + "</div>";
-    }
-
-    let postHtml;
-    if (!hasCefr) {
-      postHtml = '<div class="assess-meta">' + esc(t("exam.needsPretest", "ทำแบบทดสอบวัดระดับก่อนเรียนก่อน")) + "</div>";
-    } else if (post) {
-      const preLv = progress.cefrLevel;
-      const postLv = post.level;
-      const lvDelta = preLv && window.CEFR_ORDER ? order().indexOf(postLv) - order().indexOf(preLv) : 0;
-      const up = lvDelta > 0, down = lvDelta < 0;
-      postHtml =
-        '<div class="assess-big sm">ก่อน ' + esc(preLv || "—") + " → หลัง <b> " + esc(postLv || "—") + "</b></div>" +
-        '<div class="assess-meta">' + esc(t("exam.postScore", "คะแนนแบบวัดระดับ")) + ": " + esc((post.totalCorrect || 0) + "/" + (post.totalQuestions || "?")) + " · " + esc(post.date) + "</div>" +
-        '<div class="assess-delta ' + (up ? "delta-up" : down ? "delta-down" : "delta-same") + '">' +
-        (up ? "▲ " + esc(t("exam.better", "ดีขึ้น")) : down ? "▼ " + esc(t("exam.worse", "ลดลง")) : "‑ " + esc(t("exam.same", "เท่าเดิม"))) +
-        (up ? " (" + lvDelta + ")" : "") + "</div>";
-    } else {
-      postHtml = '<div class="assess-meta">' + esc(t("exam.noPost", "ยังไม่ทำแบบทดสอบหลังเรียน")) + "</div>";
-    }
-
-    box.innerHTML =
-      '<div class="assess-grid">' +
-      '<div class="assess-card"><div class="assess-head">' + svgIcon("award") + "<span>" + esc(t("exam.graded", "Graded Timed Exam")) + "</span></div>" +
-      examHtml +
-      (latest ? '<button class="btn btn-sm" id="assessGoGraded">' + esc(t("exam.again", "สอบอีกครั้ง")) + "</button>"
-              : '<button class="btn btn-sm btn-accent" id="assessGoGraded">' + esc(t("exam.startBtn", "เริ่มสอบ")) + "</button>") +
-      "</div>" +
-      '<div class="assess-card"><div class="assess-head">' + svgIcon("test") + "<span>" + esc(t("exam.post", "Post-Test")) + "</span></div>" +
-      postHtml +
-      (post || !hasCefr
-        ? '<button class="btn btn-sm" id="assessGoPost" disabled>' + esc(t("exam.startPost", "เริ่มแบบทดสอบหลังเรียน")) + "</button>"
-        : '<button class="btn btn-sm btn-accent" id="assessGoPost">' + esc(t("exam.startPost", "เริ่มแบบทดสอบหลังเรียน")) + "</button>") +
-      "</div>" +
-      "</div>";
-
-    const goGraded = $("assessGoGraded");
-    if (goGraded && !goGraded.disabled) {
-      goGraded.onclick = function () { if (window.VocabApp && window.VocabApp.showView) window.VocabApp.showView("exam"); };
-    }
-    const goPost = $("assessGoPost");
-    if (goPost && !goPost.disabled) {
-      goPost.onclick = goPostTest;
-    }
-  }
-
   /* ---------- Public API ---------- */
   window.VocabExam = {
     render: render,
-    renderSummary: renderSummary,
     pause: pause,
     goPostTest: goPostTest,
     preview: function () { return { len: EXAM_LEN, results: (store().load(K_RESULTS, []) || []).length }; }

@@ -1557,7 +1557,7 @@ select:focus, input[type="text"]:focus { outline: none; border-color: var(--prim
   transition: 0.22s; display: grid; place-items: center;
 }
 .speak-btn:hover { transform: scale(1.1); background: var(--grad); color: #fff; box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 35%, transparent); }
-.session-actions { display: flex; gap: 12px; justify-content: center; }
+.session-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
 
 /* ===================== Quiz ===================== */
 .quiz-q { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }

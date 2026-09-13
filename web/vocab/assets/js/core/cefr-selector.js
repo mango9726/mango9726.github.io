@@ -84,25 +84,32 @@
   /**
    * Get the user's effective CEFR level.
    * Priority:
-   * 1. User's explicit selection (if logged in)
-   * 2. Placement test result
-   * 3. Default "A1"
+   * 1. Placement test result (if "use placement level" is ON)
+   * 2. User's explicit selection (if logged in)
+   * 3. Placement test result (when toggle is OFF but no manual pick)
+   * 4. Default "A1"
    */
   function getEffectiveCefrLevel() {
     const settings = loadSettings();
     const isLoggedIn = window.VocabAuth?.isLoggedIn?.() ?? false;
+    const hasPlacement = window.hasTakenPlacementTest?.() ?? false;
 
-    // Priority 1: Manual selection (only for logged-in users)
+    // Priority 1: Auto-use placement test result (default on)
+    if (hasPlacement && settings.usePlacementLevel) {
+      return window.getCefrLevel?.() || "A1";
+    }
+
+    // Priority 2: Manual selection (only for logged-in users)
     if (isLoggedIn && settings.selectedCefrLevel) {
       return settings.selectedCefrLevel;
     }
 
-    // Priority 2: Placement test result
-    if (window.hasTakenPlacementTest?.()) {
+    // Priority 3: Placement result when auto is off but no manual pick was made
+    if (hasPlacement) {
       return window.getCefrLevel?.() || "A1";
     }
 
-    // Priority 3: Default
+    // Priority 4: Default
     return "A1";
   }
 

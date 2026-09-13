@@ -266,13 +266,10 @@
 
   /* ---------- Storage load/save (delegates to SecureStore) ---------- */
   function load(key, fallback) { return SecureStore.load(key, fallback); }
-function save(key, val) {
+  function save(key, val) {
     SecureStore.save(key, val);
-    // Sync to server if logged in (debounced in auth.js — waits 2s before sending).
-    // เปลี่ยนเป็น "เกต": จะอัปโหลดเมื่อ pull ข้อมูลจาก server ครั้งแรกหลังโหลดหน้าเสร็จแล้วเท่านั้น
-    // (VocabAuth.syncReady) — กันเซฟสถานะว่างหลังล็อกเอาต์→ล็อกอินใหม่เขียนทับข้อมูลจริงใน cloud.
-    if (window.VocabAuth && window.VocabAuth.isLoggedIn() && progress !== undefined &&
-        (!window.VocabAuth.syncReady || window.VocabAuth.syncReady())) {
+    // Sync to server if logged in (debounced in auth.js — waits 2s before sending)
+    if (window.VocabAuth && window.VocabAuth.isLoggedIn() && progress !== undefined) {
       try {
         window.VocabAuth.saveData({
           vocab_progress_v1: JSON.stringify(progress),
@@ -451,7 +448,7 @@ function save(key, val) {
   function getP(id) {
     return progress[id] || { st: 0, d: 5, reps: 0, lapses: 0, due: todayStr(), lastReview: "", seen: 0 };
   }
-  function isDue(item) { return (getP(item.id).seen || 0) > 0 && getP(item.id).due <= todayStr(); }
+  function isDue(item) { return getP(item.id).due <= todayStr(); }
   function isMastered(item) { const p = getP(item.id); return (p.st || 0) >= 21 || (p.reps || 0) >= 4; }
 
   /** Migrate legacy progress (Leitner {box} or SM-2 {ease,interval}) to the FSRS shape once. */
@@ -3216,11 +3213,10 @@ function save(key, val) {
      ============================================================ */
   let cardQueue = [], cardIdx = 0;
 
-  /* ---------- Skip: เฉลยเหมือนตอบผิด (ทุกเกม) ----------
-   * ปุ่ม Skip จะเฉลยคำตอบทันทีในสไตล์เดียวกับ "ตอบผิด" (ฟีดแบ็ก + สี/เครื่องหมาย),
-   * บันทึกเป็นข้อผิด (recordAnswer ครั้งแรกเท่านั้น) แล้วข้ามไปข้อถัดไป.
-   * แต่ละเกมเก็บผลรายข้อไว้ในอาร์เรย์ (true=correct, false=wrong/skipped,
-   * undefined=ยังไม่ได้ตอบ) เพื่อให้คะแนน/รายชื่อคำที่พลาดตรงกับความจริงเสมอ. */
+  /* ---------- In-session Back navigation (ย้อนกลับมาทำข้อที่ข้าม/ผิด) ----------
+   * Each linear game keeps a per-question result record (true=correct, false=wrong/skipped,
+   * undefined=not yet attempted) so going Back and re-answering keeps score + missed list
+   * honest without double-recording reviews (recordAnswer is only called on the first attempt). */
   let quizRes = [], fillRes = [], tfRes = [], hangRes = [], buildRes = [], clozeRes = [], listenRes = [];
   let fillAuto = null, tfAuto = null, hangAuto = null, buildAuto = null, listenAuto = null;
   function resTrueCount(arr) { let n = 0; for (let i = 0; i < arr.length; i++) if (arr[i] === true) n++; return n; }
@@ -3361,8 +3357,9 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     $("quizProgress").style.width = (quizIdx / total) * 100 + "%";
     const fb = $("quizFeedback"); fb.className = "quiz-feedback hidden"; fb.textContent = "";
     $("quizNext").classList.add("hidden");
-    $("quizSkip").disabled = false;
-    $("quizSkip").classList.remove("hidden");
+    var quizCanBack = false;
+    for (var qbi = 0; qbi < quizIdx; qbi++) { if (quizRes[qbi] === false) { quizCanBack = true; break; } }
+    $("quizPrev").classList.toggle("hidden", !quizCanBack);
 
     let promptText, answerOpt, distractItems;
     if (quizMode === "meaning") {
@@ -3423,38 +3420,6 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     if (quizRes[quizIdx] === undefined) recordAnswer(item, correct);
     quizRes[quizIdx] = !!correct;
     quizScore = resTrueCount(quizRes);
-    $("quizSkip").disabled = true;
-    $("quizProgress").style.width = ((quizIdx + 1) / quizQueue.length) * 100 + "%";
-    $("quizNext").classList.remove("hidden");
-  }
-
-  function skipQuiz() {
-    if ($("quizSkip").disabled) return;
-    $("quizSkip").disabled = true;
-    const item = quizQueue[quizIdx];
-    const answerText = quizMode === "meaning" ? item.th : item.exTh;
-    const opts = $("quizOptions").querySelectorAll(".quiz-opt");
-    opts.forEach(function (o) { o.disabled = true; });
-    opts.forEach(function (o) {
-      if (o.textContent === answerText) o.classList.add("correct");
-      else o.classList.add("wrong");
-    });
-    const fb = $("quizFeedback");
-    setFeedback(fb, "wrong", "Correct answer: " + answerText);
-    fb.className = "quiz-feedback";
-    opts.forEach(function (o) {
-      const it = o._opt.item;
-      const d = el("span", "quiz-opt-detail");
-      d.textContent = (quizMode === "meaning")
-        ? "→ " + it.word + (it.pos ? " (" + it.pos + ")" : "")
-        : "→ " + it.exEn;
-      o.appendChild(d);
-      o.classList.add("revealed");
-    });
-    const already = quizRes[quizIdx];
-    if (already === undefined) recordAnswer(item, false);
-    quizRes[quizIdx] = false;
-    quizScore = resTrueCount(quizRes);
     $("quizProgress").style.width = ((quizIdx + 1) / quizQueue.length) * 100 + "%";
     $("quizNext").classList.remove("hidden");
   }
@@ -3463,6 +3428,10 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     quizIdx++;
     if (quizIdx >= quizQueue.length) endQuiz();
     else showQuiz();
+  }
+
+  function backQuiz() {
+    if (quizIdx > 0) { quizIdx--; showQuiz(); }
   }
 
   function endQuiz() {
@@ -4075,8 +4044,11 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
       const today = todayStr();
       if (localStorage.getItem("vocab_reminder_" + today) === "1") return;
       localStorage.setItem("vocab_reminder_" + today, "1");
+      const reg = navigator.serviceWorker && navigator.serviceWorker.controller;
       const body = t("mq.title") + " — " + t("quest.claim");
-      try { new Notification(t("settings.reminder"), { body: body }); } catch (e) {}
+      const fire = function () { new Notification(t("settings.reminder"), { body: body }); };
+      if (reg) { reg.showNotification(t("settings.reminder"), { body: body }).catch(fire); }
+      else fire();
     }, 60000);
   }
 
@@ -4114,6 +4086,134 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
         renderAccentSwatches();
       };
     });
+  }
+
+  /* ============================================================
+     BACKUP / RESTORE  (สำรอง–กู้คืน ย้ายเครื่อง)
+     ============================================================ */
+  function collectBackup() {
+    return {
+      app: "vocab-trainer",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: {
+        progress: load(K_PROGRESS, {}),
+        settings: load(K_SETTINGS, {}),
+        streak: load(K_STREAK, { streak: 0, last: "" }),
+        reviews: load(K_REVIEWS, {}),
+        storyRead: load(K_STORY_READ, {}),
+        storyWords: load(K_STORY_WORDS, {})
+      }
+    };
+  }
+
+  function backupStatus(msg, ok) {
+    const s = $("backupStatus");
+    if (!s) return;
+    s.innerHTML = svgIcon(ok ? "check" : "cross") + msg;
+    s.className = "backup-status " + (ok ? "ok" : "err");
+  }
+
+  function exportFile() {
+    const json = JSON.stringify(collectBackup(), null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const d = new Date();
+    const stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0");
+    a.href = url;
+    a.download = "vocab-backup-" + stamp + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    backupStatus("Backup file downloaded — keep it, then use 'Choose Backup File' on your new device", true);
+  }
+
+  function exportCopy() {
+    const json = JSON.stringify(collectBackup());
+    const ta = $("backupCode");
+    if (ta) ta.value = json;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(
+        function () { backupStatus("Backup code copied — paste it in the box on your new device and click 'Import'", true); },
+        function () { backupStatus("Couldn't copy automatically — select the text in the box and copy it yourself", false); }
+      );
+    } else {
+      if (ta) { ta.focus(); ta.select(); }
+      backupStatus("Select the text in the box above and press Ctrl+C to copy", false);
+    }
+  }
+
+  /* --- Backup schema validation (defense-in-depth) ---
+     Rejects malformed/crafted backups and sanitises scalar fields so a
+     hostile file can't crash rendering (e.g. settings as a number) or inject
+     unexpected values. Data is never code-executed (CSP + textContent), so
+     this is about integrity, not XSS. */
+  function isObj(v) { return v != null && typeof v === "object" && !Array.isArray(v); }
+  function isValidBackup(obj) {
+    if (!obj || obj.app !== "vocab-trainer" || !isObj(obj.data)) return false;
+    const d = obj.data;
+    if (d.progress != null && !isObj(d.progress)) return false;
+    if (d.reviews != null && !isObj(d.reviews)) return false;
+    if (d.streak != null && !isObj(d.streak)) return false;
+    if (d.settings != null) {
+      if (!isObj(d.settings)) return false;
+      const s = d.settings;
+      if (s.lang != null && s.lang !== "en" && s.lang !== "th") s.lang = "en";
+      if (s.theme !== "light" && s.theme !== "dark") s.theme = "light";
+      if (typeof s.sound !== "boolean" && s.sound != null) s.sound = true;
+      if (typeof s.music !== "boolean" && s.music != null) s.music = true;
+      if (s.reminder != null && isObj(s.reminder)) {
+        if (typeof s.reminder.on !== "boolean") s.reminder.on = false;
+        if (typeof s.reminder.time !== "string" || !/^\d{2}:\d{2}$/.test(s.reminder.time)) s.reminder.time = "20:00";
+      }
+    }
+    return true;
+  }
+  function applyBackup(obj) {
+    if (!isValidBackup(obj)) {
+      backupStatus("File/code is invalid — it must be a backup exported from this app", false);
+      return false;
+    }
+    const d = obj.data;
+    if (d.progress) { progress = d.progress; save(K_PROGRESS, progress); }
+    if (d.reviews) { reviews = d.reviews; save(K_REVIEWS, reviews); }
+    if (d.settings) { settings = d.settings; save(K_SETTINGS, settings); }
+    if (d.streak) { save(K_STREAK, d.streak); }
+    if (d.storyRead) { storyRead = d.storyRead; save(K_STORY_READ, storyRead); }
+    if (d.storyWords) { storyWords = d.storyWords; save(K_STORY_WORDS, storyWords); }
+    applyTheme();
+    renderSettings();
+    renderHome();
+    populateDayChips();
+    backupStatus("Import successful! All progress has been restored", true);
+    return true;
+  }
+
+  function importFromCode() {
+    const ta = $("backupCode");
+    const txt = ta ? ta.value.trim() : "";
+    if (!txt) { backupStatus("Please paste a backup code in the box first", false); return; }
+    let obj;
+    try { obj = JSON.parse(txt); }
+    catch (e) { backupStatus("Couldn't read the code — it may be incomplete or malformed", false); return; }
+    confirmDialog("Import this data? Your current progress on this device will be replaced", "Import backup").then(function (ok) {
+      if (ok) applyBackup(obj);
+    });
+  }
+
+  function importFromFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      let obj;
+      try { obj = JSON.parse(e.target.result); }
+      catch (err) { backupStatus("This file is not a valid backup", false); return; }
+      confirmDialog("Import data from this file? Your current progress on this device will be replaced", "Import backup").then(function (ok) {
+        if (ok) applyBackup(obj);
+      });
+    };
+    reader.onerror = function () { backupStatus("Couldn't read the file", false); };
+    reader.readAsText(file);
   }
 
   /* ============================================================
@@ -4643,6 +4743,9 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     inp.placeholder = (dir === "th2en") ? "Type the English word..." : "Type the Thai meaning...";
     const fb = $("fillFeedback"); fb.className = "fill-feedback hidden"; fb.textContent = "";
     if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
+    var canBack = false;
+    for (var bi = 0; bi < fillIdx; bi++) { if (fillRes[bi] === false) { canBack = true; break; } }
+    $("fillPrev").classList.toggle("hidden", !canBack);
     $("fillNext").classList.add("hidden");
     $("fillRetry").classList.add("hidden");
     $("fillCheck").disabled = false; $("fillSkip").disabled = false;
@@ -4691,21 +4794,11 @@ $("fillSkip").classList.remove("hidden");
 
   function skipFill() {
     if ($("fillSkip").disabled) return;
-    $("fillSkip").disabled = true;
     const i = fillQueue[fillIdx];
-    const answerText = fillAnswerText(i, chipValue($("fillDir")));
-    const fb = $("fillFeedback");
-    setFeedback(fb, "wrong", "Correct answer: " + answerText);
-    fb.className = "fill-feedback";
-    const already = fillRes[fillIdx];
-    if (already === undefined) recordAnswer(i, false);
-    if (already !== false) fillMissed.push({ word: i.word, th: i.th, answer: answerText, skipped: true });
+    if (fillRes[fillIdx] !== false) fillMissed.push({ word: i.word, th: i.th, answer: fillAnswerText(i, chipValue($("fillDir"))), skipped: true });
     fillRes[fillIdx] = false;
     fillScore = resTrueCount(fillRes);
-    $("fillInput").disabled = true;
-    $("fillCheck").disabled = true;
-    if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
-    $("fillNext").classList.remove("hidden");
+    nextFill();
   }
 
   function nextFill() {
@@ -4713,6 +4806,11 @@ $("fillSkip").classList.remove("hidden");
     fillIdx++;
     if (fillIdx >= fillQueue.length) endFill();
     else showFill();
+  }
+
+  function backFill() {
+    if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
+    if (fillIdx > 0) { fillIdx--; showFill(); }
   }
 
   function endFill() {
@@ -4943,9 +5041,7 @@ $("fillSkip").classList.remove("hidden");
     const fb = $("tfFeedback"); fb.className = "quiz-feedback hidden"; fb.textContent = "";
     if (tfAuto) { clearTimeout(tfAuto); tfAuto = null; }
     $("tfTrue").disabled = false; $("tfFalse").disabled = false;
-    $("tfSkip").disabled = false;
-    $("tfSkip").classList.remove("hidden");
-    $("tfNext").classList.add("hidden");
+    $("tfPrev").classList.toggle("hidden", tfIdx === 0);
   }
 
   function answerTf(userSaysTrue) {
@@ -4967,27 +5063,8 @@ $("fillSkip").classList.remove("hidden");
     tfRes[tfIdx] = !!ok;
     tfScore = resTrueCount(tfRes);
     $("tfTrue").disabled = true; $("tfFalse").disabled = true;
-    $("tfSkip").disabled = true;
     if (tfAuto) clearTimeout(tfAuto);
     tfAuto = setTimeout(nextTf, 900);
-  }
-
-  function skipTf() {
-    if ($("tfSkip").disabled) return;
-    $("tfSkip").disabled = true;
-    const i = tfQueue[tfIdx];
-    const correct = $("tfStatement").dataset.correct === "1";
-    const fb = $("tfFeedback");
-    setFeedback(fb, "wrong", "Correct answer: " + (correct ? "True" : "False") + " (" + i.th + ")");
-    fb.className = "quiz-feedback";
-    const already = tfRes[tfIdx];
-    if (already === undefined) recordAnswer(i, false);
-    if (already !== false) tfMissed.push({ word: i.word, th: i.th });
-    tfRes[tfIdx] = false;
-    tfScore = resTrueCount(tfRes);
-    $("tfTrue").disabled = true; $("tfFalse").disabled = true;
-    if (tfAuto) { clearTimeout(tfAuto); tfAuto = null; }
-    $("tfNext").classList.remove("hidden");
   }
 
   function nextTf() {
@@ -4995,6 +5072,11 @@ $("fillSkip").classList.remove("hidden");
     tfIdx++;
     if (tfIdx >= tfQueue.length) endTf(false);
     else showTf();
+  }
+
+  function backTf() {
+    if (tfAuto) { clearTimeout(tfAuto); tfAuto = null; }
+    if (tfIdx > 0) { tfIdx--; showTf(); }
   }
 
   function endTf(timeUp) {
@@ -5145,9 +5227,10 @@ $("fillSkip").classList.remove("hidden");
     hangRevealed = false;
     $("hangNext").classList.add("hidden");
     $("hangSkip").classList.remove("hidden");
-    $("hangSkip").textContent = t("skip");
+    $("hangSkip").textContent = "Skip";
     $("hangSkip").disabled = false;
     updateHangHintUI();
+    $("hangPrev").classList.toggle("hidden", hangIdx === 0);
   }
   function guessHang(L, btn) {
     if (btn.disabled) return;
@@ -5188,8 +5271,16 @@ $("fillSkip").classList.remove("hidden");
     }
     Array.prototype.forEach.call($("hangKeyboard").children, function (b) { b.disabled = true; });
     if (hangAuto) clearTimeout(hangAuto);
-    $("hangSkip").classList.add("hidden"); $("hangSkip").disabled = true;
-    $("hangNext").classList.remove("hidden");
+    if (won) {
+      $("hangSkip").textContent = "Next";
+      $("hangSkip").disabled = false;
+      $("hangSkip").classList.remove("hidden");
+      $("hangNext").classList.add("hidden");
+      hangAuto = setTimeout(nextHang, 1400);
+    } else {
+      $("hangSkip").classList.add("hidden"); $("hangSkip").disabled = true;
+      $("hangNext").classList.remove("hidden");
+    }
     try {
       const already = hangRes[hangIdx];
       if (already === undefined) recordAnswer(i, won);
@@ -5202,13 +5293,31 @@ $("fillSkip").classList.remove("hidden");
   function skipHang() {
     if ($("hangSkip").disabled) return;
     if (hangRevealed) { nextHang(); return; }
-    hangWin(hangQueue[hangIdx], false);
+    const i = hangQueue[hangIdx];
+    const msg = $("hangMsg"); msg.className = "hang-msg";
+    msg.textContent = "Skipped \u2014 the word was: " + i.word; msg.style.color = "var(--muted)";
+    $("hangWord").innerHTML = hangRevealHTML(i.word, []);
+    Array.prototype.forEach.call($("hangKeyboard").children, function (b) { b.disabled = true; });
+    hangRevealed = true;
+    $("hangHint").disabled = true;
+    $("hangSkip").classList.add("hidden"); $("hangSkip").disabled = true;
+    $("hangNext").classList.remove("hidden");
+    if (hangAuto) clearTimeout(hangAuto);
+    try {
+      if (hangRes[hangIdx] !== false) hangMissed.push({ word: i.word, th: i.th, skipped: true });
+      hangRes[hangIdx] = false;
+      hangScore = resTrueCount(hangRes);
+    } catch (e) {}
   }
   function nextHang() {
     if (hangAuto) { clearTimeout(hangAuto); hangAuto = null; }
     hangIdx++;
     if (hangIdx >= hangQueue.length) endHang();
     else showHang();
+  }
+  function backHang() {
+    if (hangAuto) { clearTimeout(hangAuto); hangAuto = null; }
+    if (hangIdx > 0) { hangIdx--; showHang(); }
   }
   function endHang() {
     $("hangSession").classList.add("hidden");
@@ -5273,6 +5382,7 @@ $("fillSkip").classList.remove("hidden");
     const fb = $("buildFeedback"); fb.className = "build-feedback hidden"; fb.textContent = "";
     clearBuildCorrect();
     if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
+    $("buildPrev").classList.toggle("hidden", buildIdx === 0);
     $("buildNext").classList.add("hidden");
     $("buildRetry").classList.add("hidden");
     $("buildCheck").disabled = false; $("buildSkip").disabled = false;
@@ -5405,33 +5515,21 @@ $("fillSkip").classList.remove("hidden");
   }
   function skipBuild() {
     if ($("buildSkip").disabled) return;
-    $("buildSkip").disabled = true;
     const i = buildQueue[buildIdx];
-    const correct = buildWords(i.exEn);
-    const fb = $("buildFeedback");
-    setFeedback(fb, "wrong", "Correct sentence: " + i.exEn);
-    fb.className = "build-feedback";
-    const tilesEl = $("buildSentence");
-    Array.prototype.forEach.call(tilesEl.children, function (t, k) {
-      t.classList.remove("hint"); t.classList.remove("correct"); t.classList.remove("wrong");
-      if (correct[k] !== undefined && buildSentence[k] === correct[k]) t.classList.add("correct");
-      else t.classList.add("wrong");
-    });
-    renderBuildCorrect(correct);
-    const already = buildRes[buildIdx];
-    if (already === undefined) recordAnswer(i, false);
-    if (already !== false) buildMissed.push({ word: i.word, exEn: i.exEn, skipped: true });
+    if (buildRes[buildIdx] !== false) buildMissed.push({ word: i.word, exEn: i.exEn, skipped: true });
     buildRes[buildIdx] = false;
     buildScore = resTrueCount(buildRes);
-    $("buildCheck").disabled = true; $("buildHint").disabled = true;
-    if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
-    $("buildNext").classList.remove("hidden");
+    nextBuild();
   }
   function nextBuild() {
     if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
     buildIdx++;
     if (buildIdx >= buildQueue.length) endBuild();
     else showBuild();
+  }
+  function backBuild() {
+    if (buildAuto) { clearTimeout(buildAuto); buildAuto = null; }
+    if (buildIdx > 0) { buildIdx--; showBuild(); }
   }
   function endBuild() {
     $("buildSession").classList.add("hidden");
@@ -5495,8 +5593,7 @@ $("fillSkip").classList.remove("hidden");
     });
     const fb = $("clozeFeedback"); fb.className = "quiz-feedback hidden"; fb.textContent = "";
     $("clozeNext").classList.add("hidden");
-    $("clozeSkip").disabled = false;
-    $("clozeSkip").classList.remove("hidden");
+    $("clozePrev").classList.toggle("hidden", clozeIdx === 0);
   }
   function chooseCloze(chosen, correct, btn) {
     const opts = $("clozeOptions").querySelectorAll(".quiz-opt");
@@ -5520,7 +5617,6 @@ $("fillSkip").classList.remove("hidden");
     clozeRes[clozeIdx] = !!ok;
     clozeScore = resTrueCount(clozeRes);
     $("clozeProgress").style.width = ((clozeIdx + 1) / clozeQueue.length) * 100 + "%";
-    $("clozeSkip").disabled = true;
     $("clozeNext").classList.remove("hidden");
   }
   function nextCloze() {
@@ -5528,24 +5624,8 @@ $("fillSkip").classList.remove("hidden");
     if (clozeIdx >= clozeQueue.length) endCloze();
     else showCloze();
   }
-  function skipCloze() {
-    if ($("clozeSkip").disabled) return;
-    $("clozeSkip").disabled = true;
-    const item = clozeQueue[clozeIdx];
-    const correct = item.word;
-    const opts = $("clozeOptions").querySelectorAll(".quiz-opt");
-    opts.forEach(function (o) { o.disabled = true; o.classList.add("wrong"); });
-    opts.forEach(function (o) { if (o.textContent === correct) o.classList.add("correct"); });
-    const fb = $("clozeFeedback");
-    setFeedback(fb, "wrong", "Correct word: " + correct);
-    fb.className = "quiz-feedback";
-    const already = clozeRes[clozeIdx];
-    if (already === undefined) recordAnswer(item, false);
-    if (already !== false) clozeMissed.push({ word: item.word, exEn: item.exEn });
-    clozeRes[clozeIdx] = false;
-    clozeScore = resTrueCount(clozeRes);
-    $("clozeProgress").style.width = ((clozeIdx + 1) / clozeQueue.length) * 100 + "%";
-    $("clozeNext").classList.remove("hidden");
+  function backCloze() {
+    if (clozeIdx > 0) { clozeIdx--; showCloze(); }
   }
   function endCloze() {
     $("clozeSession").classList.add("hidden");
@@ -5600,8 +5680,8 @@ $("fillSkip").classList.remove("hidden");
     inp.value = ""; inp.disabled = false; inp.placeholder = "Type what you hear...";
     const fb = $("listenFeedback"); fb.className = "fill-feedback hidden"; fb.textContent = "";
     if (listenAuto) { clearTimeout(listenAuto); listenAuto = null; }
+    $("listenPrev").classList.toggle("hidden", listenIdx === 0);
     $("listenCheck").disabled = false; $("listenSkip").disabled = false;
-    $("listenNext").classList.add("hidden");
     inp.focus();
     speak(i.word);
     $("listenSpeak").onclick = function () { speak(i.word); };
@@ -5632,26 +5712,21 @@ $("fillSkip").classList.remove("hidden");
   }
   function skipListen() {
     if ($("listenSkip").disabled) return;
-    $("listenSkip").disabled = true;
     const i = listenQueue[listenIdx];
-    const fb = $("listenFeedback");
-    setFeedback(fb, "wrong", "Correct word: " + i.word);
-    fb.className = "fill-feedback";
-    const already = listenRes[listenIdx];
-    if (already === undefined) recordAnswer(i, false);
-    if (already !== false) listenMissed.push({ word: i.word, th: i.th, skipped: true });
+    if (listenRes[listenIdx] !== false) listenMissed.push({ word: i.word, th: i.th, skipped: true });
     listenRes[listenIdx] = false;
     listenScore = resTrueCount(listenRes);
-    $("listenInput").disabled = true;
-    $("listenCheck").disabled = true;
-    if (listenAuto) { clearTimeout(listenAuto); listenAuto = null; }
-    $("listenNext").classList.remove("hidden");
+    nextListen();
   }
   function nextListen() {
     if (listenAuto) { clearTimeout(listenAuto); listenAuto = null; }
     listenIdx++;
     if (listenIdx >= listenQueue.length) endListen();
     else showListen();
+  }
+  function backListen() {
+    if (listenAuto) { clearTimeout(listenAuto); listenAuto = null; }
+    if (listenIdx > 0) { listenIdx--; showListen(); }
   }
   function endListen() {
     $("listenSession").classList.add("hidden");
@@ -5948,7 +6023,7 @@ $("fillSkip").classList.remove("hidden");
 
     $("startQuiz").onclick = startQuiz;
     $("quizNext").onclick = nextQuiz;
-    $("quizSkip").onclick = skipQuiz;
+    $("quizPrev").onclick = backQuiz;
 
     $("startPron").onclick = startPron;
     $("pronNext").onclick = nextPron;
@@ -5956,6 +6031,7 @@ $("fillSkip").classList.remove("hidden");
     $("startFill").onclick = startFill;
     $("fillCheck").onclick = checkFill;
     $("fillSkip").onclick = skipFill;
+    $("fillPrev").onclick = backFill;
     $("fillRetry").onclick = retryFill;
     $("fillNext").onclick = nextFill;
 
@@ -5964,26 +6040,27 @@ $("fillSkip").classList.remove("hidden");
     $("startTf").onclick = startTf;
     $("tfTrue").onclick = function () { answerTf(true); };
     $("tfFalse").onclick = function () { answerTf(false); };
-    $("tfSkip").onclick = skipTf;
-    $("tfNext").onclick = nextTf;
+    $("tfPrev").onclick = backTf;
 
     $("startHang").onclick = startHang;
     $("hangHint").onclick = hintHang;
     $("hangSkip").onclick = skipHang;
     $("hangNext").onclick = nextHang;
+    $("hangPrev").onclick = backHang;
     $("startBuild").onclick = startBuild;
     $("buildHint").onclick = hintBuild;
     $("buildCheck").onclick = checkBuild;
     $("buildSkip").onclick = skipBuild;
     $("buildNext").onclick = nextBuild;
     $("buildRetry").onclick = retryBuild;
+    $("buildPrev").onclick = backBuild;
     $("startCloze").onclick = startCloze;
     $("clozeNext").onclick = nextCloze;
-    $("clozeSkip").onclick = skipCloze;
+    $("clozePrev").onclick = backCloze;
     $("startListen").onclick = startListen;
     $("listenCheck").onclick = checkListen;
     $("listenSkip").onclick = skipListen;
-    $("listenNext").onclick = nextListen;
+    $("listenPrev").onclick = backListen;
 
     $("browseSearch").oninput = function () {
       if (browseSearchTimer) clearTimeout(browseSearchTimer);
@@ -6125,20 +6202,26 @@ $("fillSkip").classList.remove("hidden");
       $("pronFileWarn").style.display = "block";
     }
 
+    // Backup / restore
+    $("exportFile").onclick = exportFile;
+    $("exportCopy").onclick = exportCopy;
+    $("importCode").onclick = importFromCode;
+    $("importFile").onchange = function (e) { importFromFile(e.target.files && e.target.files[0]); e.target.value = ""; };
+
     // Word detail modal close handlers
     $("detailClose").onclick = closeDetail;
     $("detailClose2").onclick = closeDetail;
     $("detailModal").onclick = function (e) { if (e.target === $("detailModal")) closeDetail(); };
 
-    initThemePrefs();
+    initPWA();
     initA11y();
     startReminderScheduler();
   }
 
   /* ============================================================
-     OS theme — honor the user's color scheme on first load
+     PWA — service worker, install prompt, OS theme
      ============================================================ */
-  function initThemePrefs() {
+  function initPWA() {
     // Honor the OS color scheme on the very first load (no saved setting yet).
     try {
       if (localStorage.getItem(K_SETTINGS) == null) {
@@ -6148,6 +6231,44 @@ $("fillSkip").classList.remove("hidden");
         applyTheme();
       }
     } catch (e) {}
+
+    // Register the service worker for offline use + installability (skip on file://).
+    if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("service-worker.js").then(function (reg) {
+          if (!reg) return;
+          const onUpdate = function () { toast("A new version is available — reload to refresh", "ok"); };
+          if (reg.waiting) onUpdate();
+          reg.addEventListener("updatefound", function () {
+            const installing = reg.installing;
+            if (!installing) return;
+            installing.addEventListener("statechange", function () {
+              if (installing.state === "installed" && navigator.serviceWorker.controller) onUpdate();
+            });
+          });
+        }).catch(function () {});
+      });
+    }
+
+    // Capture the install prompt and reveal the Install button when eligible.
+    let deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = $("installBtn");
+      if (btn) btn.hidden = false;
+    });
+    window.addEventListener("appinstalled", function () {
+      const btn = $("installBtn");
+      if (btn) btn.hidden = true;
+      toast("Vocab Trainer installed — open it from your home screen", "ok");
+    });
+    const ib = $("installBtn");
+    if (ib) ib.onclick = function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () { deferredPrompt = null; ib.hidden = true; }).catch(function () {});
+    };
   }
 
   /* ============================================================
@@ -6549,73 +6670,43 @@ $("fillSkip").classList.remove("hidden");
   };
 
   Object.assign(COMMON_TH_DICT, {
-    "an": { th: "หนึ่ง / อัน / ตัว", pos: "determiner", phonetic: "ən" },
-    "to": { th: "ไปยัง / เพื่อที่จะ", pos: "preposition", phonetic: "tuː" },
-    "of": { th: "ของ / แห่ง", pos: "preposition", phonetic: "əv" },
-    "in": { th: "ใน", pos: "preposition", phonetic: "ɪn" },
-    "on": { th: "บน / ในวัน", pos: "preposition", phonetic: "ɑːn" },
-    "for": { th: "สำหรับ / เพื่อ", pos: "preposition", phonetic: "fɔːr" },
-    "from": { th: "จาก", pos: "preposition", phonetic: "frəm" },
-    "by": { th: "โดย / ข้างๆ", pos: "preposition", phonetic: "baɪ" },
-    "or": { th: "หรือ", pos: "conjunction", phonetic: "ɔːr" },
-    "but": { th: "แต่", pos: "conjunction", phonetic: "bʌt" },
-    "because": { th: "เพราะว่า", pos: "conjunction", phonetic: "bɪˈkɔːz" },
-    "if": { th: "ถ้า", pos: "conjunction", phonetic: "ɪf" },
-    "not": { th: "ไม่", pos: "adverb", phonetic: "nɑːt" },
-    "can": { th: "สามารถ", pos: "modal verb", phonetic: "kæn" },
-    "could": { th: "สามารถ / อาจจะ", pos: "modal verb", phonetic: "kʊd" },
-    "will": { th: "จะ", pos: "modal verb", phonetic: "wɪl" },
-    "would": { th: "จะ / คงจะ", pos: "modal verb", phonetic: "wʊd" },
-    "should": { th: "ควรจะ", pos: "modal verb", phonetic: "ʃʊd" },
-    "they": { th: "พวกเขา", pos: "pronoun", phonetic: "ðeɪ" },
-    "their": { th: "ของพวกเขา", pos: "pronoun", phonetic: "ðer" },
-    "them": { th: "พวกเขา (กรรม)", pos: "pronoun", phonetic: "ðem" },
-    "he": { th: "เขา (ผู้ชาย)", pos: "pronoun", phonetic: "hiː" },
-    "she": { th: "เธอ / เขา (ผู้หญิง)", pos: "pronoun", phonetic: "ʃiː" },
-    "it": { th: "มัน", pos: "pronoun", phonetic: "ɪt" },
-    "his": { th: "ของเขา (ผู้ชาย)", pos: "pronoun", phonetic: "hɪz" },
-    "her": { th: "ของเธอ / เธอ (กรรม)", pos: "pronoun", phonetic: "hɜːr" },
-    "you": { th: "คุณ / พวกคุณ", pos: "pronoun", phonetic: "juː" },
-    "your": { th: "ของคุณ", pos: "pronoun", phonetic: "jʊr" },
-    "people": { th: "ผู้คน", pos: "noun", phonetic: "ˈpiːpl" },
-    "children": { th: "เด็กๆ", pos: "noun", phonetic: "ˈtʃɪldrən" },
-    "men": { th: "ผู้ชายหลายคน", pos: "noun", phonetic: "men" },
-    "women": { th: "ผู้หญิงหลายคน", pos: "noun", phonetic: "ˈwɪmɪn" },
-    "feet": { th: "เท้าหลายข้าง", pos: "noun", phonetic: "fiːt" },
-    "teeth": { th: "ฟันหลายซี่", pos: "noun", phonetic: "tiːθ" },
-    "mice": { th: "หนูหลายตัว", pos: "noun", phonetic: "maɪs" },
-    "geese": { th: "ห่านหลายตัว", pos: "noun", phonetic: "ɡiːs" },
-    "went": { th: "ไป (อดีต)", pos: "verb", phonetic: "went" },
-    "saw": { th: "เห็น (อดีต)", pos: "verb", phonetic: "sɔː" },
-    "had": { th: "มี (อดีต)", pos: "verb", phonetic: "hæd" },
-    "was": { th: "เป็น / อยู่ / คือ (อดีต)", pos: "verb", phonetic: "wʌz" },
-    "were": { th: "เป็น / อยู่ / คือ (อดีต)", pos: "verb", phonetic: "wɜːr" },
-    "did": { th: "ทำ (อดีต)", pos: "verb", phonetic: "dɪd" },
-    "bought": { th: "ซื้อ (อดีต)", pos: "verb", phonetic: "bɔːt" },
-    "thought": { th: "คิด (อดีต)", pos: "verb", phonetic: "θɔːt" },
-    "took": { th: "เอา / พา (อดีต)", pos: "verb", phonetic: "tʊk" },
-    "made": { th: "ทำ / สร้าง (อดีต)", pos: "verb", phonetic: "meɪd" },
-    "knew": { th: "รู้ (อดีต)", pos: "verb", phonetic: "nuː" }
+    "an": { th: "หนึ่ง / อัน / ตัว", pos: "determiner", phonetic: "ən" }, "to": { th: "ไปยัง / เพื่อที่จะ", pos: "preposition", phonetic: "tuː" },
+    "of": { th: "ของ / แห่ง", pos: "preposition", phonetic: "əv" }, "in": { th: "ใน", pos: "preposition", phonetic: "ɪn" },
+    "on": { th: "บน / ในวัน", pos: "preposition", phonetic: "ɑːn" }, "for": { th: "สำหรับ / เพื่อ", pos: "preposition", phonetic: "fɔːr" },
+    "from": { th: "จาก", pos: "preposition", phonetic: "frəm" }, "by": { th: "โดย / ข้างๆ", pos: "preposition", phonetic: "baɪ" },
+    "or": { th: "หรือ", pos: "conjunction", phonetic: "ɔːr" }, "but": { th: "แต่", pos: "conjunction", phonetic: "bʌt" },
+    "because": { th: "เพราะว่า", pos: "conjunction", phonetic: "bɪˈkɔːz" }, "if": { th: "ถ้า", pos: "conjunction", phonetic: "ɪf" },
+    "not": { th: "ไม่", pos: "adverb", phonetic: "nɑːt" }, "can": { th: "สามารถ", pos: "modal verb", phonetic: "kæn" },
+    "could": { th: "สามารถ / อาจจะ", pos: "modal verb", phonetic: "kʊd" }, "will": { th: "จะ", pos: "modal verb", phonetic: "wɪl" },
+    "would": { th: "จะ / คงจะ", pos: "modal verb", phonetic: "wʊd" }, "should": { th: "ควรจะ", pos: "modal verb", phonetic: "ʃʊd" },
+    "they": { th: "พวกเขา", pos: "pronoun", phonetic: "ðeɪ" }, "their": { th: "ของพวกเขา", pos: "pronoun", phonetic: "ðer" },
+    "them": { th: "พวกเขา (กรรม)", pos: "pronoun", phonetic: "ðem" }, "he": { th: "เขา (ผู้ชาย)", pos: "pronoun", phonetic: "hiː" },
+    "she": { th: "เธอ / เขา (ผู้หญิง)", pos: "pronoun", phonetic: "ʃiː" }, "it": { th: "มัน", pos: "pronoun", phonetic: "ɪt" },
+    "his": { th: "ของเขา (ผู้ชาย)", pos: "pronoun", phonetic: "hɪz" }, "her": { th: "ของเธอ / เธอ (กรรม)", pos: "pronoun", phonetic: "hɜːr" },
+    "you": { th: "คุณ / พวกคุณ", pos: "pronoun", phonetic: "juː" }, "your": { th: "ของคุณ", pos: "pronoun", phonetic: "jʊr" },
+    "children": { th: "เด็กๆ", pos: "noun", phonetic: "ˈtʃɪldrən" }, "men": { th: "ผู้ชายหลายคน", pos: "noun", phonetic: "men" },
+    "women": { th: "ผู้หญิงหลายคน", pos: "noun", phonetic: "ˈwɪmɪn" }, "feet": { th: "เท้าหลายข้าง", pos: "noun", phonetic: "fiːt" },
+    "teeth": { th: "ฟันหลายซี่", pos: "noun", phonetic: "tiːθ" }, "mice": { th: "หนูหลายตัว", pos: "noun", phonetic: "maɪs" },
+    "geese": { th: "ห่านหลายตัว", pos: "noun", phonetic: "ɡiːs" }, "went": { th: "ไป (อดีต)", pos: "verb", phonetic: "went" },
+    "saw": { th: "เห็น (อดีต)", pos: "verb", phonetic: "sɔː" }, "had": { th: "มี (อดีต)", pos: "verb", phonetic: "hæd" },
+    "was": { th: "เป็น / อยู่ / คือ (อดีต)", pos: "verb", phonetic: "wʌz" }, "were": { th: "เป็น / อยู่ / คือ (อดีต)", pos: "verb", phonetic: "wɜːr" },
+    "did": { th: "ทำ (อดีต)", pos: "verb", phonetic: "dɪd" }, "bought": { th: "ซื้อ (อดีต)", pos: "verb", phonetic: "bɔːt" },
+    "thought": { th: "คิด (อดีต)", pos: "verb", phonetic: "θɔːt" }, "took": { th: "เอา / พา (อดีต)", pos: "verb", phonetic: "tʊk" },
+    "made": { th: "ทำ / สร้าง (อดีต)", pos: "verb", phonetic: "meɪd" }, "knew": { th: "รู้ (อดีต)", pos: "verb", phonetic: "nuː" }
   });
 
   const IRREGULAR_WORD_BASES = {
-    went: "go", gone: "go", saw: "see", seen: "see", had: "have", has: "have",
-    was: "be", were: "be", been: "be", did: "do", done: "do", bought: "buy",
-    thought: "think", took: "take", taken: "take", made: "make", knew: "know",
-    known: "know", came: "come", came: "come", gave: "give", given: "give",
-    found: "find", told: "tell", said: "say", went: "go", children: "child",
-    men: "man", women: "woman", feet: "foot", teeth: "tooth", mice: "mouse",
-    geese: "goose", people: "person"
+    went: "go", gone: "go", saw: "see", seen: "see", had: "have", has: "have", was: "be", were: "be", been: "be",
+    did: "do", done: "do", bought: "buy", thought: "think", took: "take", taken: "take", made: "make", knew: "know",
+    known: "know", came: "come", gave: "give", given: "give", found: "find", told: "tell", said: "say", children: "child",
+    men: "man", women: "woman", feet: "foot", teeth: "tooth", mice: "mouse", geese: "goose", people: "person"
   };
 
   function storyWordForms(word) {
     const forms = [word];
-    const add = function (form) {
-      if (form && form !== word && forms.indexOf(form) === -1) forms.push(form);
-    };
+    const add = function (form) { if (form && forms.indexOf(form) === -1) forms.push(form); };
     add(IRREGULAR_WORD_BASES[word]);
     if (word.endsWith("ies")) add(word.slice(0, -3) + "y");
-    if (word.endsWith("ves")) add(word.slice(0, -3) + "f");
     if (word.endsWith("es")) add(word.slice(0, -2));
     if (word.endsWith("s")) add(word.slice(0, -1));
     if (word.endsWith("ied")) add(word.slice(0, -3) + "y");
@@ -8370,7 +8461,14 @@ bookPageIdx = 0;
         }
       });
     } else if (Notification.permission === "granted") {
-      // Daily reminder notifications are delivered by startReminderScheduler()
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(function (reg) {
+          reg.showNotification("Vocab Trainer Reminder", {
+            body: "Your daily vocabulary review is ready! Keep your streak alive.",
+            icon: "assets/img/icon-192.png"
+          });
+        });
+      }
     }
   }
 

@@ -343,6 +343,7 @@
     <section class="view" id="view-cards">
       <div class="panel" id="cardControls">
         <h2 data-i18n="cfg.review">Review Settings</h2>
+        <p class="hint" data-i18n="gameDesc.cards">ทบทวนคำศัพท์ด้วยการ์ด เปิดดูคำแปล แล้วให้คะแนนว่าจำได้แค่ไหน</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.type">Type</span>
@@ -400,6 +401,7 @@
     <section class="view" id="view-quiz">
       <div class="panel" id="quizControls">
         <h2 data-i18n="cfg.quiz">Quiz Settings</h2>
+        <p class="hint" data-i18n="gameDesc.quiz">ตอบคำถามแบบเลือกตอบเพื่อทดสอบความเข้าใจและความจำของคุณ</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.format">Question format</span>
@@ -470,7 +472,7 @@
             <div class="chip-group scroll" id="browseDay"></div>
           </div>
           <div class="field">
-            <span class="field-label" data-i18n="label.meanings">Meanings</span>
+            <span class="field-label" data-i18n="label.meanings">Show meanings</span>
             <button class="btn" id="browseToggleMeanings"><span class="ico" data-icon="eye"></span> <span id="browseToggleMeaningsLabel" data-i18n="browse.hideAll">Hide all meanings</span></button>
           </div>
           <div class="field">
@@ -493,7 +495,7 @@
     <section class="view" id="view-pron">
       <div class="panel" id="pronControls">
         <h2><span class="ico ico-tile" data-icon="mic"></span><span data-i18n="cfg.pron">Pronunciation Test</span></h2>
-        <p class="hint">Speak the word into your microphone — the app checks accuracy and highlights the syllables you missed</p>
+        <p class="hint" data-i18n="gameDesc.pron">พูดคำศัพท์ตามโจทย์ผ่านไมโครโฟน ระบบจะตรวจความแม่นยำและจุดที่ออกเสียงพลาด</p>
         <p class="hint pron-file-warn" id="pronFileWarn"><span class="ico" data-icon="alert"></span> You're opening this as a direct file (file://) — the browser will ask for microphone permission every time. Run <b>python -m http.server 8000</b> inside the <b>web/vocab</b> folder and open <b>http://localhost:8000</b> so "Allow always" sticks</p>
         <div class="controls">
           <div class="field">
@@ -537,7 +539,7 @@
     <section class="view" id="view-fill">
       <div class="panel" id="fillControls">
         <h2><span class="ico ico-tile" data-icon="pencil"></span><span data-i18n="cfg.fill">Fill-in-the-Blank</span></h2>
-        <p class="hint">Read the clue, then type your answer in the box — it's checked automatically</p>
+        <p class="hint" data-i18n="gameDesc.fill">อ่านคำใบ้ แล้วพิมพ์คำตอบลงในช่อง ระบบจะตรวจคำตอบให้อัตโนมัติ</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.direction">Direction</span>
@@ -582,7 +584,7 @@
     <section class="view" id="view-match">
       <div class="panel" id="matchControls">
         <h2><span class="ico ico-tile" data-icon="cards"></span><span data-i18n="cfg.match">Card Match</span></h2>
-        <p class="hint">All cards are face-up — just tap two cards to find each matching pair (word ↔ meaning)</p>
+        <p class="hint" data-i18n="gameDesc.match">จับคู่คำศัพท์กับความหมาย แตะการ์ดสองใบที่เป็นคู่เดียวกันให้ครบ</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.type">Type</span>
@@ -620,7 +622,7 @@
     <section class="view" id="view-tf">
       <div class="panel" id="tfControls">
         <h2><span class="ico ico-tile" data-icon="clock"></span><span data-i18n="cfg.tf">True / False Quiz</span></h2>
-        <p class="hint">Read the word and its Thai sentence, then decide if it's true or false — against the clock!</p>
+        <p class="hint" data-i18n="gameDesc.tf">อ่านคำศัพท์และประโยคภาษาไทย แล้วตัดสินว่าถูกหรือผิดภายในเวลาที่กำหนด</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.type">Type</span>
@@ -660,6 +662,7 @@
         </div>
         <div class="session-actions">
           <button class="btn" id="tfSkip" data-i18n="skip">Skip</button>
+          <button class="btn btn-primary hidden" id="tfNext" data-i18n="next.question">Next Question →</button>
         </div>
       </div>
 
@@ -670,7 +673,7 @@
     <section class="view" id="view-hang">
       <div class="panel" id="hangControls">
 <h2><span class="ico ico-tile" data-icon="target"></span><span data-i18n="cfg.hang">Hangman</span></h2>
-        <p class="hint">Guess the English word from the Thai clue, one letter at a time — you get 6 wrong guesses</p>
+  <p class="hint" data-i18n="gameDesc.hang">เดาคำศัพท์ภาษาอังกฤษจากคำใบ้ภาษาไทยทีละตัวอักษร ผิดได้ไม่เกิน 6 ครั้ง</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.type">Type</span>
@@ -727,7 +730,7 @@
     <section class="view" id="view-build">
       <div class="panel" id="buildControls">
         <h2><span class="ico ico-tile" data-icon="puzzle"></span><span data-i18n="cfg.build">Sentence Builder</span></h2>
-        <p class="hint" data-i18n="build.hint">Tap a word below to place it in the sentence · tap a word in the sentence to take it back down</p>
+        <p class="hint" data-i18n="gameDesc.build">เรียงคำที่ให้มาเป็นประโยคที่ถูกต้อง แตะคำเพื่อวางหรือเอาออกจากประโยค</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.type">Type</span>
@@ -768,7 +771,7 @@
     <section class="view" id="view-cloze">
       <div class="panel" id="clozeControls">
         <h2><span class="ico ico-tile" data-icon="pencil"></span><span data-i18n="cfg.cloze">Cloze (Fill in the Blank)</span></h2>
-        <p class="hint">Fill the blank to complete the sentence</p>
+        <p class="hint" data-i18n="gameDesc.cloze">เลือกคำตอบที่ถูกต้องเพื่อเติมช่องว่างและทำให้ประโยคสมบูรณ์</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.type">Type</span>
@@ -803,7 +806,7 @@
     <section class="view" id="view-listen">
       <div class="panel" id="listenControls">
         <h2><span class="ico ico-tile" data-icon="speaker"></span><span data-i18n="cfg.listen">Listen &amp; Type</span></h2>
-        <p class="hint">Listen to the word and type what you hear — no microphone needed</p>
+        <p class="hint" data-i18n="gameDesc.listen">ฟังเสียงคำศัพท์แล้วพิมพ์คำที่ได้ยิน ไม่ต้องใช้ไมโครโฟน</p>
         <div class="controls">
           <div class="field">
             <span class="field-label" data-i18n="label.type">Type</span>
@@ -830,6 +833,7 @@
         <p class="fill-feedback hidden" id="listenFeedback"></p>
         <div class="session-actions">
           <button class="btn" id="listenSkip" data-i18n="skip">Skip</button>
+          <button class="btn btn-primary hidden" id="listenNext" data-i18n="next.question">Next Question →</button>
           <button class="btn btn-primary" id="listenCheck" data-i18n="check.answer">Check Answer</button>
         </div>
       </div>

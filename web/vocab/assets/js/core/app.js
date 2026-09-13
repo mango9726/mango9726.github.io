@@ -1603,13 +1603,6 @@ function save(key, val) {
   function promoteLevel(next) {
     if (!next || !window.CEFR_ORDER || window.CEFR_ORDER.indexOf(next) < 0) return;
     try { if (window.setCefrLevel) window.setCefrLevel(next); } catch (e) {}
-    try {
-      const loggedIn = window.VocabAuth && typeof window.VocabAuth.isLoggedIn === "function" && window.VocabAuth.isLoggedIn();
-      if (loggedIn && settings && typeof settings === "object") {
-        settings.selectedCefrLevel = next;
-        save(K_SETTINGS, settings);
-      }
-    } catch (e) {}
     if (window.VocabApp && typeof window.VocabApp.onCefrLevelChange === "function") {
       window.VocabApp.onCefrLevelChange(next);
     }
@@ -2321,17 +2314,12 @@ function save(key, val) {
    * active nav state, and lazily (re)renders the destination view.
    */
   function showView(name) {
-    // ตรวจสอบว่าผู้ใช้ทำ Placement Test หรือเลือกระดับหรือยัง ก่อนเข้าหน้าเรียน/ดูคำศัพท์
+    // ตรวจสอบว่าผู้ใช้ทำ Placement Test หรือยัง ก่อนเข้าหน้าเรียน/ดูคำศัพท์
     var restrictedViews = ["browse", "cards", "quiz", "pron", "fill", "match", "tf", "hang", "build", "cloze", "listen", "exam"];
     if (restrictedViews.indexOf(name) !== -1 && name !== "home") {
       const hasTest = window.hasTakenPlacementTest && window.hasTakenPlacementTest();
-      let hasSelected = false;
-      try {
-        const s = window.SecureStore ? window.SecureStore.load("vocab_settings_v1", {}) : JSON.parse(localStorage.getItem("vocab_settings_v1") || "{}");
-        hasSelected = !!(s && s.selectedCefrLevel);
-      } catch (e) {}
-      if (!hasTest && !hasSelected) {
-        toast("กรุณาทำแบบทดสอบวัดระดับหรือเลือกระดับภาษาก่อนเริ่มเรียน", "err");
+      if (!hasTest) {
+        toast("กรุณาทำแบบทดสอบวัดระดับก่อนเริ่มเรียน", "err");
         showView("home");
         const pTest = $("placementTest");
         if (pTest) pTest.scrollIntoView({ behavior: "smooth" });

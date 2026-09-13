@@ -22,23 +22,7 @@
   const K_SETTINGS = "vocab_settings_v1";
   const K_PROGRESS = "vocab_progress_v1";
 
-  /* ---------- Settings Defaults ---------- */
-  const DEFAULT_SETTINGS = {
-    selectedCefrLevel: null,      // User's manual choice: "A1".."C2" or null
-    usePlacementLevel: true       // Whether to auto-use placement result
-  };
-
   /* ---------- Helpers ---------- */
-  function loadSettings() {
-    try {
-      const s = window.SecureStore?.load(K_SETTINGS, {}) || {};
-      return { ...DEFAULT_SETTINGS, ...s };
-    } catch (e) { return { ...DEFAULT_SETTINGS }; }
-  }
-
-  function saveSettings(s) {
-    try { window.SecureStore?.save(K_SETTINGS, s); } catch (e) {}
-  }
 
   function loadProgress() {
     try {
@@ -83,33 +67,14 @@
 
   /**
    * Get the user's effective CEFR level.
-   * Priority:
-   * 1. Placement test result (if "use placement level" is ON)
-   * 2. User's explicit selection (if logged in)
-   * 3. Placement test result (when toggle is OFF but no manual pick)
-   * 4. Default "A1"
+   * The level comes ONLY from the placement test result (or the "A1" fallback).
+   * Manual selection has been removed.
    */
   function getEffectiveCefrLevel() {
-    const settings = loadSettings();
-    const isLoggedIn = window.VocabAuth?.isLoggedIn?.() ?? false;
     const hasPlacement = window.hasTakenPlacementTest?.() ?? false;
-
-    // Priority 1: Auto-use placement test result (default on)
-    if (hasPlacement && settings.usePlacementLevel) {
-      return window.getCefrLevel?.() || "A1";
-    }
-
-    // Priority 2: Manual selection (only for logged-in users)
-    if (isLoggedIn && settings.selectedCefrLevel) {
-      return settings.selectedCefrLevel;
-    }
-
-    // Priority 3: Placement result when auto is off but no manual pick was made
     if (hasPlacement) {
       return window.getCefrLevel?.() || "A1";
     }
-
-    // Priority 4: Default
     return "A1";
   }
 
@@ -177,170 +142,51 @@
     };
   }
 
-  /* ---------- Settings Actions ---------- */
-
-  /**
-   * Set user's manual CEFR level selection.
-   * Only works for logged-in users.
-   */
-  function setSelectedCefrLevel(level) {
-    if (!window.VocabAuth?.isLoggedIn?.()) {
-      console.warn("[cefr-selector] Cannot set level: user not logged in");
-      return false;
-    }
-    if (!window.CEFR_ORDER?.includes(level)) {
-      console.warn("[cefr-selector] Invalid level:", level);
-      return false;
-    }
-
-    const settings = loadSettings();
-    settings.selectedCefrLevel = level;
-    saveSettings(settings);
-
-    // Notify app to refresh
-    if (window.VocabApp?.onCefrLevelChange) {
-      window.VocabApp.onCefrLevelChange(level);
-    }
-    return true;
-  }
-
-  /**
-   * Toggle "use placement level" setting.
-   */
-  function setUsePlacementLevel(use) {
-    const settings = loadSettings();
-    settings.usePlacementLevel = !!use;
-    saveSettings(settings);
-
-    if (window.VocabApp?.onCefrLevelChange) {
-      window.VocabApp.onCefrLevelChange(getEffectiveCefrLevel());
-    }
-  }
-
-  /**
-   * Clear manual selection (revert to placement test result).
-   */
-  function clearSelectedCefrLevel() {
-    const settings = loadSettings();
-    settings.selectedCefrLevel = null;
-    saveSettings(settings);
-
-    if (window.VocabApp?.onCefrLevelChange) {
-      window.VocabApp.onCefrLevelChange(getEffectiveCefrLevel());
-    }
-  }
-
   /* ---------- UI Rendering ---------- */
 
   /**
-   * Render the CEFR level selector chip group (for Settings view).
+   * Render the CEFR level display (for Settings view).
+   * The level comes from the placement test only — no manual selection.
    * @param {HTMLElement} container - Element to render into
    */
   function renderLevelSelector(container) {
     if (!container) return;
 
-    const settings = loadSettings();
     const currentLevel = getEffectiveCefrLevel();
+    const hasPlacement = window.hasTakenPlacementTest?.() ?? false;
     const isLoggedIn = window.VocabAuth?.isLoggedIn?.() ?? false;
-
-    let html = '<div class="cefr-selector-chip-group" role="radiogroup" aria-label="CEFR Level">';
-
-    window.CEFR_ORDER.forEach(level => {
-      const info = getLevelInfo(level);
-      const isActive = level === currentLevel;
-      const isSelected = settings.selectedCefrLevel === level;
-
-      html += `
-        <button class="cefr-chip ${isActive ? "active" : ""} ${isSelected ? "selected" : ""}"
-                data-level="${level}"
-                role="radio"
-                aria-checked="${isActive}"
-                ${!isLoggedIn ? "disabled" : ""}
-                title="${info.label} — ${wordLabel(info.wordCount)}">
-          <span class="cefr-chip-level" style="color:${info.color}">${level}</span>
-          <span class="cefr-chip-count">${info.wordCount}</span>
-          ${isSelected && isLoggedIn ? '<span class="cefr-chip-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg></span>' : ""}
-        </button>
-      `;
-    });
-
-    html += '</div>';
-
-    // Add "Use placement level" toggle for logged-in users
-    if (isLoggedIn) {
-      html += `
-        <div class="cefr-placement-toggle">
-          <label class="toggle-label">
-            <input type="checkbox" id="cefrUsePlacement" ${settings.usePlacementLevel ? "checked" : ""} />
-            <span class="toggle-slider"></span>
-            <span data-i18n="cefr.usePlacement">ใช้ระดับจากแบบทดสอบอัตโนมัติ</span>
-          </label>
-        </div>
-      `;
-    }
-
-    // Show current effective level
     const currentInfo = getLevelInfo(currentLevel);
-    html += `
+
+    const takeBtn = (hasPlacement || !isLoggedIn)
+      ? ""
+      : '<button class="btn btn-sm btn-secondary" id="cefrTakePlacementSettings">' +
+          (currentLang() === "th" ? "เริ่มแบบทดสอบวัดระดับ" : "Take the placement test") +
+        "</button>";
+
+    const html = `
       <div class="cefr-current-display" style="--lv-color:${currentInfo.color}">
         <span class="cefr-current-label" data-i18n="cefr.currentLevel">ระดับปัจจุบัน:</span>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
           <span class="cefr-current-badge" style="color:${currentInfo.color}">
             ${currentInfo.level} — ${currentInfo.label}
           </span>
-          ${isLoggedIn && settings.selectedCefrLevel
-            ? `<button class="btn btn-sm btn-secondary" id="cefrClearSelection" data-i18n="cefr.clearSelection">ใช้ระดับจากแบบทดสอบแทน</button>`
-            : ""}
+          ${takeBtn}
         </div>
       </div>
+      <p class="hint" data-i18n="cefr.fromPlacementOnly">ระดับมาจากแบบทดสอบวัดระดับเท่านั้น</p>
     `;
 
     container.innerHTML = html;
-    // Fill any data-i18n nodes injected above (needed after re-render)
     if (window.VocabApp?.applyI18n) window.VocabApp.applyI18n();
 
-    // Bind events
-    bindLevelSelectorEvents(container);
-  }
-
-  function bindLevelSelectorEvents(container) {
-    // Level chips
-    container.querySelectorAll(".cefr-chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        const level = chip.dataset.level;
-        if (setSelectedCefrLevel(level)) {
-          renderLevelSelector(container); // Re-render
-          if (window.VocabApp?.toast) {
-            const info = getLevelInfo(level);
-            const msg = currentLang() === "th"
-              ? `เปลี่ยนระดับเป็น ${info.level} (${info.label})`
-              : `Level changed to ${info.level} (${info.label})`;
-            window.VocabApp.toast(msg, "ok");
-          }
-        }
-      });
-    });
-
-    // Use placement toggle
-    const toggle = container.querySelector("#cefrUsePlacement");
-    if (toggle) {
-      toggle.addEventListener("change", () => {
-        setUsePlacementLevel(toggle.checked);
-        renderLevelSelector(container);
-      });
-    }
-
-    // Clear selection button
-    const clearBtn = container.querySelector("#cefrClearSelection");
-    if (clearBtn) {
-      clearBtn.addEventListener("click", () => {
-        clearSelectedCefrLevel();
-        renderLevelSelector(container);
-        if (window.VocabApp?.toast) {
-          window.VocabApp.toast(
-            currentLang() === "th" ? "กลับมาใช้ระดับจากแบบทดสอบแล้ว" : "Back to using the placement test level",
-            "ok"
-          );
+    // Bind "take placement test" (only when the user has no result yet)
+    const takeBtnEl = container.querySelector("#cefrTakePlacementSettings");
+    if (takeBtnEl) {
+      takeBtnEl.addEventListener("click", () => {
+        if (window.VocabPlacement?.init) {
+          window.VocabPlacement.init();
+          const placementPanel = document.getElementById("placementTest");
+          if (placementPanel) placementPanel.style.display = "block";
         }
       });
     }
@@ -348,6 +194,7 @@
 
   /**
    * Render the current level badge (for Home view CEFR panel).
+   * The level comes from the placement test only — no manual change button.
    * @param {HTMLElement} container
    */
   function renderCefrBadge(container) {
@@ -355,8 +202,6 @@
 
     const currentLevel = getEffectiveCefrLevel();
     const info = getLevelInfo(currentLevel);
-    const isLoggedIn = window.VocabAuth?.isLoggedIn?.() ?? false;
-    const settings = loadSettings();
     const hasPlacement = window.hasTakenPlacementTest?.() ?? false;
 
     // Progress to next level (from placement test confidence)
@@ -380,7 +225,7 @@
       }
     }
 
-    let html = `
+    container.innerHTML = `
       <div class="cefr-badge-current" style="--lv-color:${info.color}">
         <div class="cefr-badge-main">
           <span class="cefr-badge-level" style="color:${info.color}">${info.level}</span>
@@ -390,145 +235,8 @@
           </div>
         </div>
         ${progressHtml}
-        ${isLoggedIn ? `
-          <button class="btn btn-sm btn-secondary cefr-change-btn" id="cefrChangeBtn" data-i18n="cefr.changeLevel">
-            เปลี่ยนระดับ
-          </button>
-        ` : ""}
       </div>
     `;
-
-    container.innerHTML = html;
-
-    // Bind change button
-    const changeBtn = container.querySelector("#cefrChangeBtn");
-    if (changeBtn) {
-      changeBtn.addEventListener("click", () => {
-        showLevelSelectorModal();
-      });
-    }
-  }
-
-  /**
-   * Show level selector modal (for Home view "Change Level" button).
-   */
-  function showLevelSelectorModal() {
-    // Remove existing modal
-    const existing = document.getElementById("cefrLevelModal");
-    if (existing) existing.remove();
-
-    const currentLevel = getEffectiveCefrLevel();
-    const settings = loadSettings();
-    const isLoggedIn = window.VocabAuth?.isLoggedIn?.() ?? false;
-
-    const modal = document.createElement("div");
-    modal.className = "modal-overlay";
-    modal.id = "cefrLevelModal";
-    modal.setAttribute("role", "dialog");
-    modal.setAttribute("aria-modal", "true");
-    modal.setAttribute("aria-labelledby", "cefrModalTitle");
-
-    let chipsHtml = "";
-    window.CEFR_ORDER.forEach(level => {
-      const info = getLevelInfo(level);
-      const isActive = level === currentLevel;
-      const isSelected = settings.selectedCefrLevel === level;
-
-      chipsHtml += `
-        <button class="cefr-modal-chip ${isActive ? "active" : ""} ${isSelected ? "selected" : ""}"
-                data-level="${level}"
-                ${!isLoggedIn ? "disabled" : ""}>
-          <span class="cefr-modal-chip-level" style="color:${info.color}">${level}</span>
-          <div class="cefr-modal-chip-info">
-            <span class="cefr-modal-chip-name">${info.label}</span>
-            <span class="cefr-modal-chip-count">${wordLabel(info.wordCount)}</span>
-          </div>
-          ${isSelected && isLoggedIn ? '<span class="cefr-modal-chip-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg></span>' : ""}
-        </button>
-      `;
-    });
-
-    modal.innerHTML = `
-      <div class="modal cefr-modal" role="document">
-        <button class="modal-close" id="cefrModalClose" aria-label="Close"><span class="ico" data-icon="close"></span></button>
-        <h2 id="cefrModalTitle"><span class="ico" data-icon="medal"></span> ${currentLang() === "th" ? "เลือกระดับ CEFR" : "Choose your CEFR Level"}</h2>
-        <p class="cefr-modal-hint">${currentLang() === "th" ? "เลือกระดับที่ต้องการฝึก — คำศัพท์จะปรับให้เหมาะกับระดับที่เลือก" : "Pick the level you want to practice — vocabulary adjusts to your chosen level"}</p>
-
-        <div class="cefr-modal-chips" role="radiogroup" aria-label="CEFR Level">
-          ${chipsHtml}
-        </div>
-
-        ${isLoggedIn ? `
-          <div class="cefr-modal-placement">
-            <label class="toggle-label">
-              <input type="checkbox" id="cefrModalUsePlacement" ${settings.usePlacementLevel ? "checked" : ""} />
-              <span class="toggle-slider"></span>
-              <span>${currentLang() === "th" ? "ใช้ระดับจากแบบทดสอบอัตโนมัติ" : "Use placement test level automatically"} (${hasPlacement ? (currentLang() === "th" ? "มีผลทดสอบ" : "test taken") : (currentLang() === "th" ? "ยังไม่มีผลทดสอบ" : "no test yet")})</span>
-            </label>
-          </div>
-        ` : `
-          <div class="cefr-modal-guest">
-            <p><span class="ico" data-icon="lock"></span> ${currentLang() === "th" ? "เข้าสู่ระบบเพื่อเลือกระดับเองได้" : "Log in to choose your own level"}</p>
-            <p class="hint">${currentLang() === "th" ? "ตอนนี้ใช้ระดับจากแบบทดสอบ:" : "Currently using the placement test level:"} <strong>${currentLevel}</strong></p>
-          </div>
-        `}
-
-        <div class="cefr-modal-actions">
-          <button class="btn btn-primary" id="cefrModalDone" data-i18n="settings.close">ปิด</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    // Inject icons
-    modal.querySelectorAll("[data-icon]").forEach(n => {
-      const ICONS = window.VOCAB_ICONS || {};
-      n.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n.dataset.icon] || "") + "</svg>";
-    });
-
-    // Bind events
-    modal.querySelector("#cefrModalClose")?.addEventListener("click", () => closeModal(modal));
-    modal.querySelector("#cefrModalDone")?.addEventListener("click", () => closeModal(modal));
-    modal.addEventListener("click", e => { if (e.target === modal) closeModal(modal); });
-
-    modal.querySelectorAll(".cefr-modal-chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        const level = chip.dataset.level;
-        if (setSelectedCefrLevel(level)) {
-          // Update UI
-          modal.querySelectorAll(".cefr-modal-chip").forEach(c => {
-            c.classList.toggle("selected", c.dataset.level === level);
-            c.classList.toggle("active", c.dataset.level === getEffectiveCefrLevel());
-          });
-          if (window.VocabApp?.toast) {
-            const info = getLevelInfo(level);
-            const msg = currentLang() === "th"
-              ? `เปลี่ยนระดับเป็น ${info.level} (${info.label})`
-              : `Level changed to ${info.level} (${info.label})`;
-            window.VocabApp.toast(msg, "ok");
-          }
-        }
-      });
-    });
-
-    const toggle = modal.querySelector("#cefrModalUsePlacement");
-    if (toggle) {
-      toggle.addEventListener("change", () => {
-        setUsePlacementLevel(toggle.checked);
-        // Re-render badge on home
-        const badgeContainer = document.getElementById("cefrCurrentBadge");
-        if (badgeContainer) renderCefrBadge(badgeContainer);
-      });
-    }
-
-    // Animate in
-    requestAnimationFrame(() => modal.classList.add("show"));
-  }
-
-  function closeModal(modal) {
-    modal.classList.remove("show");
-    setTimeout(() => modal.remove(), 250);
   }
 
   /**
@@ -596,8 +304,6 @@
     try {
       const effectiveLevel = getEffectiveCefrLevel();
       const hasPlacement = window.hasTakenPlacementTest?.() ?? false;
-      const isLoggedIn = window.VocabAuth?.isLoggedIn?.() ?? false;
-      const settings = loadSettings();
 
       // Store globally for games to access
       window.CURRENT_CEFR_LEVEL = effectiveLevel;
@@ -620,9 +326,9 @@
       const promptContainer = document.getElementById("placementPrompt");
       if (promptContainer) renderPlacementPrompt(promptContainer);
 
-      // Hide placement test panel if user has level (placement or selected)
+      // Hide placement test panel once the user has a placement result
       const placementPanel = document.getElementById("placementTest");
-      if (placementPanel && (hasPlacement || settings.selectedCefrLevel)) {
+      if (placementPanel && hasPlacement) {
         placementPanel.style.display = "none";
       }
 
@@ -719,8 +425,7 @@
     initCefrSystem();
     // If logged in but no placement and no manual selection → show prompt
     const hasPlacement = window.hasTakenPlacementTest?.() ?? false;
-    const settings = loadSettings();
-    if (!hasPlacement && !settings.selectedCefrLevel) {
+    if (!hasPlacement) {
       const promptContainer = document.getElementById("placementPrompt");
       if (promptContainer) renderPlacementPrompt(promptContainer);
     }
@@ -745,23 +450,15 @@
     getLevelWordCount,
     getLevelInfo,
 
-    // Settings
-    setSelectedCefrLevel,
-    setUsePlacementLevel,
-    clearSelectedCefrLevel,
-    setSelectedCefrLevelExposed: setSelectedCefrLevel,
-
     // UI
     renderLevelSelector,
     renderCefrBadge,
-    showLevelSelectorModal,
     renderPlacementPrompt,
 
     // Lifecycle
     initCefrSystem,
     onCefrLevelChange,
     onLogin,
-    onLogout,
-    setSelectedCefrLevelExposed: setSelectedCefrLevel
+    onLogout
   };
 })();

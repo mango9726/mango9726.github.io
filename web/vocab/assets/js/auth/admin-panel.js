@@ -56,7 +56,6 @@
     try { alert(msg); } catch (e) {}
   }
 
-  var abbr = { A1: "A1", A2: "A2", B1: "B1", B2: "B2", C1: "C1", C2: "C2" };
   var LEVEL_NAMES = { A1: "Beginner", A2: "Elementary", B1: "Intermediate", B2: "Upper-Intermediate", C1: "Advanced", C2: "Expert" };
 
   /* ---------- state ---------- */
@@ -173,61 +172,15 @@
   function tabLevel() {
     const lvl = (app().currentCefrLevel ? app().currentCefrLevel() : "A1") || "A1";
     const name = LEVEL_NAMES[lvl] || lvl;
-    const chips = Object.keys(abbr).map(function (l) {
-      return '<button class="admin-chip' + (l === lvl ? " active" : "") + '" data-lvl="' + l + '">' + l + '<span class="admin-chip-name">' + LEVEL_NAMES[l] + "</span></button>";
-    }).join("");
     return (
       '<div class="admin-sec">' +
-        '<div class="admin-sec-title">' + svgIcon("award") + " " + esc(txt("admin.levelTitle", "เปลี่ยนระดับตัวเอง (CEFR)", "Change your CEFR level")) + "</div>" +
-        '<div class="admin-chip-grid" id="adminLvlChips">' + chips + "</div>" +
-        '<p class="admin-hint">' + esc(txt("admin.levelHint", "ระดับปัจจุบัน: " + lvl + " – " + name + "  · กดเพื่อสลับ ระบบจะโหลดคำศัพท์ทั้งระดับใหม่ทันที", "Current: " + lvl + " (" + name + "). Click a level to switch immediately — the word pool reloads.")) + "</p>" +
-        '<div class="admin-actions">' +
-          '<button class="btn btn-primary" id="adminLvlApply" style="width:100%;">' + svgIcon("check") + " " + esc(txt("admin.lvlApply", "ใช้ระดับนี้ทันที", "Apply this level")) + "</button>" +
-          (lvl && lvl !== "A1" ? '<button class="btn" id="adminLvlClear" style="width:100%;">' + svgIcon("refresh") + " " + esc(txt("admin.lvlClear", "กลับไปใช้ระดับจากแบบวัด (Placement)", "Revert to placement-test level")) + "</button>" : "") +
-        "</div>" +
+        '<div class="admin-sec-title">' + svgIcon("award") + " " + esc(txt("admin.levelTitle", "ระดับ CEFR", "Current CEFR level")) + "</div>" +
+        '<p class="admin-hint">' + esc(txt("admin.levelHint", "ระดับปัจจุบัน: " + lvl + " – " + name + ". ระดับมาจากแบบทดสอบวัดระดับ (Placement Test) เท่านั้น — เปลี่ยนระดับได้ด้วยการทำแบบทดสอบใหม่", "Current level: " + lvl + " (" + name + "). The level comes only from the Placement Test — retake it to change.")) + "</p>" +
       "</div>"
     );
   }
   function wireTabLevel() {
-    let sel = null;
-    const box = $("adminLvlChips");
-    if (!box) return;
-    box.querySelectorAll(".admin-chip").forEach(function (b) {
-      b.onclick = function () {
-        sel = b.dataset.lvl;
-        box.querySelectorAll(".admin-chip").forEach(function (x) { x.classList.toggle("active", x === b); });
-      };
-    });
-    const apply = $("adminLvlApply");
-    if (apply) apply.onclick = function () {
-      const lvl = sel || (box.querySelector(".admin-chip.active") || {}).dataset.lvl;
-      if (!lvl) return;
-      try {
-        if (window.CefrSelector && window.CefrSelector.setSelectedCefrLevelExposed) window.CefrSelector.setSelectedCefrLevelExposed(lvl);
-        else if (window.CefrSelector && window.CefrSelector.setSelectedCefrLevel) window.CefrSelector.setSelectedCefrLevel(lvl);
-        if (app().onCefrLevelChange) {
-          const s = store().load(K_SETTINGS, {}) || {};
-          s.selectedCefrLevel = lvl;
-          store().save(K_SETTINGS, s);
-          app().onCefrLevelChange(lvl);
-        }
-        if (app().refreshViews) app().refreshViews();
-      } catch (e) { console.warn("[admin] set level:", e); }
-      toast(txt("admin.levelOk", "เปลี่ยนระดับเป็น " + lvl + " เรียบร้อย!", "Level set to " + lvl + "!"), "ok", "award");
-      close();
-    };
-    const clr = $("adminLvlClear");
-    if (clr) clr.onclick = function () {
-      try {
-        const s = store().load(K_SETTINGS, {}) || {};
-        s.selectedCefrLevel = null;
-        store().save(K_SETTINGS, s);
-        if (window.CefrSelector && window.CefrSelector.clearSelectedCefrLevel) window.CefrSelector.clearSelectedCefrLevel();
-        if (app().refreshViews) app().refreshViews();
-      } catch (e) {}
-      toast(txt("admin.levelRevert", "กลับไปใช้ระดับจากแบบวัดแล้ว", "Reverted to placement-test level"), "ok", "refresh");
-      close();
-    };
+    // No manual level switching anymore — the level comes from the placement test only.
   }
 
   /* ---------- Player tab ---------- */

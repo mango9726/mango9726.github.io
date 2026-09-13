@@ -2531,7 +2531,7 @@ function save(key, val) {
      ============================================================ */
   const GAME_KEYS = ["cards", "quiz", "pron", "fill", "match", "tf", "hang", "build", "cloze", "listen"];
   const GAME_SOURCE_LEVELS = [["current", "src.current"], ["all", "src.allLevels"], ["A1", "A1"], ["A2", "A2"], ["B1", "B1"], ["B2", "B2"], ["C1", "C1"], ["C2", "C2"]];
-  const GAME_SOURCE_PRESETS = [["all", "src.allDays"], ["day1", "src.day1"], ["week", "src.week"], ["month", "src.month"], ["custom", "src.custom"]];
+  const GAME_SOURCE_PRESETS = [["all", "src.allDays"], ["today", "src.currentDay"], ["day1", "src.day1"], ["week", "src.week"], ["month", "src.month"], ["custom", "src.custom"]];
   function gameSourceDefault() { return { level: "current", preset: "all", from: 1, to: 60 }; }
   function getGameSource(gameKey) {
     const def = gameSourceDefault();
@@ -2547,6 +2547,16 @@ function save(key, val) {
     // ทุกระดับ (A1–C2) มี 60 วัน; "all" ครอบคลุมทั้งหลักสูตร 360 วัน
     if (level === "all") return 360;
     return 60;
+  }
+  function gameSourceCurrentDay(level) {
+    // วันปัจจุบันของผู้ใช้ (ในระดับที่กำลังเรียนอยู่) — ใช้เป็นวัน "today" ของเกม
+    const local = clamp(Number(currentPlanDay()) || 1, 1, 60);
+    if (level === "all") {
+      const curLv = currentCefrLevel();
+      const start = (window.CEFR_START_DAY && window.CEFR_START_DAY[curLv]) || 1;
+      return clamp(start + local - 1, 1, 360);
+    }
+    return local;
   }
   function gameSourceBase(level) {
     if (level === "current") return ITEMS;
@@ -2584,7 +2594,8 @@ function save(key, val) {
     const preset = chipValue($("srcDays-" + gameKey)) || "all";
     const max = gameSourceMaxDay(level);
     let from = 1, to = max;
-    if (preset === "day1") { from = 1; to = 1; }
+    if (preset === "today") { from = to = gameSourceCurrentDay(level); }
+    else if (preset === "day1") { from = 1; to = 1; }
     else if (preset === "week") { from = 1; to = Math.min(7, max); }
     else if (preset === "month") { from = 1; to = Math.min(30, max); }
     else if (preset === "custom") {
@@ -4644,7 +4655,6 @@ let quizQueue = [], quizIdx = 0, quizScore = 0, quizMode = "meaning";
     const fb = $("fillFeedback"); fb.className = "fill-feedback hidden"; fb.textContent = "";
     if (fillAuto) { clearTimeout(fillAuto); fillAuto = null; }
     $("fillNext").classList.add("hidden");
-    $("fillRetry").classList.add("hidden");
     $("fillCheck").disabled = false; $("fillSkip").disabled = false;
 $("fillSkip").classList.remove("hidden");
     inp.focus();
@@ -4681,12 +4691,7 @@ $("fillSkip").classList.remove("hidden");
       fillAuto = setTimeout(nextFill, 700);
     } else {
       $("fillNext").classList.remove("hidden");
-      $("fillRetry").classList.remove("hidden");
     }
-  }
-
-  function retryFill() {
-    showFill();
   }
 
   function skipFill() {
@@ -5956,7 +5961,6 @@ $("fillSkip").classList.remove("hidden");
     $("startFill").onclick = startFill;
     $("fillCheck").onclick = checkFill;
     $("fillSkip").onclick = skipFill;
-    $("fillRetry").onclick = retryFill;
     $("fillNext").onclick = nextFill;
 
     $("startMatch").onclick = startMatch;
@@ -6615,13 +6619,17 @@ $("fillSkip").classList.remove("hidden");
     };
     add(IRREGULAR_WORD_BASES[word]);
     if (word.endsWith("ies")) add(word.slice(0, -3) + "y");
-    if (word.endsWith("ves")) add(word.slice(0, -3) + "f");
+    if (word.endsWith("ves")) { add(word.slice(0, -3) + "f"); add(word.slice(0, -3) + "fe"); }
     if (word.endsWith("es")) add(word.slice(0, -2));
     if (word.endsWith("s")) add(word.slice(0, -1));
     if (word.endsWith("ied")) add(word.slice(0, -3) + "y");
     if (word.endsWith("ed")) { add(word.slice(0, -2)); add(word.slice(0, -1)); }
     if (word.endsWith("ing")) { add(word.slice(0, -3)); add(word.slice(0, -3) + "e"); }
     if (word.endsWith("ly")) add(word.slice(0, -2));
+    if (word.endsWith("nt") && word.length > 4) add(word.slice(0, -2));
+    if (word.endsWith("ll") && word.length > 4) add(word.slice(0, -2));
+    if (word.endsWith("re") && word.length > 4) add(word.slice(0, -2));
+    if (word.endsWith("ve") && word.length > 4) add(word.slice(0, -2));
     return forms;
   }
 
@@ -6635,6 +6643,8 @@ $("fillSkip").classList.remove("hidden");
         const found = list.find(function (item) { return item.word && item.word.toLowerCase() === forms[f]; });
         if (found) return found;
       }
+      const flat = (window.TH_DICT && window.TH_DICT[forms[f]]) || (window.VOCAB_TH_EXTRA && window.VOCAB_TH_EXTRA[forms[f]]);
+      if (flat) return { th: flat, pos: guessPartOfSpeech(forms[f]), phonetic: "" };
     }
     return null;
   }

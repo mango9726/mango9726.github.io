@@ -1554,12 +1554,7 @@
     if (!user) return;
     closeProfileModal(true);
 
-    const firebaseOn = isFirebaseMode();
     const staticMode = isStaticMode();
-    let syncLabel;
-    if (firebaseOn) syncLabel = t("auth.syncFirebase");
-    else if (staticMode) syncLabel = t("auth.syncLocal");
-    else syncLabel = t("auth.syncAuto");
 
     const providerLabel = user.provider === "email" || user.provider === "password" ? "Email" : (user.provider ? user.provider : "—");
 
@@ -1619,17 +1614,11 @@
                 <span class="profile-label"><span class="ico" data-icon="status"></span> ${esc(t("auth.status"))}</span>
                 <span class="profile-value profile-status"><span class="ico" data-icon="status"></span> ออนไลน์</span>
               </div>
-              <div class="profile-row">
-                <span class="profile-label"><span class="ico" data-icon="sync"></span> ${esc(t("auth.sync"))}</span>
-                <span class="profile-value">${esc(syncLabel)}</span>
-              </div>
             </div>
             <div class="profile-account">
               <div class="profile-account-title"><span class="ico" data-icon="lock"></span> ${esc(t("auth.account"))}</div>
               <button class="btn btn-sm" id="profileChangePassword">${esc(t("auth.changePassword"))}</button>
               ${staticMode ? '<button class="btn btn-sm" id="profileChangeUsername">' + esc(t("auth.changeUsername")) + '</button>' : ""}
-              ${firebaseOn || !staticMode ? '<button class="btn btn-sm" id="profileChangeEmail">' + esc(t("auth.changeEmail")) + '</button>' : ""}
-              ${firebaseOn ? '<button class="btn btn-sm" id="profileVerifyEmail">' + esc(t("auth.verifyEmail")) + '</button>' : ""}
             </div>
             ${user.username === "mango9726" ? `
             <div class="profile-account" style="border-color:#a855f7;background:rgba(168,85,247,0.05);margin-top:12px;">
@@ -1771,31 +1760,6 @@
           await changeUsername(nu);
           if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.usernameChanged"), "ok", "check");
           updateSidebarAuthBtn();
-        } catch (e) {
-          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(e.message || "เกิดข้อผิดพลาด", "err", "alert");
-        }
-      };
-    }
-    const emBtn = overlay.querySelector("#profileChangeEmail");
-    if (emBtn) {
-      emBtn.onclick = async function () {
-        closeProfileModal();
-        try {
-          const ne = await showPromptModal(t("auth.changeEmail"), t("auth.newEmail"), "name@example.com", t("auth.continue"), "email");
-          if (!ne) return;
-          await changeEmail(ne);
-          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.emailChanged"), "ok", "check");
-        } catch (e) {
-          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(e.message || "เกิดข้อผิดพลาด", "err", "alert");
-        }
-      };
-    }
-    const veBtn = overlay.querySelector("#profileVerifyEmail");
-    if (veBtn) {
-      veBtn.onclick = async function () {
-        try {
-          await verifyEmail();
-          if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(t("auth.verifyEmailSent"), "ok", "check");
         } catch (e) {
           if (window.VocabApp && window.VocabApp.toast) window.VocabApp.toast(e.message || "เกิดข้อผิดพลาด", "err", "alert");
         }
